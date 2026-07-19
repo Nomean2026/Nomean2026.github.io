@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nomean · 项目门户</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌀</text></svg>">
+  <style>
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    /* ── 亮色主题 ── */
+    [data-theme="light"] {
+      --bg: #f5f5f7;
+      --surface: #ffffff;
+      --surface-hover: #f0f0f2;
+      --border: rgba(0, 0, 0, 0.08);
+      --text: #1d1d1f;
+      --text-dim: #86868b;
+      --accent: #5b4cdb;
+      --accent-subtle: rgba(91, 76, 219, 0.10);
+      --accent-glow: rgba(91, 76, 219, 0.18);
+      --cyan: #0096cc;
+      --card-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+      --card-shadow-hover: 0 12px 40px rgba(0, 0, 0, 0.10);
+      --grid-line: rgba(0, 0, 0, 0.04);
+      --glow1: rgba(91, 76, 219, 0.08);
+      --glow2: rgba(0, 150, 204, 0.07);
+      --badge-bg: rgba(0, 150, 204, 0.10);
+      --badge-text: #0096cc;
+      --avatar-bg: linear-gradient(135deg, #5b4cdb, #0096cc);
+      --heading-grad: linear-gradient(135deg, #1d1d1f 40%, #0096cc);
+      --icon-bg: rgba(91, 76, 219, 0.12);
+      --arrow-bg: rgba(0, 0, 0, 0.05);
+      --skeleton-bg: #e8e8ed;
+      --err-bg: rgba(255, 59, 48, 0.08);
+      --err-border: rgba(255, 59, 48, 0.18);
+      --err-text: #d63031;
+      --footer-border: rgba(0, 0, 0, 0.08);
+      --toggle-bg: #e8e8ed;
+      --toggle-dot: #fff;
+    }
+
+    /* ── 暗色主题 ── */
+    [data-theme="dark"] {
+      --bg: #0a0a0f;
+      --surface: rgba(255, 255, 255, 0.04);
+      --surface-hover: rgba(255, 255, 255, 0.08);
+      --border: rgba(255, 255, 255, 0.06);
+      --text: #e8e8ed;
+      --text-dim: #8888a0;
+      --accent: #6c5ce7;
+      --accent-subtle: rgba(108, 92, 231, 0.10);
+      --accent-glow: rgba(108, 92, 231, 0.3);
+      --cyan: #00d4ff;
+      --card-shadow: none;
+      --card-shadow-hover: 0 12px 40px rgba(0, 0, 0, 0.3);
+      --grid-line: rgba(255, 255, 255, 0.02);
+      --glow1: rgba(108, 92, 231, 0.12);
+      --glow2: rgba(0, 212, 255, 0.10);
+      --badge-bg: rgba(0, 212, 255, 0.12);
+      --badge-text: #00d4ff;
+      --avatar-bg: linear-gradient(135deg, #6c5ce7, #00d4ff);
+      --heading-grad: linear-gradient(135deg, #fff 40%, #00d4ff);
+      --icon-bg: rgba(108, 92, 231, 0.15);
+      --arrow-bg: rgba(255, 255, 255, 0.04);
+      --skeleton-bg: rgba(255, 255, 255, 0.04);
+      --err-bg: rgba(255, 71, 87, 0.1);
+      --err-border: rgba(255, 71, 87, 0.2);
+      --err-text: #ff6b7a;
+      --footer-border: rgba(255, 255, 255, 0.06);
+      --toggle-bg: #333;
+      --toggle-dot: #fff;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+      transition: background 0.35s ease, color 0.35s ease;
+    }
+
+    /* ── ambient grid ── */
+    .bg-grid {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      background-image:
+        linear-gradient(var(--grid-line) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+      background-size: 60px 60px;
+    }
+
+    .bg-glow {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .bg-glow::before {
+      content: '';
+      position: absolute;
+      top: -20%;
+      left: -10%;
+      width: 60%;
+      height: 60%;
+      background: radial-gradient(ellipse, var(--glow1) 0%, transparent 70%);
+    }
+    .bg-glow::after {
+      content: '';
+      position: absolute;
+      bottom: -20%;
+      right: -10%;
+      width: 60%;
+      height: 60%;
+      background: radial-gradient(ellipse, var(--glow2) 0%, transparent 70%);
+    }
+
+    /* ── layout ── */
+    .app {
+      position: relative;
+      z-index: 1;
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 48px 24px 80px;
+    }
+
+    /* ── theme toggle ── */
+    .theme-toggle-wrap {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 8px;
+    }
+
+    .theme-toggle {
+      position: relative;
+      width: 52px;
+      height: 28px;
+      background: var(--toggle-bg);
+      border-radius: 14px;
+      cursor: pointer;
+      transition: background 0.3s;
+      border: none;
+      outline: none;
+      flex-shrink: 0;
+    }
+
+    .theme-toggle .dot {
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--toggle-dot);
+      transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+    }
+
+    [data-theme="dark"] .theme-toggle .dot {
+      transform: translateX(24px);
+    }
+
+    .theme-toggle .sun-moon {
+      transition: opacity 0.25s;
+    }
+
+    /* ── header ── */
+    header {
+      text-align: center;
+      margin-bottom: 56px;
+      padding-top: 16px;
+    }
+
+    .avatar {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: var(--avatar-bg);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 16px;
+      box-shadow: 0 0 40px var(--accent-glow);
+      transition: box-shadow 0.3s;
+    }
+
+    header h1 {
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+      background: var(--heading-grad);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    header p {
+      color: var(--text-dim);
+      font-size: 15px;
+      margin-top: 8px;
+      line-height: 1.5;
+    }
+
+    /* ── stats bar ── */
+    .stats {
+      display: flex;
+      justify-content: center;
+      gap: 32px;
+      margin-top: 24px;
+      flex-wrap: wrap;
+    }
+
+    .stat-item {
+      text-align: center;
+    }
+
+    .stat-item .num {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .stat-item .label {
+      font-size: 12px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-top: 2px;
+    }
+
+    /* ── section title ── */
+    .section-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .section-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* ── repo grid ── */
+    .repo-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+      margin-bottom: 48px;
+    }
+
+    .repo-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius, 16px);
+      padding: 20px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      box-shadow: var(--card-shadow);
+    }
+
+    .repo-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, transparent 60%, var(--accent-subtle));
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .repo-card:hover {
+      background: var(--surface-hover);
+      border-color: var(--accent-subtle);
+      transform: translateY(-4px);
+      box-shadow: var(--card-shadow-hover);
+    }
+
+    .repo-card:hover::before {
+      opacity: 1;
+    }
+
+    .repo-card .card-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .repo-card .repo-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      background: var(--icon-bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .repo-card .badge {
+      font-size: 11px;
+      padding: 2px 10px;
+      border-radius: 100px;
+      background: var(--badge-bg);
+      color: var(--badge-text);
+      font-weight: 500;
+      letter-spacing: 0.3px;
+    }
+
+    .repo-card .repo-name {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .repo-card .repo-desc {
+      font-size: 13px;
+      color: var(--text-dim);
+      line-height: 1.5;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .repo-card .card-footer {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-top: 14px;
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+
+    .repo-card .card-footer span {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .repo-card .arrow {
+      position: absolute;
+      bottom: 16px;
+      right: 16px;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--arrow-bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s;
+      font-size: 14px;
+      color: var(--text-dim);
+    }
+
+    .repo-card:hover .arrow {
+      background: var(--accent);
+      color: #fff;
+      transform: translateX(2px);
+    }
+
+    /* ── empty state ── */
+    .empty-state {
+      text-align: center;
+      padding: 64px 24px;
+      color: var(--text-dim);
+    }
+
+    .empty-state .emoji {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+
+    .empty-state p {
+      font-size: 15px;
+    }
+
+    /* ── loading skeleton ── */
+    .skeleton {
+      background: var(--skeleton-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius, 16px);
+      padding: 20px;
+      height: 140px;
+      animation: shimmer 1.5s infinite;
+    }
+
+    @keyframes shimmer {
+      0% { opacity: 0.4; }
+      50% { opacity: 0.7; }
+      100% { opacity: 0.4; }
+    }
+
+    /* ── error state ── */
+    .error-banner {
+      background: var(--err-bg);
+      border: 1px solid var(--err-border);
+      border-radius: var(--radius, 16px);
+      padding: 16px 20px;
+      color: var(--err-text);
+      font-size: 14px;
+      margin-bottom: 24px;
+      display: none;
+    }
+
+    .error-banner.show {
+      display: block;
+    }
+
+    /* ── footer ── */
+    footer {
+      text-align: center;
+      color: var(--text-dim);
+      font-size: 13px;
+      padding-top: 40px;
+      border-top: 1px solid var(--border);
+      margin-top: 16px;
+    }
+
+    footer a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+
+    /* ── responsive ── */
+    @media (max-width: 640px) {
+      .app { padding: 24px 16px 64px; }
+      header h1 { font-size: 24px; }
+      .stats { gap: 20px; }
+      .repo-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-grid"></div>
+  <div class="bg-glow"></div>
+
+  <div class="app">
+    <div class="theme-toggle-wrap">
+      <button class="theme-toggle" id="themeToggle" aria-label="切换主题">
+        <span class="dot" id="themeDot">☀️</span>
+      </button>
+    </div>
+
+    <header>
+      <div class="avatar">N</div>
+      <h1>Nomean · 项目门户</h1>
+      <p>从零搭建 · 持续进化 · 一切皆可习得</p>
+      <div class="stats" id="stats">
+        <div class="stat-item">
+          <div class="num" id="repoCount">—</div>
+          <div class="label">项目</div>
+        </div>
+        <div class="stat-item">
+          <div class="num" id="starCount">—</div>
+          <div class="label">Stars</div>
+        </div>
+        <div class="stat-item">
+          <div class="num" id="updatedCount">—</div>
+          <div class="label">更新</div>
+        </div>
+      </div>
+    </header>
+
+    <div class="error-banner" id="errorBanner">
+      ⚠️ <span id="errorMsg">加载失败</span> · <a href="javascript:void(0)" onclick="location.reload()" style="color:inherit;text-decoration:underline">重试</a>
+    </div>
+
+    <div class="section-title">GitHub Pages</div>
+
+    <div class="repo-grid" id="repoGrid"></div>
+
+    <footer>
+      <a href="https://github.com/Nomean2026" target="_blank" rel="noopener">Nomean2026</a> ·
+      <span id="footerYear"></span>
+    </footer>
+  </div>
+
+  <script>
+    // ─── Config ────────────────────────────────────────────────
+    const USERNAME = 'Nomean2026';
+
+    // ─── Theme ─────────────────────────────────────────────────
+    const THEME_KEY = 'nomean-portal-theme';
+
+    function getPreferredTheme() {
+      const saved = localStorage.getItem(THEME_KEY);
+      if (saved === 'light' || saved === 'dark') return saved;
+      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+
+    function applyTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      const dot = document.getElementById('themeDot');
+      dot.textContent = theme === 'dark' ? '🌙' : '☀️';
+      localStorage.setItem(THEME_KEY, theme);
+    }
+
+    function toggleTheme() {
+      const current = document.documentElement.getAttribute('data-theme');
+      applyTheme(current === 'dark' ? 'light' : 'dark');
+    }
+
+    document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+    applyTheme(getPreferredTheme());
+
+    // ─── DOM refs ──────────────────────────────────────────────
+    const grid     = document.getElementById('repoGrid');
+    const errB     = document.getElementById('errorBanner');
+    const errMsg   = document.getElementById('errorMsg');
+    const repoStat = document.getElementById('repoCount');
+    const starStat = document.getElementById('starCount');
+    const updStat  = document.getElementById('updatedCount');
+
+    document.getElementById('footerYear').textContent = new Date().getFullYear();
+
+    // ─── icon / badge helpers ─────────────────────────────────
+    function getRepoIcon(name, lang) {
+      const map = {
+        minimindTutorials: '🧠',
+        RLHF:              '🤖',
+        test:              '🧪',
+        'personal-thought-construction': '📝',
+      };
+      if (map[name]) return map[name];
+      // fallback by language
+      const langMap = {
+        Python:  '🐍', JavaScript: '🟨', TypeScript: '🔷',
+        HTML:    '🌐', CSS: '🎨', Rust: '🦀', Go: '🐹',
+        Java:    '☕', C: '⚙️', 'C++': '⚙️', Ruby: '💎',
+        Shell:   '🐚', Dockerfile: '🐳', Swift: '🍎', Kotlin: '🟣',
+      };
+      return langMap[lang] || '📦';
+    }
+
+    function getBadge(repo) {
+      const name = repo.name || '';
+      if (name === 'minimindTutorials' || name === 'RLHF') return 'Featured';
+      if (repo.stargazers_count > 10) return '⭐ Popular';
+      return '';
+    }
+
+    // ─── render cards ─────────────────────────────────────────
+    function renderCards(repos) {
+      if (!repos || repos.length === 0) {
+        grid.innerHTML = `
+          <div class="empty-state" style="grid-column:1/-1">
+            <div class="emoji">🔭</div>
+            <p>暂无已部署的 GitHub Pages 项目</p>
+            <p style="font-size:13px;margin-top:8px">创建新仓库并在 Settings → Pages 中启用后，刷新本页即可发现</p>
+          </div>`;
+        return;
+      }
+
+      const sorted = [...repos].sort((a, b) => {
+        const featured = n => (n === 'minimindTutorials' || n === 'RLHF' ? 0 : 1);
+        const fa = featured(a.name), fb = featured(b.name);
+        if (fa !== fb) return fa - fb;
+        return (b.stargazers_count || 0) - (a.stargazers_count || 0);
+      });
+
+      grid.innerHTML = sorted.map(r => {
+        const url = `https://${USERNAME.toLowerCase()}.github.io/${r.name}/`;
+        const desc = r.description || 'No description';
+        const icon = getRepoIcon(r.name, r.language);
+        const badge = getBadge(r);
+        const updated = r.updated_at ? new Date(r.updated_at).toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' }) : '';
+        const stars = r.stargazers_count != null ? r.stargazers_count : 0;
+        const lang = r.language || '';
+
+        return `
+          <div class="repo-card" onclick="window.open('${url}','_blank')" title="打开 ${r.name}">
+            <div class="card-top">
+              <div class="repo-icon">${icon}</div>
+              ${badge ? `<span class="badge">${badge}</span>` : ''}
+            </div>
+            <div class="repo-name">${r.name}</div>
+            <div class="repo-desc">${desc}</div>
+            <div class="card-footer">
+              ${lang ? `<span>🔵 ${lang}</span>` : ''}
+              <span>⭐ ${stars}</span>
+              ${updated ? `<span>🕐 ${updated}</span>` : ''}
+            </div>
+            <div class="arrow">→</div>
+          </div>`;
+      }).join('');
+    }
+
+    // ─── show skeletons ───────────────────────────────────────
+    function showSkeletons(count = 4) {
+      grid.innerHTML = Array.from({ length: count }, () =>
+        '<div class="skeleton"></div>'
+      ).join('');
+    }
+
+    // ─── show error ────────────────────────────────────────────
+    function showError(msg) {
+      errMsg.textContent = msg;
+      errB.classList.add('show');
+    }
+
+    // ─── fetch all repos from GitHub API ──────────────────────
+    async function fetchAllRepos() {
+      const perPage = 100;
+      let page = 1;
+      let all = [];
+
+      while (true) {
+        const res = await fetch(
+          `https://api.github.com/users/${USERNAME}/repos?per_page=${perPage}&page=${page}&sort=updated&direction=desc`
+        );
+        if (!res.ok) throw new Error(`GitHub API ${res.status}`);
+        const data = await res.json();
+        if (!data || data.length === 0) break;
+        all = all.concat(data);
+        if (data.length < perPage) break;
+        page++;
+      }
+      return all;
+    }
+
+    // ─── check if a repo has GitHub Pages enabled ────────────
+    // We probe the Pages API endpoint; if it returns 200, Pages is ON.
+    async function checkPageEnabled(repoName) {
+      try {
+        const res = await fetch(
+          `https://api.github.com/repos/${USERNAME}/${repoName}/pages`,
+          { signal: AbortSignal.timeout(4000) }
+        );
+        return res.ok;
+      } catch {
+        return false;
+      }
+    }
+
+    // ─── auto-discover which repos have Pages ────────────────
+    // We check all repos in parallel, with a concurrency limit.
+    async function discoverPagesRepos(allRepos) {
+      // Filter out forks and very old repos first to reduce probes
+      const candidates = allRepos.filter(r => !r.fork);
+
+      const results = [];
+      const CONCURRENCY = 6;
+      for (let i = 0; i < candidates.length; i += CONCURRENCY) {
+        const batch = candidates.slice(i, i + CONCURRENCY);
+        const checks = await Promise.allSettled(
+          batch.map(r => checkPageEnabled(r.name).then(enabled => ({ repo: r, enabled })))
+        );
+        for (const c of checks) {
+          if (c.status === 'fulfilled' && c.value.enabled) {
+            results.push(c.value.repo);
+          }
+        }
+      }
+      return results;
+    }
+
+    // ─── refresh hint ─────────────────────────────────────────
+    function addRefreshHint() {
+      const existing = document.getElementById('refreshHint');
+      if (existing) return;
+      const hint = document.createElement('div');
+      hint.id = 'refreshHint';
+      hint.style.cssText = `
+        text-align: center;
+        margin-top: -32px;
+        margin-bottom: 32px;
+        font-size: 13px;
+        color: var(--text-dim);
+      `;
+      hint.innerHTML = '🔄 新增 Pages 仓库后 <a href="javascript:location.reload()" style="color:var(--accent);text-decoration:underline">刷新页面</a> 即可自动发现';
+      const section = document.querySelector('.section-title');
+      if (section && section.parentNode) {
+        section.parentNode.insertBefore(hint, section.nextSibling);
+      }
+    }
+
+    // ─── main ──────────────────────────────────────────────────
+    async function main() {
+      showSkeletons(4);
+
+      try {
+        const allRepos = await fetchAllRepos();
+
+        // Auto-discover which repos have Pages enabled
+        const pagesRepos = await discoverPagesRepos(allRepos);
+
+        if (pagesRepos.length === 0) {
+          // Fallback: known repos for demo / offline
+          renderCards([
+            { name: 'minimindTutorials', description: 'MiniMind 大模型训练教程 — 从零搭建你的第一个 Transformer 模型' },
+            { name: 'RLHF', description: 'RLHF 从理论到实践 — 强化学习与人类反馈对齐' },
+            { name: 'test', description: '日常测试与实验场' },
+            { name: 'personal-thought-construction', description: '个人思考构建 — 思维笔记与成长记录' },
+          ]);
+          repoStat.textContent = '4';
+          starStat.textContent = '—';
+          updStat.textContent  = '—';
+          showError('未能自动探测 Pages，显示备用列表');
+          return;
+        }
+
+        // Stats
+        repoStat.textContent = pagesRepos.length;
+        let totalStars = 0;
+        pagesRepos.forEach(r => { totalStars += r.stargazers_count || 0; });
+        starStat.textContent = totalStars;
+
+        const recent = [...pagesRepos].sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
+        updStat.textContent = recent.length > 0
+          ? new Date(recent[0].updated_at).toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' })
+          : '—';
+
+        renderCards(pagesRepos);
+        addRefreshHint();
+
+      } catch (err) {
+        console.warn('Auto-discover failed, using static data:', err);
+        showError('无法连接 GitHub API，显示缓存数据');
+
+        const fallback = [
+          { name: 'minimindTutorials', description: 'MiniMind 大模型训练教程 — 从零搭建你的第一个 Transformer 模型' },
+          { name: 'RLHF', description: 'RLHF 从理论到实践 — 强化学习与人类反馈对齐' },
+          { name: 'test', description: '日常测试与实验场' },
+          { name: 'personal-thought-construction', description: '个人思考构建 — 思维笔记与成长记录' },
+        ];
+        renderCards(fallback);
+        repoStat.textContent = fallback.length.toString();
+        starStat.textContent = '—';
+        updStat.textContent  = '—';
+      }
+    }
+
+    main();
+  </script>
+</body>
+</html>

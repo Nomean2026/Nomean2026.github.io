@@ -1,0 +1,27 @@
+name: Update Pages Portal
+
+on:
+  schedule:
+    # 每天 UTC 8:00 (北京时间 16:00) 自动更新
+    - cron: '0 8 * * *'
+  workflow_dispatch:      # 手动触发
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Fetch latest repo data and update index.html
+        run: |
+          # 如果 index.html 不存在则创建占位
+          [ -f index.html ] || echo '<html></html>' > index.html
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: .
+          publish_branch: gh-pages
