@@ -1,62 +1,77 @@
 name: Scan GitHub Pages
 on:
   schedule:
-    - cron: '0 */6 * * *'   # 每 6 小时运行一次
-  workflow_dispatch:         # 手动触发
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
   push:
     branches: [main]
+
+permissions:
+  contents: write
 
 jobs:
   scan:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - name: Scan Pages repos and generate JSON
+      - name: Discover Pages repos
+        id: scan
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          echo "Scanning repositories for GitHub Pages..."
-          echo "[" > .pages.json.tmp
-          first=true
-          
-          # 获取所有非 fork 仓库
-          for repo in $(gh api "users/Nomean2026/repos?per_page=100&type=owner" --jq '.[] | select(.fork==false) | .name'); do
-            echo "Checking $repo..."
-            # 通过 Pages API 检查是否开启了 Pages
-            status=$(gh api "repos/Nomean2026/$repo/pages" --jq '{name: "'"$repo"'", description: .}' 2>/dev/null || echo "null")
-            if [ "$status" != "null" ]; then
-              # 获取仓库详细信息
-              details=$(gh api "repos/Nomean2026/$repo" --jq '{name: .name, description: .description, language: .language, stargazers_count: .stargazers_count, updated_at: .updated_at}')
-              if [ "$first" = true ]; then
-                echo "  $details" >> .pages.json.tmp
-                first=false
-              else
-                echo ",$details" >> .pages.json.tmp
-              fi
-            fi
-          done
-          
-          echo "]" >> .pages.json.tmp
-          
-          # 验证 JSON
-          if node -e "JSON.parse(require('fs').readFileSync('.pages.json.tmp','utf8'))" 2>/dev/null; then
-            cp .pages.json.tmp .pages.json
-            echo "✅ .pages.json updated with $(node -e "console.log(JSON.parse(require('fs').readFileSync('.pages.json','utf8')).length)") repos"
-          else
-            echo "⚠️ Invalid JSON, skipping"
-          fi
-          rm -f .pages.json.tmp
+          echo "Scanning for GitHub Pages repositories..."
 
-      - name: Commit and push .pages.json
+          # Use Node.js to collect results
+          node << 'SCRIPT'
+          const { execSync } = require('child_process');
+
+          function gh(args) {
+            return execSync(`gh api ${args} --jq . 2>/dev/null || true`, { encoding: 'utf8' }).trim();
+          }
+
+          // Get all repos
+          const reposRaw = gh('users/Nomean2026/repos?per_page=100&type=owner&sort=updated');
+          let repos;
+          try { repos = JSON.parse(reposRaw); } catch { repos = []; }
+
+          const pages = [];
+
+          for (const repo of repos) {
+            if (repo.fork) continue;
+            const name = repo.name;
+            // Check Pages status
+            const pagesRaw = gh(`repos/Nomean2026/${name}/pages`);
+            if (pagesRaw && pagesRaw !== 'null' && !pagesRaw.includes('Not Found') && !pagesRaw.includes('"message"')) {
+              pages.push({
+                name: repo.name,
+                description: repo.description || '',
+                language: repo.language || '',
+                stargazers_count: repo.stargazers_count || 0,
+                updated_at: repo.updated_at || ''
+              });
+              console.log(`✅ ${name} - Pages enabled`);
+            } else {
+              console.log(`❌ ${name} - No Pages`);
+            }
+          }
+
+          const fs = require('fs');
+          fs.writeFileSync('.pages.json', JSON.stringify(pages, null, 2));
+          console.log(`\n📦 Total Pages repos found: ${pages.length}`);
+          SCRIPT
+
+      - name: Commit .pages.json if changed
         run: |
-          if [ -f .pages.json ] && git diff --quiet .pages.json 2>/dev/null; then
-            echo "No changes"
-          elif [ -f .pages.json ]; then
+          if [ -f .pages.json ]; then
             git config user.name "pages-scanner[bot]"
             git config user.email "pages-scanner[bot]@users.noreply.github.com"
-            git add .pages.json
-            git commit -m "chore: update .pages.json [skip ci]"
-            git push
-            echo "✅ .pages.json committed"
+            git add -A
+            if git diff --cached --quiet; then
+              echo "No changes"
+            else
+              git commit -m "chore: update .pages.json [skip ci]"
+              git push
+              echo "✅ .pages.json updated"
+            fi
           fi
