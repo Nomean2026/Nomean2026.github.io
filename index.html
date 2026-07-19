@@ -6,73 +6,65 @@
   <title>Nomean · 项目门户</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌀</text></svg>">
   <style>
-    *, *::before, *::after {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
 
-    /* ── 亮色主题 ── */
     [data-theme="light"] {
       --bg: #f5f5f7;
       --surface: #ffffff;
       --surface-hover: #f0f0f2;
-      --border: rgba(0, 0, 0, 0.08);
+      --border: rgba(0,0,0,0.08);
       --text: #1d1d1f;
       --text-dim: #86868b;
       --accent: #5b4cdb;
-      --accent-subtle: rgba(91, 76, 219, 0.10);
-      --accent-glow: rgba(91, 76, 219, 0.18);
+      --accent-subtle: rgba(91,76,219,0.10);
+      --accent-glow: rgba(91,76,219,0.18);
       --cyan: #0096cc;
-      --card-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
-      --card-shadow-hover: 0 12px 40px rgba(0, 0, 0, 0.10);
-      --grid-line: rgba(0, 0, 0, 0.04);
-      --glow1: rgba(91, 76, 219, 0.08);
-      --glow2: rgba(0, 150, 204, 0.07);
-      --badge-bg: rgba(0, 150, 204, 0.10);
+      --card-shadow: 0 2px 12px rgba(0,0,0,0.06);
+      --card-shadow-hover: 0 12px 40px rgba(0,0,0,0.10);
+      --grid-line: rgba(0,0,0,0.04);
+      --glow1: rgba(91,76,219,0.08);
+      --glow2: rgba(0,150,204,0.07);
+      --badge-bg: rgba(0,150,204,0.10);
       --badge-text: #0096cc;
-      --avatar-bg: linear-gradient(135deg, #5b4cdb, #0096cc);
-      --heading-grad: linear-gradient(135deg, #1d1d1f 40%, #0096cc);
-      --icon-bg: rgba(91, 76, 219, 0.12);
-      --arrow-bg: rgba(0, 0, 0, 0.05);
+      --avatar-bg: linear-gradient(135deg,#5b4cdb,#0096cc);
+      --heading-grad: linear-gradient(135deg,#1d1d1f 40%,#0096cc);
+      --icon-bg: rgba(91,76,219,0.12);
+      --arrow-bg: rgba(0,0,0,0.05);
       --skeleton-bg: #e8e8ed;
-      --err-bg: rgba(255, 59, 48, 0.08);
-      --err-border: rgba(255, 59, 48, 0.18);
+      --err-bg: rgba(255,59,48,0.08);
+      --err-border: rgba(255,59,48,0.18);
       --err-text: #d63031;
-      --footer-border: rgba(0, 0, 0, 0.08);
       --toggle-bg: #e8e8ed;
       --toggle-dot: #fff;
       --radius: 16px;
     }
 
-    /* ── 暗色主题 ── */
     [data-theme="dark"] {
       --bg: #0a0a0f;
-      --surface: rgba(255, 255, 255, 0.04);
-      --surface-hover: rgba(255, 255, 255, 0.08);
-      --border: rgba(255, 255, 255, 0.06);
+      --surface: rgba(255,255,255,0.04);
+      --surface-hover: rgba(255,255,255,0.08);
+      --border: rgba(255,255,255,0.06);
       --text: #e8e8ed;
       --text-dim: #8888a0;
       --accent: #6c5ce7;
-      --accent-subtle: rgba(108, 92, 231, 0.10);
-      --accent-glow: rgba(108, 92, 231, 0.3);
+      --accent-subtle: rgba(108,92,231,0.10);
+      --accent-glow: rgba(108,92,231,0.3);
       --cyan: #00d4ff;
       --card-shadow: none;
-      --card-shadow-hover: 0 12px 40px rgba(0, 0, 0, 0.3);
-      --grid-line: rgba(255, 255, 255, 0.02);
-      --glow1: rgba(108, 92, 231, 0.12);
-      --glow2: rgba(0, 212, 255, 0.10);
-      --badge-bg: rgba(0, 212, 255, 0.12);
+      --card-shadow-hover: 0 12px 40px rgba(0,0,0,0.3);
+      --grid-line: rgba(255,255,255,0.02);
+      --glow1: rgba(108,92,231,0.12);
+      --glow2: rgba(0,212,255,0.10);
+      --badge-bg: rgba(0,212,255,0.12);
       --badge-text: #00d4ff;
-      --avatar-bg: linear-gradient(135deg, #6c5ce7, #00d4ff);
-      --heading-grad: linear-gradient(135deg, #fff 40%, #00d4ff);
-      --icon-bg: rgba(108, 92, 231, 0.15);
-      --arrow-bg: rgba(255, 255, 255, 0.04);
-      --skeleton-bg: rgba(255, 255, 255, 0.04);
-      --err-bg: rgba(255, 71, 87, 0.1);
-      --err-border: rgba(255, 71, 87, 0.2);
+      --avatar-bg: linear-gradient(135deg,#6c5ce7,#00d4ff);
+      --heading-grad: linear-gradient(135deg,#fff 40%,#00d4ff);
+      --icon-bg: rgba(108,92,231,0.15);
+      --arrow-bg: rgba(255,255,255,0.04);
+      --skeleton-bg: rgba(255,255,255,0.04);
+      --err-bg: rgba(255,71,87,0.1);
+      --err-border: rgba(255,71,87,0.2);
       --err-text: #ff6b7a;
-      --footer-border: rgba(255, 255, 255, 0.06);
       --toggle-bg: #333;
       --toggle-dot: #fff;
       --radius: 16px;
@@ -84,14 +76,11 @@
       color: var(--text);
       min-height: 100vh;
       overflow-x: hidden;
-      transition: background 0.35s ease, color 0.35s ease;
+      transition: background .35s, color .35s;
     }
 
     .bg-grid {
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      z-index: 0;
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
       background-image:
         linear-gradient(var(--grid-line) 1px, transparent 1px),
         linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
@@ -99,451 +88,171 @@
     }
 
     .bg-glow {
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      z-index: 0;
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
     }
     .bg-glow::before {
       content: '';
-      position: absolute;
-      top: -20%;
-      left: -10%;
-      width: 60%;
-      height: 60%;
+      position: absolute; top: -20%; left: -10%; width: 60%; height: 60%;
       background: radial-gradient(ellipse, var(--glow1) 0%, transparent 70%);
     }
     .bg-glow::after {
       content: '';
-      position: absolute;
-      bottom: -20%;
-      right: -10%;
-      width: 60%;
-      height: 60%;
+      position: absolute; bottom: -20%; right: -10%; width: 60%; height: 60%;
       background: radial-gradient(ellipse, var(--glow2) 0%, transparent 70%);
     }
 
-    .app {
-      position: relative;
-      z-index: 1;
-      max-width: 960px;
-      margin: 0 auto;
-      padding: 48px 24px 80px;
-    }
+    .app { position: relative; z-index: 1; max-width: 960px; margin: 0 auto; padding: 48px 24px 80px; }
 
-    .theme-toggle-wrap {
-      display: flex;
-      justify-content: flex-end;
-      margin-bottom: 8px;
-    }
-
+    .theme-toggle-wrap { display: flex; justify-content: flex-end; margin-bottom: 8px; }
     .theme-toggle {
-      position: relative;
-      width: 52px;
-      height: 28px;
-      background: var(--toggle-bg);
-      border-radius: 14px;
-      cursor: pointer;
-      transition: background 0.3s;
-      border: none;
-      outline: none;
-      flex-shrink: 0;
+      position: relative; width: 52px; height: 28px; background: var(--toggle-bg);
+      border-radius: 14px; cursor: pointer; transition: background .3s; border: none; outline: none;
     }
-
     .theme-toggle .dot {
-      position: absolute;
-      top: 3px;
-      left: 3px;
-      width: 22px;
-      height: 22px;
-      border-radius: 50%;
-      background: var(--toggle-dot);
-      transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.15);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 12px;
+      position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%;
+      background: var(--toggle-dot); transition: transform .35s cubic-bezier(.4,0,.2,1), background .3s;
+      box-shadow: 0 1px 4px rgba(0,0,0,.15); display: flex; align-items: center; justify-content: center; font-size: 12px;
     }
+    [data-theme="dark"] .theme-toggle .dot { transform: translateX(24px); }
 
-    [data-theme="dark"] .theme-toggle .dot {
-      transform: translateX(24px);
-    }
-
-    header {
-      text-align: center;
-      margin-bottom: 56px;
-      padding-top: 16px;
-    }
-
+    header { text-align: center; margin-bottom: 56px; padding-top: 16px; }
     .avatar {
-      width: 72px;
-      height: 72px;
-      border-radius: 50%;
-      background: var(--avatar-bg);
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 32px;
-      font-weight: 700;
-      color: #fff;
-      margin-bottom: 16px;
-      box-shadow: 0 0 40px var(--accent-glow);
-      transition: box-shadow 0.3s;
+      width: 72px; height: 72px; border-radius: 50%; background: var(--avatar-bg);
+      display: inline-flex; align-items: center; justify-content: center; font-size: 32px;
+      font-weight: 700; color: #fff; margin-bottom: 16px; box-shadow: 0 0 40px var(--accent-glow);
     }
-
     header h1 {
-      font-size: 28px;
-      font-weight: 700;
-      letter-spacing: -0.3px;
-      background: var(--heading-grad);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+      font-size: 28px; font-weight: 700; letter-spacing: -.3px;
+      background: var(--heading-grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
     }
-
-    header p {
-      color: var(--text-dim);
-      font-size: 15px;
-      margin-top: 8px;
-      line-height: 1.5;
-    }
-
-    .stats {
-      display: flex;
-      justify-content: center;
-      gap: 32px;
-      margin-top: 24px;
-      flex-wrap: wrap;
-    }
-
-    .stat-item {
-      text-align: center;
-    }
-
-    .stat-item .num {
-      font-size: 22px;
-      font-weight: 700;
-      color: var(--text);
-    }
-
-    .stat-item .label {
-      font-size: 12px;
-      color: var(--text-dim);
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      margin-top: 2px;
-    }
+    header p { color: var(--text-dim); font-size: 15px; margin-top: 8px; }
+    .stats { display: flex; justify-content: center; gap: 32px; margin-top: 24px; flex-wrap: wrap; }
+    .stat-item { text-align: center; }
+    .stat-item .num { font-size: 22px; font-weight: 700; color: var(--text); }
+    .stat-item .label { font-size: 12px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-top: 2px; }
 
     .section-title {
-      font-size: 15px;
-      font-weight: 600;
-      color: var(--text-dim);
-      text-transform: uppercase;
-      letter-spacing: 2px;
-      margin-bottom: 20px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
+      font-size: 15px; font-weight: 600; color: var(--text-dim); text-transform: uppercase;
+      letter-spacing: 2px; margin-bottom: 20px; display: flex; align-items: center; gap: 12px;
     }
+    .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
 
-    .section-title::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: var(--border);
-    }
-
-    .repo-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 16px;
-      margin-bottom: 48px;
-    }
+    .repo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-bottom: 48px; }
 
     .repo-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 20px;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      cursor: pointer;
-      position: relative;
-      overflow: hidden;
-      box-shadow: var(--card-shadow);
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 20px; transition: all .3s cubic-bezier(.4,0,.2,1); cursor: pointer;
+      position: relative; overflow: hidden; box-shadow: var(--card-shadow);
     }
-
     .repo-card::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(135deg, transparent 60%, var(--accent-subtle));
-      opacity: 0;
-      transition: opacity 0.3s;
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(135deg, transparent 60%, var(--accent-subtle)); opacity: 0; transition: opacity .3s;
     }
-
     .repo-card:hover {
-      background: var(--surface-hover);
-      border-color: var(--accent-subtle);
-      transform: translateY(-4px);
-      box-shadow: var(--card-shadow-hover);
+      background: var(--surface-hover); border-color: var(--accent-subtle);
+      transform: translateY(-4px); box-shadow: var(--card-shadow-hover);
     }
+    .repo-card:hover::before { opacity: 1; }
 
-    .repo-card:hover::before {
-      opacity: 1;
-    }
-
-    .repo-card .card-top {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      margin-bottom: 10px;
-    }
-
+    .repo-card .card-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 10px; }
     .repo-card .repo-icon {
-      width: 36px;
-      height: 36px;
-      border-radius: 8px;
-      background: var(--icon-bg);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 18px;
-      flex-shrink: 0;
+      width: 36px; height: 36px; border-radius: 8px; background: var(--icon-bg);
+      display: flex; align-items: center; justify-content: center; font-size: 18px;
     }
-
     .repo-card .badge {
-      font-size: 11px;
-      padding: 2px 10px;
-      border-radius: 100px;
-      background: var(--badge-bg);
-      color: var(--badge-text);
-      font-weight: 500;
-      letter-spacing: 0.3px;
+      font-size: 11px; padding: 2px 10px; border-radius: 100px;
+      background: var(--badge-bg); color: var(--badge-text); font-weight: 500; letter-spacing: .3px;
     }
-
-    .repo-card .repo-name {
-      font-size: 16px;
-      font-weight: 600;
-      color: var(--text);
-      margin-bottom: 6px;
-    }
-
-    .repo-card .repo-desc {
-      font-size: 13px;
-      color: var(--text-dim);
-      line-height: 1.5;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
-
-    .repo-card .card-footer {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      margin-top: 14px;
-      font-size: 12px;
-      color: var(--text-dim);
-    }
-
-    .repo-card .card-footer span {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-
+    .repo-card .repo-name { font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+    .repo-card .repo-desc { font-size: 13px; color: var(--text-dim); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .repo-card .card-footer { display: flex; align-items: center; gap: 16px; margin-top: 14px; font-size: 12px; color: var(--text-dim); }
+    .repo-card .card-footer span { display: flex; align-items: center; gap: 4px; }
     .repo-card .arrow {
-      position: absolute;
-      bottom: 16px;
-      right: 16px;
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
-      background: var(--arrow-bg);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.3s;
-      font-size: 14px;
-      color: var(--text-dim);
+      position: absolute; bottom: 16px; right: 16px; width: 28px; height: 28px; border-radius: 50%;
+      background: var(--arrow-bg); display: flex; align-items: center; justify-content: center;
+      transition: all .3s; font-size: 14px; color: var(--text-dim);
     }
+    .repo-card:hover .arrow { background: var(--accent); color: #fff; transform: translateX(2px); }
 
-    .repo-card:hover .arrow {
-      background: var(--accent);
-      color: #fff;
-      transform: translateX(2px);
-    }
-
-    .empty-state {
-      text-align: center;
-      padding: 64px 24px;
-      color: var(--text-dim);
-    }
-
-    .empty-state .emoji {
-      font-size: 48px;
-      margin-bottom: 16px;
-    }
-
-    .empty-state p {
-      font-size: 15px;
-    }
+    .empty-state { text-align: center; padding: 64px 24px; color: var(--text-dim); }
+    .empty-state .emoji { font-size: 48px; margin-bottom: 16px; }
+    .empty-state p { font-size: 15px; }
 
     .skeleton {
-      background: var(--skeleton-bg);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 20px;
-      height: 140px;
-      animation: shimmer 1.5s infinite;
+      background: var(--skeleton-bg); border: 1px solid var(--border);
+      border-radius: var(--radius); height: 140px; animation: shimmer 1.5s infinite;
     }
-
-    @keyframes shimmer {
-      0% { opacity: 0.4; }
-      50% { opacity: 0.7; }
-      100% { opacity: 0.4; }
-    }
+    @keyframes shimmer { 0% { opacity: .4; } 50% { opacity: .7; } 100% { opacity: .4; } }
 
     .error-banner {
-      background: var(--err-bg);
-      border: 1px solid var(--err-border);
-      border-radius: var(--radius);
-      padding: 16px 20px;
-      color: var(--err-text);
-      font-size: 14px;
-      margin-bottom: 24px;
-      display: none;
+      background: var(--err-bg); border: 1px solid var(--err-border); border-radius: var(--radius);
+      padding: 16px 20px; color: var(--err-text); font-size: 14px; margin-bottom: 24px; display: none;
     }
+    .error-banner.show { display: block; }
 
-    .error-banner.show {
-      display: block;
-    }
+    footer { text-align: center; color: var(--text-dim); font-size: 13px; padding-top: 40px; border-top: 1px solid var(--border); margin-top: 16px; }
+    footer a { color: var(--accent); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
 
-    footer {
-      text-align: center;
-      color: var(--text-dim);
-      font-size: 13px;
-      padding-top: 40px;
-      border-top: 1px solid var(--border);
-      margin-top: 16px;
-    }
+    .discovery-note { text-align: center; margin-top: -32px; margin-bottom: 32px; font-size: 13px; color: var(--text-dim); }
+    .discovery-note a { color: var(--accent); text-decoration: underline; }
 
-    footer a {
-      color: var(--accent);
-      text-decoration: none;
-    }
-
-    footer a:hover {
-      text-decoration: underline;
-    }
-
-    .discovery-note {
-      text-align: center;
-      margin-top: -32px;
-      margin-bottom: 32px;
-      font-size: 13px;
-      color: var(--text-dim);
-    }
-
-    .discovery-note a {
-      color: var(--accent);
-      text-decoration: underline;
-    }
-
-    @media (max-width: 640px) {
-      .app { padding: 24px 16px 64px; }
-      header h1 { font-size: 24px; }
-      .stats { gap: 20px; }
-      .repo-grid { grid-template-columns: 1fr; }
-    }
+    @media (max-width:640px) { .app { padding: 24px 16px 64px; } header h1 { font-size: 24px; } .stats { gap: 20px; } .repo-grid { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
   <div class="bg-grid"></div>
   <div class="bg-glow"></div>
-
   <div class="app">
     <div class="theme-toggle-wrap">
       <button class="theme-toggle" id="themeToggle" aria-label="切换主题">
         <span class="dot" id="themeDot">☀️</span>
       </button>
     </div>
-
     <header>
       <div class="avatar">N</div>
       <h1>Nomean · 项目门户</h1>
       <p>从零搭建 · 持续进化 · 一切皆可习得</p>
       <div class="stats">
-        <div class="stat-item">
-          <div class="num" id="repoCount">—</div>
-          <div class="label">项目</div>
-        </div>
-        <div class="stat-item">
-          <div class="num" id="starCount">—</div>
-          <div class="label">Stars</div>
-        </div>
-        <div class="stat-item">
-          <div class="num" id="updatedCount">—</div>
-          <div class="label">更新</div>
-        </div>
+        <div class="stat-item"><div class="num" id="repoCount">—</div><div class="label">项目</div></div>
+        <div class="stat-item"><div class="num" id="starCount">—</div><div class="label">Stars</div></div>
+        <div class="stat-item"><div class="num" id="updatedCount">—</div><div class="label">更新</div></div>
       </div>
     </header>
-
-    <div class="error-banner" id="errorBanner">
-      ⚠️ <span id="errorMsg">加载失败</span> · <a href="javascript:void(0)" onclick="location.reload()" style="color:inherit;text-decoration:underline">重试</a>
-    </div>
-
+    <div class="error-banner" id="errorBanner">⚠️ <span id="errorMsg">加载失败</span> · <a href="javascript:void(0)" onclick="location.reload()" style="color:inherit;text-decoration:underline">重试</a></div>
     <div class="section-title">GitHub Pages</div>
-
     <div class="repo-grid" id="repoGrid"></div>
-
-    <footer>
-      <a href="https://github.com/Nomean2026" target="_blank" rel="noopener">Nomean2026</a> ·
-      <span id="footerYear"></span>
-    </footer>
+    <footer><a href="https://github.com/Nomean2026" target="_blank" rel="noopener">Nomean2026</a> · <span id="footerYear"></span></footer>
   </div>
 
   <script>
-    // ─── Config ────────────────────────────────────────────────
     const USERNAME = 'Nomean2026';
 
-    // ─── Theme ─────────────────────────────────────────────────
-    const THEME_KEY = 'nomean-portal-theme';
-
-    function getPreferredTheme() {
-      const saved = localStorage.getItem(THEME_KEY);
-      if (saved === 'light' || saved === 'dark') return saved;
-      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-    }
-
-    function applyTheme(theme) {
-      document.documentElement.setAttribute('data-theme', theme);
+    // ─── Theme ────────────────────────────────────────────────
+    (function initTheme() {
+      const key = 'nomean-portal-theme';
+      const saved = localStorage.getItem(key);
+      const pref = saved || (window.matchMedia('(prefers-color-scheme:dark)').matches ? 'dark' : 'light');
+      document.documentElement.setAttribute('data-theme', pref);
       const dot = document.getElementById('themeDot');
-      dot.textContent = theme === 'dark' ? '🌙' : '☀️';
-      localStorage.setItem(THEME_KEY, theme);
-    }
+      dot.textContent = pref === 'dark' ? '🌙' : '☀️';
+      document.getElementById('themeToggle').addEventListener('click', () => {
+        const cur = document.documentElement.getAttribute('data-theme');
+        const next = cur === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', next);
+        dot.textContent = next === 'dark' ? '🌙' : '☀️';
+        localStorage.setItem(key, next);
+      });
+    })();
 
-    function toggleTheme() {
-      const current = document.documentElement.getAttribute('data-theme');
-      applyTheme(current === 'dark' ? 'light' : 'dark');
-    }
+    // ─── DOM refs ─────────────────────────────────────────────
+    const $ = id => document.getElementById(id);
+    const grid = $('repoGrid'), errB = $('errorBanner'), errMsg = $('errorMsg');
+    const repoStat = $('repoCount'), starStat = $('starCount'), updStat = $('updatedCount');
+    $('footerYear').textContent = new Date().getFullYear();
 
-    document.getElementById('themeToggle').addEventListener('click', toggleTheme);
-    applyTheme(getPreferredTheme());
-
-    // ─── DOM refs ──────────────────────────────────────────────
-    const grid     = document.getElementById('repoGrid');
-    const errB     = document.getElementById('errorBanner');
-    const errMsg   = document.getElementById('errorMsg');
-    const repoStat = document.getElementById('repoCount');
-    const starStat = document.getElementById('starCount');
-    const updStat  = document.getElementById('updatedCount');
-
-    document.getElementById('footerYear').textContent = new Date().getFullYear();
-
-    // ─── Known Pages repos (fallback) ─────────────────────────
+    // ─── Known Pages repos (fallback + user maintenance) ──────
+    // 👇 当 API 不可用时使用此列表。新增 Pages 仓库后请在这里添加。
     const KNOWN_PAGES = [
       { name: 'minimindTutorials', description: 'MiniMind 大模型训练教程 — 从零搭建你的第一个 Transformer 模型' },
       { name: 'RLHF',               description: 'RLHF 从理论到实践 — 强化学习与人类反馈对齐' },
@@ -551,217 +260,116 @@
       { name: 'personal-thought-construction', description: '个人思考构建 — 思维笔记与成长记录' },
     ];
 
-    // ─── localStorage cache ───────────────────────────────────
+    // ─── Cache (localStorage) ─────────────────────────────────
     const CACHE_KEY = 'nomean-pages-cache';
+    function loadCache() { try { const r = localStorage.getItem(CACHE_KEY); return r ? JSON.parse(r) : null; } catch { return null; } }
+    function saveCache(repos) { try { localStorage.setItem(CACHE_KEY, JSON.stringify({ repos, timestamp: Date.now() })); } catch {} }
 
-    function loadCache() {
-      try {
-        const raw = localStorage.getItem(CACHE_KEY);
-        return raw ? JSON.parse(raw) : null;
-      } catch { return null; }
+    // ─── Helpers ──────────────────────────────────────────────
+    function getIcon(name, lang) {
+      const m = { minimindTutorials:'🧠', RLHF:'🤖', test:'🧪', 'personal-thought-construction':'📝' };
+      if (m[name]) return m[name];
+      const lm = { Python:'🐍', JavaScript:'🟨', TypeScript:'🔷', HTML:'🌐', CSS:'🎨', Rust:'🦀', Go:'🐹', Java:'☕', Shell:'🐚' };
+      return lm[lang] || '📦';
     }
-
-    function saveCache(repos) {
-      try {
-        localStorage.setItem(CACHE_KEY, JSON.stringify({
-          repos,
-          timestamp: Date.now()
-        }));
-      } catch {}
-    }
-
-    // ─── Helpers ───────────────────────────────────────────────
-    function getRepoIcon(name, lang) {
-      const map = {
-        minimindTutorials: '🧠', RLHF: '🤖', test: '🧪',
-        'personal-thought-construction': '📝',
-      };
-      if (map[name]) return map[name];
-      const langMap = {
-        Python: '🐍', JavaScript: '🟨', TypeScript: '🔷',
-        HTML: '🌐', CSS: '🎨', Rust: '🦀', Go: '🐹',
-        Java: '☕', C: '⚙️', 'C++': '⚙️', Ruby: '💎',
-        Shell: '🐚', Dockerfile: '🐳', Swift: '🍎', Kotlin: '🟣',
-      };
-      return langMap[lang] || '📦';
-    }
-
-    function getBadge(repo) {
-      const n = repo.name || '';
-      if (n === 'minimindTutorials' || n === 'RLHF') return 'Featured';
-      if (repo.stargazers_count > 10) return '⭐ Popular';
+    function getBadge(r) {
+      if (r.name === 'minimindTutorials' || r.name === 'RLHF') return 'Featured';
+      if (r.stargazers_count > 10) return '⭐ Popular';
       return '';
     }
 
-    // ─── Render ───────────────────────────────────────────────
-    function renderCards(repos) {
-      if (!repos || repos.length === 0) {
-        grid.innerHTML = `
-          <div class="empty-state" style="grid-column:1/-1">
-            <div class="emoji">🔭</div>
-            <p>暂无已部署的 GitHub Pages 项目</p>
-            <p style="font-size:13px;margin-top:8px">创建新仓库并在 Settings → Pages 中启用后，刷新本页即可发现</p>
-          </div>`;
+    function render(repos) {
+      if (!repos || !repos.length) {
+        grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="emoji">🔭</div><p>暂无 GitHub Pages 项目</p><p style="font-size:13px;margin-top:8px">在仓库 Settings → Pages 中启用后，刷新本页即可发现</p></div>';
         return;
       }
-
       const sorted = [...repos].sort((a, b) => {
         const f = n => (n === 'minimindTutorials' || n === 'RLHF' ? 0 : 1);
         const fa = f(a.name), fb = f(b.name);
-        if (fa !== fb) return fa - fb;
-        return (b.stargazers_count || 0) - (a.stargazers_count || 0);
+        return fa !== fb ? fa - fb : (b.stargazers_count || 0) - (a.stargazers_count || 0);
       });
-
       grid.innerHTML = sorted.map(r => {
         const url = `https://${USERNAME.toLowerCase()}.github.io/${r.name}/`;
         const desc = r.description || 'No description';
-        const icon = getRepoIcon(r.name, r.language);
+        const icon = getIcon(r.name, r.language);
         const badge = getBadge(r);
-        const updated = r.updated_at
-          ? new Date(r.updated_at).toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' })
-          : '';
-        const stars = r.stargazers_count != null ? r.stargazers_count : 0;
-        const lang = r.language || '';
-
-        return `
-          <div class="repo-card" onclick="window.open('${url}','_blank')" title="打开 ${r.name}">
-            <div class="card-top">
-              <div class="repo-icon">${icon}</div>
-              ${badge ? `<span class="badge">${badge}</span>` : ''}
-            </div>
-            <div class="repo-name">${r.name}</div>
-            <div class="repo-desc">${desc}</div>
-            <div class="card-footer">
-              ${lang ? `<span>🔵 ${lang}</span>` : ''}
-              <span>⭐ ${stars}</span>
-              ${updated ? `<span>🕐 ${updated}</span>` : ''}
-            </div>
-            <div class="arrow">→</div>
-          </div>`;
+        const updated = r.updated_at ? new Date(r.updated_at).toLocaleDateString('zh-CN', { month:'short', day:'numeric' }) : '';
+        return `<div class="repo-card" onclick="window.open('${url}','_blank')" title="打开 ${r.name}">
+          <div class="card-top"><div class="repo-icon">${icon}</div>${badge ? `<span class="badge">${badge}</span>` : ''}</div>
+          <div class="repo-name">${r.name}</div>
+          <div class="repo-desc">${desc}</div>
+          <div class="card-footer">${r.language ? `<span>🔵 ${r.language}</span>` : ''}<span>⭐ ${r.stargazers_count || 0}</span>${updated ? `<span>🕐 ${updated}</span>` : ''}</div>
+          <div class="arrow">→</div></div>`;
       }).join('');
     }
 
-    function showSkeletons(n) {
-      grid.innerHTML = Array.from({ length: n || 4 }, () =>
-        '<div class="skeleton"></div>'
-      ).join('');
-    }
+    function showSkeletons(n) { grid.innerHTML = Array.from({ length: n || 4 }, () => '<div class="skeleton"></div>').join(''); }
+    function showError(msg) { errMsg.textContent = msg; errB.classList.add('show'); }
+    function addNote(html) { const e = document.querySelector('.discovery-note'); if (e) e.remove(); const d = document.createElement('div'); d.className = 'discovery-note'; d.innerHTML = html; document.querySelector('.section-title').after(d); }
 
-    function showError(msg) {
-      errMsg.textContent = msg;
-      errB.classList.add('show');
-    }
-
-    function addNote(text) {
-      const existing = document.querySelector('.discovery-note');
-      if (existing) existing.remove();
-      const div = document.createElement('div');
-      div.className = 'discovery-note';
-      div.innerHTML = text;
-      const section = document.querySelector('.section-title');
-      if (section && section.parentNode) {
-        section.parentNode.insertBefore(div, section.nextSibling);
-      }
-    }
-
-    // ─── API: fetch repos (with optional token support) ──────
-    async function fetchAllRepos() {
-      const perPage = 100;
-      let page = 1;
-      let all = [];
+    // ─── API: fetch all repos ────────────────────────────────
+    async function fetchRepos() {
       const token = window.__GITHUB_TOKEN || '';
       const headers = token ? { Authorization: `token ${token}` } : {};
-
+      let page = 1, all = [];
       while (true) {
-        const res = await fetch(
-          `https://api.github.com/users/${USERNAME}/repos?per_page=${perPage}&page=${page}&sort=updated`,
-          { headers }
-        );
+        const res = await fetch(`https://api.github.com/users/${USERNAME}/repos?per_page=100&page=${page}&sort=updated`, { headers });
         if (!res.ok) {
           if (res.status === 403) {
             const remain = res.headers.get('X-RateLimit-Remaining') || '0';
-            const reset = res.headers.get('X-RateLimit-Reset') || '0';
-            const resetDate = new Date(parseInt(reset) * 1000);
-            throw new Error(`API 限速（剩余 ${remain} 次，${resetDate.toLocaleTimeString()} 重置）`);
+            const reset = new Date(parseInt(res.headers.get('X-RateLimit-Reset') || '0') * 1000);
+            throw new Error(`API 限速（剩余 ${remain} 次，${reset.toLocaleTimeString()} 重置）`);
           }
           throw new Error(`GitHub API ${res.status}`);
         }
         const data = await res.json();
-        if (!data || data.length === 0) break;
+        if (!data || !data.length) break;
         all = all.concat(data);
-        if (data.length < perPage) break;
+        if (data.length < 100) break;
         page++;
       }
       return all;
     }
 
-    // ─── Detect Pages repos ───────────────────────────────────
-    // Strategy: use the GitHub Branches API to find repos with a 'gh-pages' branch.
-    // This uses ~5 API calls for your 7 repos (budget-friendly).
-    // Then verify with a quick fetch to the Pages URL.
-    async function discoverPages(allRepos) {
+    // ─── Detect Pages repos via GitHub Pages API ─────────────
+    // Uses the official /pages endpoint (1 request per repo).
+    // Before probing, checks rate limit budget.
+    async function detectPages(allRepos) {
       const candidates = allRepos.filter(r => !r.fork);
       const discovered = [];
 
-      // Check remaining API budget first
+      // Check API budget
+      let budget = 0;
       try {
         const r = await fetch('https://api.github.com/rate_limit', { signal: AbortSignal.timeout(3000) });
-        if (r.ok) {
-          const data = await r.json();
-          const remain = data?.resources?.core?.remaining || 0;
-          // Need at least 1 per candidate + buffer
-          if (remain < candidates.length + 5) {
-            console.warn(`API budget too low (${remain}), skip auto-discovery`);
-            return discovered;
-          }
-        }
+        if (r.ok) { const d = await r.json(); budget = d?.resources?.core?.remaining || 0; }
       } catch {}
 
-      // Batch with concurrency 4
-      const CONCURRENCY = 4;
-      for (let i = 0; i < candidates.length; i += CONCURRENCY) {
-        const batch = candidates.slice(i, i + CONCURRENCY);
-        const results = await Promise.allSettled(
-          batch.map(async repo => {
-            // Check for gh-pages branch
-            const br = await fetch(
-              `https://api.github.com/repos/${USERNAME}/${repo.name}/branches?per_page=5`,
-              { signal: AbortSignal.timeout(5000) }
-            );
-            if (!br.ok) return null;
-            const branches = await br.json();
-            const hasGhPages = branches.some(b => b.name === 'gh-pages');
-            if (hasGhPages) return repo;
+      const token = window.__GITHUB_TOKEN || '';
+      // Need 1 per candidate. If not enough, abort.
+      if (budget < candidates.length + 3 && !token) return discovered;
 
-            // Fallback: try fetching the URL directly
-            try {
-              const url = `https://${USERNAME.toLowerCase()}.github.io/${repo.name}/`;
-              const probe = await fetch(url, { method: 'HEAD', signal: AbortSignal.timeout(3000) });
-              if (probe.ok || probe.status === 301 || probe.status === 302) return repo;
-            } catch {}
-            return null;
-          })
-        );
-        for (const res of results) {
-          if (res.status === 'fulfilled' && res.value) {
-            discovered.push(res.value);
-          }
-        }
+      const headers = token ? { Authorization: `token ${token}` } : {};
+      const CON = 4;
+      for (let i = 0; i < candidates.length; i += CON) {
+        const batch = candidates.slice(i, i + CON);
+        const results = await Promise.allSettled(batch.map(async repo => {
+          try {
+            const res = await fetch(`https://api.github.com/repos/${USERNAME}/${repo.name}/pages`, { headers, signal: AbortSignal.timeout(5000) });
+            if (res.ok) return repo;
+          } catch {}
+          return null;
+        }));
+        for (const r of results) { if (r.status === 'fulfilled' && r.value) discovered.push(r.value); }
       }
       return discovered;
     }
 
-    // ─── Merge live data (stars, language, updated_at) ────────
-    function mergeLive(pagesList, repoMap) {
+    // ─── Merge live data ──────────────────────────────────────
+    function merge(pagesList, repoMap) {
       return pagesList.map(p => {
-        const live = repoMap[p.name];
-        return live ? {
-          ...p,
-          description: live.description || p.description,
-          stargazers_count: live.stargazers_count || 0,
-          language: live.language || '',
-          updated_at: live.updated_at,
-        } : p;
+        const l = repoMap[p.name];
+        return l ? { ...p, description: l.description || p.description, stargazers_count: l.stargazers_count || 0, language: l.language || '', updated_at: l.updated_at } : p;
       });
     }
 
@@ -772,64 +380,54 @@
       const fallback = KNOWN_PAGES;
 
       try {
-        const allRepos = await fetchAllRepos();
+        const allRepos = await fetchRepos();
         const repoMap = {};
         allRepos.forEach(r => { repoMap[r.name] = r; });
 
-        let pages = await discoverPages(allRepos);
+        // Try auto-detection
+        const detected = await detectPages(allRepos);
+        let pages;
 
-        if (pages.length > 0) {
-          // Success! Use discovered repos
-          pages = mergeLive(pages, repoMap);
+        if (detected.length > 0) {
+          pages = merge(detected, repoMap);
           saveCache(pages);
           addNote('🔄 新增 Pages 仓库后 <a href="javascript:location.reload()">刷新页面</a> 即可自动发现');
         } else if (cached && cached.repos && cached.repos.length > 0) {
-          // Use cache
-          pages = mergeLive(cached.repos, repoMap);
+          pages = merge(cached.repos, repoMap);
           addNote('💾 使用缓存列表 · <a href="javascript:location.reload()">刷新重试</a>');
         } else {
-          // Use known fallback
-          pages = mergeLive(fallback, repoMap);
+          pages = merge(fallback, repoMap);
         }
 
         // Stats
         repoStat.textContent = pages.length.toString();
-        let totalStars = 0;
-        pages.forEach(r => { totalStars += r.stargazers_count || 0; });
-        starStat.textContent = totalStars;
-
+        let stars = 0;
+        pages.forEach(r => { stars += r.stargazers_count || 0; });
+        starStat.textContent = stars;
         const recent = pages.filter(r => r.updated_at).sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
-        updStat.textContent = recent.length > 0
-          ? new Date(recent[0].updated_at).toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' })
-          : '—';
+        updStat.textContent = recent.length ? new Date(recent[0].updated_at).toLocaleDateString('zh-CN', { month:'short', day:'numeric' }) : '—';
 
-        renderCards(pages);
+        render(pages);
 
       } catch (err) {
-        console.warn('Main error:', err);
+        console.warn(err);
         showError(err.message || '无法连接 GitHub API');
-
         let repos;
         if (cached && cached.repos && cached.repos.length > 0) {
           repos = cached.repos;
-          showError('使用缓存的 Pages 列表（上次更新: ' +
-            new Date(cached.timestamp).toLocaleDateString('zh-CN') + '）');
+          showError('使用缓存列表（上次更新: ' + new Date(cached.timestamp).toLocaleDateString('zh-CN') + '）');
         } else {
           repos = fallback;
         }
-        renderCards(repos);
+        render(repos);
         repoStat.textContent = repos.length.toString();
         starStat.textContent = '—';
-        updStat.textContent  = '—';
+        updStat.textContent = '—';
       }
     }
 
-    // ─── Load token from URL param ──────────────────────────
-    (function loadToken() {
-      const params = new URLSearchParams(window.location.search);
-      const t = params.get('token');
-      if (t) window.__GITHUB_TOKEN = t;
-    })();
+    // ─── Token from URL ──────────────────────────────────────
+    (function() { const p = new URLSearchParams(location.search), t = p.get('token'); if (t) window.__GITHUB_TOKEN = t; })();
 
     main();
   </script>
