@@ -42,6 +42,7 @@
       --footer-border: rgba(0, 0, 0, 0.08);
       --toggle-bg: #e8e8ed;
       --toggle-dot: #fff;
+      --radius: 16px;
     }
 
     /* ── 暗色主题 ── */
@@ -74,6 +75,7 @@
       --footer-border: rgba(255, 255, 255, 0.06);
       --toggle-bg: #333;
       --toggle-dot: #fff;
+      --radius: 16px;
     }
 
     body {
@@ -85,7 +87,6 @@
       transition: background 0.35s ease, color 0.35s ease;
     }
 
-    /* ── ambient grid ── */
     .bg-grid {
       position: fixed;
       inset: 0;
@@ -122,7 +123,6 @@
       background: radial-gradient(ellipse, var(--glow2) 0%, transparent 70%);
     }
 
-    /* ── layout ── */
     .app {
       position: relative;
       z-index: 1;
@@ -131,7 +131,6 @@
       padding: 48px 24px 80px;
     }
 
-    /* ── theme toggle ── */
     .theme-toggle-wrap {
       display: flex;
       justify-content: flex-end;
@@ -171,11 +170,6 @@
       transform: translateX(24px);
     }
 
-    .theme-toggle .sun-moon {
-      transition: opacity 0.25s;
-    }
-
-    /* ── header ── */
     header {
       text-align: center;
       margin-bottom: 56px;
@@ -215,7 +209,6 @@
       line-height: 1.5;
     }
 
-    /* ── stats bar ── */
     .stats {
       display: flex;
       justify-content: center;
@@ -242,7 +235,6 @@
       margin-top: 2px;
     }
 
-    /* ── section title ── */
     .section-title {
       font-size: 15px;
       font-weight: 600;
@@ -262,7 +254,6 @@
       background: var(--border);
     }
 
-    /* ── repo grid ── */
     .repo-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -273,7 +264,7 @@
     .repo-card {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: var(--radius, 16px);
+      border-radius: var(--radius);
       padding: 20px;
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       cursor: pointer;
@@ -336,9 +327,6 @@
       font-weight: 600;
       color: var(--text);
       margin-bottom: 6px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
     }
 
     .repo-card .repo-desc {
@@ -388,7 +376,6 @@
       transform: translateX(2px);
     }
 
-    /* ── empty state ── */
     .empty-state {
       text-align: center;
       padding: 64px 24px;
@@ -404,11 +391,10 @@
       font-size: 15px;
     }
 
-    /* ── loading skeleton ── */
     .skeleton {
       background: var(--skeleton-bg);
       border: 1px solid var(--border);
-      border-radius: var(--radius, 16px);
+      border-radius: var(--radius);
       padding: 20px;
       height: 140px;
       animation: shimmer 1.5s infinite;
@@ -420,11 +406,10 @@
       100% { opacity: 0.4; }
     }
 
-    /* ── error state ── */
     .error-banner {
       background: var(--err-bg);
       border: 1px solid var(--err-border);
-      border-radius: var(--radius, 16px);
+      border-radius: var(--radius);
       padding: 16px 20px;
       color: var(--err-text);
       font-size: 14px;
@@ -436,7 +421,6 @@
       display: block;
     }
 
-    /* ── footer ── */
     footer {
       text-align: center;
       color: var(--text-dim);
@@ -455,7 +439,19 @@
       text-decoration: underline;
     }
 
-    /* ── responsive ── */
+    .discovery-note {
+      text-align: center;
+      margin-top: -32px;
+      margin-bottom: 32px;
+      font-size: 13px;
+      color: var(--text-dim);
+    }
+
+    .discovery-note a {
+      color: var(--accent);
+      text-decoration: underline;
+    }
+
     @media (max-width: 640px) {
       .app { padding: 24px 16px 64px; }
       header h1 { font-size: 24px; }
@@ -479,7 +475,7 @@
       <div class="avatar">N</div>
       <h1>Nomean · 项目门户</h1>
       <p>从零搭建 · 持续进化 · 一切皆可习得</p>
-      <div class="stats" id="stats">
+      <div class="stats">
         <div class="stat-item">
           <div class="num" id="repoCount">—</div>
           <div class="label">项目</div>
@@ -547,33 +543,57 @@
 
     document.getElementById('footerYear').textContent = new Date().getFullYear();
 
-    // ─── icon / badge helpers ─────────────────────────────────
+    // ─── Known Pages repos (fallback) ─────────────────────────
+    const KNOWN_PAGES = [
+      { name: 'minimindTutorials', description: 'MiniMind 大模型训练教程 — 从零搭建你的第一个 Transformer 模型' },
+      { name: 'RLHF',               description: 'RLHF 从理论到实践 — 强化学习与人类反馈对齐' },
+      { name: 'test',               description: '日常测试与实验场' },
+      { name: 'personal-thought-construction', description: '个人思考构建 — 思维笔记与成长记录' },
+    ];
+
+    // ─── localStorage cache ───────────────────────────────────
+    const CACHE_KEY = 'nomean-pages-cache';
+
+    function loadCache() {
+      try {
+        const raw = localStorage.getItem(CACHE_KEY);
+        return raw ? JSON.parse(raw) : null;
+      } catch { return null; }
+    }
+
+    function saveCache(repos) {
+      try {
+        localStorage.setItem(CACHE_KEY, JSON.stringify({
+          repos,
+          timestamp: Date.now()
+        }));
+      } catch {}
+    }
+
+    // ─── Helpers ───────────────────────────────────────────────
     function getRepoIcon(name, lang) {
       const map = {
-        minimindTutorials: '🧠',
-        RLHF:              '🤖',
-        test:              '🧪',
+        minimindTutorials: '🧠', RLHF: '🤖', test: '🧪',
         'personal-thought-construction': '📝',
       };
       if (map[name]) return map[name];
-      // fallback by language
       const langMap = {
-        Python:  '🐍', JavaScript: '🟨', TypeScript: '🔷',
-        HTML:    '🌐', CSS: '🎨', Rust: '🦀', Go: '🐹',
-        Java:    '☕', C: '⚙️', 'C++': '⚙️', Ruby: '💎',
-        Shell:   '🐚', Dockerfile: '🐳', Swift: '🍎', Kotlin: '🟣',
+        Python: '🐍', JavaScript: '🟨', TypeScript: '🔷',
+        HTML: '🌐', CSS: '🎨', Rust: '🦀', Go: '🐹',
+        Java: '☕', C: '⚙️', 'C++': '⚙️', Ruby: '💎',
+        Shell: '🐚', Dockerfile: '🐳', Swift: '🍎', Kotlin: '🟣',
       };
       return langMap[lang] || '📦';
     }
 
     function getBadge(repo) {
-      const name = repo.name || '';
-      if (name === 'minimindTutorials' || name === 'RLHF') return 'Featured';
+      const n = repo.name || '';
+      if (n === 'minimindTutorials' || n === 'RLHF') return 'Featured';
       if (repo.stargazers_count > 10) return '⭐ Popular';
       return '';
     }
 
-    // ─── render cards ─────────────────────────────────────────
+    // ─── Render ───────────────────────────────────────────────
     function renderCards(repos) {
       if (!repos || repos.length === 0) {
         grid.innerHTML = `
@@ -586,8 +606,8 @@
       }
 
       const sorted = [...repos].sort((a, b) => {
-        const featured = n => (n === 'minimindTutorials' || n === 'RLHF' ? 0 : 1);
-        const fa = featured(a.name), fb = featured(b.name);
+        const f = n => (n === 'minimindTutorials' || n === 'RLHF' ? 0 : 1);
+        const fa = f(a.name), fb = f(b.name);
         if (fa !== fb) return fa - fb;
         return (b.stargazers_count || 0) - (a.stargazers_count || 0);
       });
@@ -597,7 +617,9 @@
         const desc = r.description || 'No description';
         const icon = getRepoIcon(r.name, r.language);
         const badge = getBadge(r);
-        const updated = r.updated_at ? new Date(r.updated_at).toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' }) : '';
+        const updated = r.updated_at
+          ? new Date(r.updated_at).toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' })
+          : '';
         const stars = r.stargazers_count != null ? r.stargazers_count : 0;
         const lang = r.language || '';
 
@@ -619,30 +641,51 @@
       }).join('');
     }
 
-    // ─── show skeletons ───────────────────────────────────────
-    function showSkeletons(count = 4) {
-      grid.innerHTML = Array.from({ length: count }, () =>
+    function showSkeletons(n) {
+      grid.innerHTML = Array.from({ length: n || 4 }, () =>
         '<div class="skeleton"></div>'
       ).join('');
     }
 
-    // ─── show error ────────────────────────────────────────────
     function showError(msg) {
       errMsg.textContent = msg;
       errB.classList.add('show');
     }
 
-    // ─── fetch all repos from GitHub API ──────────────────────
+    function addNote(text) {
+      const existing = document.querySelector('.discovery-note');
+      if (existing) existing.remove();
+      const div = document.createElement('div');
+      div.className = 'discovery-note';
+      div.innerHTML = text;
+      const section = document.querySelector('.section-title');
+      if (section && section.parentNode) {
+        section.parentNode.insertBefore(div, section.nextSibling);
+      }
+    }
+
+    // ─── API: fetch repos (with optional token support) ──────
     async function fetchAllRepos() {
       const perPage = 100;
       let page = 1;
       let all = [];
+      const token = window.__GITHUB_TOKEN || '';
+      const headers = token ? { Authorization: `token ${token}` } : {};
 
       while (true) {
         const res = await fetch(
-          `https://api.github.com/users/${USERNAME}/repos?per_page=${perPage}&page=${page}&sort=updated&direction=desc`
+          `https://api.github.com/users/${USERNAME}/repos?per_page=${perPage}&page=${page}&sort=updated`,
+          { headers }
         );
-        if (!res.ok) throw new Error(`GitHub API ${res.status}`);
+        if (!res.ok) {
+          if (res.status === 403) {
+            const remain = res.headers.get('X-RateLimit-Remaining') || '0';
+            const reset = res.headers.get('X-RateLimit-Reset') || '0';
+            const resetDate = new Date(parseInt(reset) * 1000);
+            throw new Error(`API 限速（剩余 ${remain} 次，${resetDate.toLocaleTimeString()} 重置）`);
+          }
+          throw new Error(`GitHub API ${res.status}`);
+        }
         const data = await res.json();
         if (!data || data.length === 0) break;
         all = all.concat(data);
@@ -652,117 +695,141 @@
       return all;
     }
 
-    // ─── check if a repo has GitHub Pages enabled ────────────
-    // We probe the Pages API endpoint; if it returns 200, Pages is ON.
-    async function checkPageEnabled(repoName) {
-      try {
-        const res = await fetch(
-          `https://api.github.com/repos/${USERNAME}/${repoName}/pages`,
-          { signal: AbortSignal.timeout(4000) }
-        );
-        return res.ok;
-      } catch {
-        return false;
-      }
-    }
-
-    // ─── auto-discover which repos have Pages ────────────────
-    // We check all repos in parallel, with a concurrency limit.
-    async function discoverPagesRepos(allRepos) {
-      // Filter out forks and very old repos first to reduce probes
+    // ─── Detect Pages repos ───────────────────────────────────
+    // Strategy: use the GitHub Branches API to find repos with a 'gh-pages' branch.
+    // This uses ~5 API calls for your 7 repos (budget-friendly).
+    // Then verify with a quick fetch to the Pages URL.
+    async function discoverPages(allRepos) {
       const candidates = allRepos.filter(r => !r.fork);
+      const discovered = [];
 
-      const results = [];
-      const CONCURRENCY = 6;
+      // Check remaining API budget first
+      try {
+        const r = await fetch('https://api.github.com/rate_limit', { signal: AbortSignal.timeout(3000) });
+        if (r.ok) {
+          const data = await r.json();
+          const remain = data?.resources?.core?.remaining || 0;
+          // Need at least 1 per candidate + buffer
+          if (remain < candidates.length + 5) {
+            console.warn(`API budget too low (${remain}), skip auto-discovery`);
+            return discovered;
+          }
+        }
+      } catch {}
+
+      // Batch with concurrency 4
+      const CONCURRENCY = 4;
       for (let i = 0; i < candidates.length; i += CONCURRENCY) {
         const batch = candidates.slice(i, i + CONCURRENCY);
-        const checks = await Promise.allSettled(
-          batch.map(r => checkPageEnabled(r.name).then(enabled => ({ repo: r, enabled })))
+        const results = await Promise.allSettled(
+          batch.map(async repo => {
+            // Check for gh-pages branch
+            const br = await fetch(
+              `https://api.github.com/repos/${USERNAME}/${repo.name}/branches?per_page=5`,
+              { signal: AbortSignal.timeout(5000) }
+            );
+            if (!br.ok) return null;
+            const branches = await br.json();
+            const hasGhPages = branches.some(b => b.name === 'gh-pages');
+            if (hasGhPages) return repo;
+
+            // Fallback: try fetching the URL directly
+            try {
+              const url = `https://${USERNAME.toLowerCase()}.github.io/${repo.name}/`;
+              const probe = await fetch(url, { method: 'HEAD', signal: AbortSignal.timeout(3000) });
+              if (probe.ok || probe.status === 301 || probe.status === 302) return repo;
+            } catch {}
+            return null;
+          })
         );
-        for (const c of checks) {
-          if (c.status === 'fulfilled' && c.value.enabled) {
-            results.push(c.value.repo);
+        for (const res of results) {
+          if (res.status === 'fulfilled' && res.value) {
+            discovered.push(res.value);
           }
         }
       }
-      return results;
+      return discovered;
     }
 
-    // ─── refresh hint ─────────────────────────────────────────
-    function addRefreshHint() {
-      const existing = document.getElementById('refreshHint');
-      if (existing) return;
-      const hint = document.createElement('div');
-      hint.id = 'refreshHint';
-      hint.style.cssText = `
-        text-align: center;
-        margin-top: -32px;
-        margin-bottom: 32px;
-        font-size: 13px;
-        color: var(--text-dim);
-      `;
-      hint.innerHTML = '🔄 新增 Pages 仓库后 <a href="javascript:location.reload()" style="color:var(--accent);text-decoration:underline">刷新页面</a> 即可自动发现';
-      const section = document.querySelector('.section-title');
-      if (section && section.parentNode) {
-        section.parentNode.insertBefore(hint, section.nextSibling);
-      }
+    // ─── Merge live data (stars, language, updated_at) ────────
+    function mergeLive(pagesList, repoMap) {
+      return pagesList.map(p => {
+        const live = repoMap[p.name];
+        return live ? {
+          ...p,
+          description: live.description || p.description,
+          stargazers_count: live.stargazers_count || 0,
+          language: live.language || '',
+          updated_at: live.updated_at,
+        } : p;
+      });
     }
 
-    // ─── main ──────────────────────────────────────────────────
+    // ─── Main ──────────────────────────────────────────────────
     async function main() {
       showSkeletons(4);
+      const cached = loadCache();
+      const fallback = KNOWN_PAGES;
 
       try {
         const allRepos = await fetchAllRepos();
+        const repoMap = {};
+        allRepos.forEach(r => { repoMap[r.name] = r; });
 
-        // Auto-discover which repos have Pages enabled
-        const pagesRepos = await discoverPagesRepos(allRepos);
+        let pages = await discoverPages(allRepos);
 
-        if (pagesRepos.length === 0) {
-          // Fallback: known repos for demo / offline
-          renderCards([
-            { name: 'minimindTutorials', description: 'MiniMind 大模型训练教程 — 从零搭建你的第一个 Transformer 模型' },
-            { name: 'RLHF', description: 'RLHF 从理论到实践 — 强化学习与人类反馈对齐' },
-            { name: 'test', description: '日常测试与实验场' },
-            { name: 'personal-thought-construction', description: '个人思考构建 — 思维笔记与成长记录' },
-          ]);
-          repoStat.textContent = '4';
-          starStat.textContent = '—';
-          updStat.textContent  = '—';
-          showError('未能自动探测 Pages，显示备用列表');
-          return;
+        if (pages.length > 0) {
+          // Success! Use discovered repos
+          pages = mergeLive(pages, repoMap);
+          saveCache(pages);
+          addNote('🔄 新增 Pages 仓库后 <a href="javascript:location.reload()">刷新页面</a> 即可自动发现');
+        } else if (cached && cached.repos && cached.repos.length > 0) {
+          // Use cache
+          pages = mergeLive(cached.repos, repoMap);
+          addNote('💾 使用缓存列表 · <a href="javascript:location.reload()">刷新重试</a>');
+        } else {
+          // Use known fallback
+          pages = mergeLive(fallback, repoMap);
         }
 
         // Stats
-        repoStat.textContent = pagesRepos.length;
+        repoStat.textContent = pages.length.toString();
         let totalStars = 0;
-        pagesRepos.forEach(r => { totalStars += r.stargazers_count || 0; });
+        pages.forEach(r => { totalStars += r.stargazers_count || 0; });
         starStat.textContent = totalStars;
 
-        const recent = [...pagesRepos].sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
+        const recent = pages.filter(r => r.updated_at).sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
         updStat.textContent = recent.length > 0
           ? new Date(recent[0].updated_at).toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' })
           : '—';
 
-        renderCards(pagesRepos);
-        addRefreshHint();
+        renderCards(pages);
 
       } catch (err) {
-        console.warn('Auto-discover failed, using static data:', err);
-        showError('无法连接 GitHub API，显示缓存数据');
+        console.warn('Main error:', err);
+        showError(err.message || '无法连接 GitHub API');
 
-        const fallback = [
-          { name: 'minimindTutorials', description: 'MiniMind 大模型训练教程 — 从零搭建你的第一个 Transformer 模型' },
-          { name: 'RLHF', description: 'RLHF 从理论到实践 — 强化学习与人类反馈对齐' },
-          { name: 'test', description: '日常测试与实验场' },
-          { name: 'personal-thought-construction', description: '个人思考构建 — 思维笔记与成长记录' },
-        ];
-        renderCards(fallback);
-        repoStat.textContent = fallback.length.toString();
+        let repos;
+        if (cached && cached.repos && cached.repos.length > 0) {
+          repos = cached.repos;
+          showError('使用缓存的 Pages 列表（上次更新: ' +
+            new Date(cached.timestamp).toLocaleDateString('zh-CN') + '）');
+        } else {
+          repos = fallback;
+        }
+        renderCards(repos);
+        repoStat.textContent = repos.length.toString();
         starStat.textContent = '—';
         updStat.textContent  = '—';
       }
     }
+
+    // ─── Load token from URL param ──────────────────────────
+    (function loadToken() {
+      const params = new URLSearchParams(window.location.search);
+      const t = params.get('token');
+      if (t) window.__GITHUB_TOKEN = t;
+    })();
 
     main();
   </script>
