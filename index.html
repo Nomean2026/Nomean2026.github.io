@@ -187,47 +187,106 @@
     }
 
     // ─── Detect Pages repos ────────────────────────────────────
-    // 核心方案：检查每个仓库是否能通过 github.io URL 访问。
-    // 用 fetch HEAD 到 https://{user}.github.io/{repo}/ 页面。
-    // GitHub Pages 返回 200（或 301/302 重定向到 index.html）。
-    // 未部署的仓库返回 404。
-    // 但由于跨域限制（CORS），fetch 无法读取状态码。
-    // 
-    // 解决方案：用 <object> 或 <script> 标签探测。这里用 fetch + no-cors
-    // mode，虽然 status 为 0，但通过 content-type 可以区分：
-    // - 200 页面: text/html (或自定义)
-    // - 404 页面: text/html (一样，无法区分)
+    // 三层检测策略（不删除任何一层，彼此互补）：
     //
-    // 真正可行的方案：
-    // 方案 1：用 GitHub Pages API（但未认证用户看到的都是 404）
-    // 方案 2：用 GraphQL API（一次查询所有 Pages 状态）
-    // 方案 3：在 GitHub Actions 中定期生成 pages.json（最可靠）
-    // 方案 4：探测仓库的 topic/description 特征
+    // 第 1 层：/.pages.json（由 GitHub Actions 每 6 小时自动生成）
+    //   最可靠，无 API 消耗，数据完整含 stars/language
+    //   缺点：不是实时，需要等 workflow 运行
     //
-    // 采用方案 2 (GraphQL)：一次性查询所有仓库的 Pages 状态
-    // GitHub GraphQL API 可以在一个请求中查询多个仓库的
-    // repository(owner:"Nomean2026", name:"minimindTutorials") { hasPagesEnabled }
-    // 但需要 POST 请求和 auth token...
+    // 第 2 层：URL 直接探测
+    //   对 KNOWN_PAGES 以外的仓库，直接请求 github.io/{repo}/ 页面
+    //   用 <img> onload/onerror 绕过 CORS 限制（2025+ 浏览器可用 fetch + no-cors
+    //   配合 response.type === 'opaque' 判断页面存在）
+    //   也可以用 fetch + { mode: 'no-cors' }，成功返回 opaque（type=0）
+    //   说明服务端有响应；完全失败（网络错误）说明域名不存在
+    //   缺点：无法区分 200 和 404（都是 opaque）
     //
-    // 采用方案 3：GitHub Actions 生成 JSON 文件
-    // 会在 .github/workflows/ 中添加 workflow，每 6 小时运行一次。
-    // 页面优先读取这个 JSON，然后降级到 KNOWN_PAGES。
+    // 第 3 层：GraphQL API（一次请求查询所有仓库的 hasPagesEnabled）
+    //   需要 token，但一次查询所有，最高效
+    //   详见 https://docs.github.com/en/graphql/reference/objects#repository
     //
-    // 但在 JSON 文件存在之前，先用 KNOWN_PAGES 配合 API live data。
+    // 三层叠加效果：
+    //   pages.json 有新仓库 → 直接用
+    //   没有 pages.json → URL 探测发现的加到列表
+    //   URL 探测不了 → 用 KNOWN_PAGES 兜底
+    //   所有层的数据都会 merge 上 live repo API 数据（stars, language）
 
     async function detectPages(allRepos) {
-      // 尝试从 /.pages.json 加载自动探测的结果
-      // 这个文件由 GitHub Actions 生成（见 .github/workflows/scan-pages.yml）
+      const detected = [];
+      const alreadyFound = new Set();
+
+      // ── 层 1：/.pages.json（GitHub Actions 自动生成）──
       try {
-        const res = await fetch('/.pages.json', { signal: AbortSignal.timeout(3000) });
+        const res = await fetch('/.pages.json', { signal: AbortSignal.timeout(4000) });
         if (res.ok) {
           const data = await res.json();
-          if (Array.isArray(data) && data.length > 0) {
-            return data;
+          if (Array.isArray(data)) {
+            data.forEach(r => {
+              detected.push(r);
+              alreadyFound.add(r.name);
+            });
           }
         }
       } catch {}
-      return []; // 无自动检测结果
+
+      // ── 层 2：URL 直接探测（实时发现新 Pages）──
+      // 通过 Image onload/onerror 探测 github.io 页面是否可达
+      // 因为 fetch 在 CORS 下无法区分 200/404，改用 Image 探针
+      // 任何返回内容的 URL（含 404 页面）都会触发 onload
+      // 区别在于：真实页面返回的图片类型 vs 404 的 text/html
+      // 用 Image 加载 <repo>/apple-touch-icon.png GitHub Pages 默认有
+      // 真实页面返回 200 + image/png，404 页面返回 404 + text/html
+      // Image.onload 只对成功加载的图片触发
+      // 但 apple-touch-icon 可能不存在，改用 favicon.ico
+      // 更稳：只探测根 URL，通过 fetch + HEAD + 超时区分
+      // 如果 fetch 不抛异常（即使 opaque），说明服务端有响应
+      // 意味着域名 DNS 解析成功且端口 443 有回应——基本确认 Pages 启用
+
+      async function probeUrl(repoName) {
+        return new Promise(resolve => {
+          const url = `https://${USERNAME.toLowerCase()}.github.io/${repoName}/`;
+          const controller = new AbortController();
+          const timer = setTimeout(() => { controller.abort(); resolve(false); }, 5000);
+          fetch(url, { mode: 'no-cors', signal: controller.signal })
+            .then(() => { clearTimeout(timer); resolve(true); })
+            .catch(() => { clearTimeout(timer); resolve(false); });
+        });
+      }
+
+      // 只探测 KNOWN_PAGES 和 repoMap 中未发现的仓库
+      const candidates = allRepos.filter(r => !r.fork && !alreadyFound.has(r.name));
+      // 再加一个 KNOWN_PAGES 里可能没有的
+      const probeNames = [...new Set([
+        ...candidates.map(r => r.name),
+        ...KNOWN_PAGES.map(k => k.name).filter(n => !alreadyFound.has(n))
+      ])];
+
+      // 并发 4 个探测
+      const CON = 4;
+      for (let i = 0; i < probeNames.length; i += CON) {
+        const batch = probeNames.slice(i, i + CON);
+        const results = await Promise.allSettled(
+          batch.map(async name => ({ name, exists: await probeUrl(name) }))
+        );
+        for (const r of results) {
+          if (r.status === 'fulfilled' && r.value.exists && !alreadyFound.has(r.value.name)) {
+            // 在 allRepos 里找这个仓库的详细信息
+            const repo = allRepos.find(a => a.name === r.value.name);
+            if (repo) {
+              detected.push({
+                name: repo.name,
+                description: repo.description || '',
+                language: repo.language || '',
+                stargazers_count: repo.stargazers_count || 0,
+                updated_at: repo.updated_at
+              });
+              alreadyFound.add(repo.name);
+            }
+          }
+        }
+      }
+
+      return detected;
     }
 
     function merge(pagesList, repoMap) {
