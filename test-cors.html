@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html><body>
+<h2>测试：从浏览器 fetch github.com 仓库页面</h2>
+<div id="result"></div>
+<script>
+const out = document.getElementById('result');
+
+async function test() {
+  const repos = ['minimindTutorials', 'RLHF', 'test', 'personal-thought-construction', '不存在的仓库'];
+  
+  for (const repo of repos) {
+    const div = document.createElement('div');
+    div.style.margin = '12px 0';
+    div.style.padding = '8px';
+    div.style.border = '1px solid #ccc';
+    div.style.borderRadius = '6px';
+    
+    div.innerHTML = `<strong>${repo}</strong>：检测中...`;
+    out.appendChild(div);
+    
+    try {
+      const res = await fetch(`https://github.com/Nomean2026/${repo}`, {
+        signal: AbortSignal.timeout(8000)
+      });
+      const html = await res.text();
+      
+      // 检查有没有 Pages 信息
+      const hasPagesLink = html.includes('github.io') || 
+                           html.includes('Pages') ||
+                           html.includes('github-pages');
+      
+      // 更精确：找右侧栏的 Pages 区块
+      const pagesPattern = /github\.io\/(\w[\w.-]*)/gi;
+      const matches = [...html.matchAll(pagesPattern)];
+      
+      div.innerHTML = `
+        <strong>${repo}</strong>：
+        <span style="color:${hasPagesLink ? 'green' : 'red'}">${hasPagesLink ? '✅ 有 Pages' : '❌ 无 Pages'}</span>
+        <br><small>状态码: ${res.status} | 页面大小: ${html.length} bytes</small>
+        ${matches.length ? '<br><small>🔗 github.io 链接: ' + matches.map(m => m[0]).join(', ') + '</small>' : ''}
+      `;
+    } catch(e) {
+      div.innerHTML = `<strong>${repo}</strong>：<span style="color:red">❌ fetch 失败: ${e.message}</span>`;
+    }
+  }
+}
+
+test();
+</script>
+</body></html>
