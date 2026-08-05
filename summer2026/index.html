@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>暑假每日开放速查 · 交大</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --duty-bg: linear-gradient(90deg, #fff5f5 0%, #fed7d7 100%);
+            --duty-border: #fc8181;
+            --today-bg: linear-gradient(90deg, #ebf8ff 0%, #bee3f8 100%);
+            --today-border: #4299e1;
+            --weekend-bg: #fafafa;
+            --row-border: #e2e8f0;
+            --text: #1a202c;
+            --text-sub: #4a5568;
+            --text-mute: #a0aec0;
+            --canteen: #e53e3e;
+            --canteen-bg: #fff5f5;
+            --library: #3182ce;
+            --library-bg: #ebf8ff;
+            --class: #38a169;
+            --class-bg: #f0fff4;
+            --shop: #d69e2e;
+            --shop-bg: #fffff0;
+        }
+
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: #f7fafc;
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        /* ====== 顶部固定栏 ====== */
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--row-border);
+            padding: 14px 20px;
+        }
+
+        .topbar-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .logo {
+            font-family: 'Noto Serif SC', serif;
+            font-weight: 700;
+            font-size: 18px;
+            background: linear-gradient(135deg, #e53e3e, #d69e2e, #38a169, #3182ce);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            white-space: nowrap;
+        }
+
+        .filters {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 7px 14px;
+            border: 1.5px solid var(--row-border);
+            background: white;
+            border-radius: 100px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--text-sub);
+        }
+
+        .filter-btn:hover { border-color: #cbd5e0; }
+
+        .filter-btn.active {
+            border-color: transparent;
+            color: white;
+        }
+
+        .filter-btn[data-cat="all"].active { background: linear-gradient(135deg,#667eea,#764ba2); }
+        .filter-btn[data-cat="canteen"].active { background: var(--canteen); }
+        .filter-btn[data-cat="library"].active { background: var(--library); }
+        .filter-btn[data-cat="class"].active { background: var(--class); }
+        .filter-btn[data-cat="shop"].active { background: var(--shop); }
+
+        .dot { width:8px; height:8px; border-radius:50%; display:inline-block; }
+        .dot.canteen { background: var(--canteen); }
+        .dot.library { background: var(--library); }
+        .dot.class { background: var(--class); }
+        .dot.shop { background: var(--shop); }
+
+        .actions {
+            margin-left: auto;
+            display: flex;
+            gap: 8px;
+        }
+
+        .action-btn {
+            padding: 7px 14px;
+            border-radius: 100px;
+            border: none;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-today {
+            background: linear-gradient(135deg, #4299e1, #667eea);
+            color: white;
+        }
+
+        .btn-today:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(66,153,225,0.3); }
+
+        .btn-hide {
+            background: #edf2f7;
+            color: var(--text-sub);
+        }
+
+        .btn-hide.active {
+            background: #4a5568;
+            color: white;
+        }
+
+        /* 实时日期显示 */
+        .live-date {
+            padding: 6px 14px;
+            background: linear-gradient(135deg, #f6f8fc 0%, #edf2f7 100%);
+            border-radius: 100px;
+            font-size: 13px;
+            color: var(--text-sub);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 500;
+            border: 1px solid #e2e8f0;
+        }
+
+        .live-date .pulse {
+            width: 8px;
+            height: 8px;
+            background: #38a169;
+            border-radius: 50%;
+            box-shadow: 0 0 0 0 rgba(56, 161, 105, 0.6);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(56, 161, 105, 0.5); }
+            70% { box-shadow: 0 0 0 8px rgba(56, 161, 105, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(56, 161, 105, 0); }
+        }
+
+        .live-date strong {
+            color: var(--text);
+        }
+
+        /* ====== 图例 ====== */
+        .legend {
+            max-width: 1200px;
+            margin: 20px auto 0;
+            padding: 0 20px;
+            display: flex;
+            gap: 14px;
+            flex-wrap: wrap;
+            font-size: 13px;
+            color: var(--text-sub);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .legend-swatch {
+            width: 36px;
+            height: 20px;
+            border-radius: 6px;
+            border: 2px solid;
+        }
+
+        .swatch-duty { background: var(--duty-bg); border-color: var(--duty-border); }
+        .swatch-today { background: var(--today-bg); border-color: var(--today-border); }
+        .swatch-weekend { background: var(--weekend-bg); border-color: #cbd5e0; }
+
+        /* ====== 主体表 ====== */
+        .container {
+            max-width: 1200px;
+            margin: 16px auto 60px;
+            padding: 0 20px;
+        }
+
+        .day-row {
+            display: grid;
+            grid-template-columns: 160px 1fr;
+            gap: 20px;
+            padding: 18px 20px;
+            background: white;
+            border: 1px solid var(--row-border);
+            border-bottom: none;
+            transition: all 0.2s;
+        }
+
+        .day-row:first-child { border-radius: 14px 14px 0 0; }
+        .day-row:last-child { border-bottom: 1px solid var(--row-border); border-radius: 0 0 14px 14px; }
+        .day-row:only-child { border-radius: 14px; }
+
+        .day-row:hover {
+            background: #fcfdff;
+        }
+
+        .day-row.weekend { background: var(--weekend-bg); }
+        .day-row.duty {
+            background: var(--duty-bg);
+            border-left: 5px solid var(--duty-border);
+        }
+        .day-row.today {
+            background: var(--today-bg);
+            border-left: 5px solid var(--today-border);
+            box-shadow: 0 0 0 2px rgba(66,153,225,0.15);
+            position: relative;
+        }
+        .day-row.today::before {
+            content: 'TODAY';
+            position: absolute;
+            top: -1px;
+            right: 20px;
+            background: linear-gradient(135deg,#4299e1,#667eea);
+            color: white;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 0 0 10px 10px;
+            letter-spacing: 1px;
+        }
+
+        /* 左侧日期列 */
+        .day-info {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 4px;
+            padding-right: 20px;
+            border-right: 2px dashed #edf2f7;
+        }
+
+        .day-date {
+            font-family: 'Noto Serif SC', serif;
+            font-size: 28px;
+            font-weight: 700;
+            line-height: 1;
+            color: var(--text);
+        }
+
+        .day-week {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-sub);
+        }
+
+        .day-row.weekend .day-week,
+        .day-row.weekend .day-date {
+            color: #e53e3e;
+        }
+
+        .day-tags {
+            display: flex;
+            gap: 4px;
+            margin-top: 6px;
+            flex-wrap: wrap;
+        }
+
+        .day-tag {
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 100px;
+            font-weight: 600;
+        }
+
+        .tag-duty {
+            background: #c53030;
+            color: white;
+        }
+
+        .tag-holiday {
+            background: #805ad5;
+            color: white;
+        }
+
+        /* 右侧开放内容 */
+        .day-content {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .cat-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: flex-start;
+        }
+
+        .cat-group.hidden { display: none; }
+
+        .cat-label {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 8px;
+            color: white;
+            flex-shrink: 0;
+            margin-top: 4px;
+            letter-spacing: 0.5px;
+        }
+
+        .cat-label.canteen { background: var(--canteen); }
+        .cat-label.library { background: var(--library); }
+        .cat-label.class { background: var(--class); }
+        .cat-label.shop { background: var(--shop); }
+
+        .place-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .chip {
+            padding: 6px 12px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 500;
+            line-height: 1.4;
+            transition: all 0.15s;
+            cursor: default;
+            border: 1px solid transparent;
+        }
+
+        .chip:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgba(0,0,0,0.08); }
+
+        .chip.canteen {
+            background: var(--canteen-bg);
+            color: #742a2a;
+            border-color: #fed7d7;
+        }
+
+        .chip.library {
+            background: var(--library-bg);
+            color: #2a4365;
+            border-color: #bee3f8;
+        }
+
+        .chip.class {
+            background: var(--class-bg);
+            color: #22543d;
+            border-color: #c6f6d5;
+        }
+
+        .chip.shop {
+            background: var(--shop-bg);
+            color: #744210;
+            border-color: #fefcbf;
+        }
+
+        .chip small {
+            display: block;
+            font-size: 10.5px;
+            opacity: 0.75;
+            margin-top: 2px;
+            font-weight: 400;
+        }
+
+        .chip.campus-xh::before,
+        .chip.campus-mh::before,
+        .chip.campus-qb::before {
+            content: '';
+            display: inline-block;
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            margin-right: 5px;
+            vertical-align: middle;
+        }
+
+        .chip.campus-mh::before { background: #3182ce; }
+        .chip.campus-xh::before { background: #38a169; }
+        .chip.campus-qb::before { background: #d69e2e; }
+
+        .empty-hint {
+            font-size: 13px;
+            color: var(--text-mute);
+            padding: 4px 0;
+            font-style: italic;
+        }
+
+        .empty-hint.hidden { display: none; }
+
+        /* ====== 底部汇总卡 ====== */
+        .summary {
+            max-width: 1200px;
+            margin: 0 auto 30px;
+            padding: 0 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 14px;
+        }
+
+        .sum-card {
+            background: white;
+            border-radius: 14px;
+            padding: 18px;
+            border: 1px solid var(--row-border);
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .sum-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            flex-shrink: 0;
+        }
+
+        .sum-icon.sc { background: var(--canteen-bg); }
+        .sum-icon.sl { background: var(--library-bg); }
+        .sum-icon.scl { background: var(--class-bg); }
+        .sum-icon.ss { background: var(--shop-bg); }
+
+        .sum-text {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .sum-num {
+            font-family: 'Noto Serif SC', serif;
+            font-size: 24px;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .sum-label {
+            font-size: 12px;
+            color: var(--text-mute);
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .day-row {
+                grid-template-columns: 1fr;
+                gap: 12px;
+                padding: 14px;
+            }
+            .day-info {
+                border-right: none;
+                border-bottom: 2px dashed #edf2f7;
+                padding-right: 0;
+                padding-bottom: 12px;
+                flex-direction: row;
+                align-items: center;
+                gap: 12px;
+            }
+            .day-date { font-size: 22px; }
+            .topbar-inner { gap: 10px; }
+            .actions { margin-left: 0; width: 100%; justify-content: space-between; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- 顶部栏 -->
+<div class="topbar">
+    <div class="topbar-inner">
+        <div class="logo">🌞 暑假开放速查表</div>
+        <div class="filters" id="filters">
+            <button class="filter-btn active" data-cat="all">全部</button>
+            <button class="filter-btn" data-cat="canteen"><span class="dot canteen"></span>食堂</button>
+            <button class="filter-btn" data-cat="library"><span class="dot library"></span>图书馆</button>
+            <button class="filter-btn" data-cat="class"><span class="dot class"></span>自习</button>
+            <button class="filter-btn" data-cat="shop"><span class="dot shop"></span>便利</button>
+        </div>
+        <div class="actions">
+            <div class="live-date" title="根据系统日期实时更新">
+                <span class="pulse"></span>
+                <span>系统时间：</span>
+                <strong id="liveDateStr">--</strong>
+            </div>
+            <button class="action-btn btn-hide" id="hideClosedBtn" title="隐藏全部关闭的日期">隐藏无开放</button>
+            <button class="action-btn btn-today" id="todayBtn">📍 回到今天</button>
+        </div>
+    </div>
+</div>
+
+<!-- 图例 -->
+<div class="legend">
+    <div class="legend-item"><div class="legend-swatch swatch-duty"></div>我的值班日 (8.18-8.25工作日)</div>
+    <div class="legend-item"><div class="legend-swatch swatch-today"></div>今天</div>
+    <div class="legend-item"><div class="legend-swatch swatch-weekend"></div>周末</div>
+    <div class="legend-item">🔵闵行 &nbsp; 🟢徐汇 &nbsp; 🟡七宝</div>
+</div>
+
+<!-- 今日汇总 -->
+<div class="summary" id="summary"></div>
+
+<!-- 日期列表 -->
+<div class="container" id="dayList"></div>
+
+<script>
+/* ==================== 数据配置 ==================== */
+
+// 值班日期：8.18-25的工作日
+const DUTY_DATES = new Set([
+    '2026-08-18','2026-08-19','2026-08-20',
+    '2026-08-21','2026-08-24','2026-08-25'
+]);
+
+// 特别节日
+const HOLIDAYS = { '2026-09-10': '教师节' };
+
+// 灭四害日期（食堂停业）
+function inPestControl(month, day, pestRange) {
+    // pestRange: [startM, startD, endM, endD]
+    if (!pestRange) return false;
+    const [sm, sd, em, ed] = pestRange;
+    const cur = month * 100 + day;
+    return cur >= sm * 100 + sd && cur <= em * 100 + ed;
+}
+
+// 判断是否在停业区间
+function inClosedRange(month, day, ranges) {
+    if (!ranges) return false;
+    const cur = month * 100 + day;
+    return ranges.some(([sm, sd, em, ed]) => cur >= sm * 100 + sd && cur <= em * 100 + ed);
+}
+
+/* 场所配置
+ * name, category(canteen/library/class/shop), campus(mh/xh/qb)
+ * closedRanges: [[m1,d1,m2,d2], ...]  暂停营业区间
+ * pestControl: [m1,d1,m2,d2]           灭四害停业
+ * sub: 子区域说明（显示在chip small里）
+ */
+const PLACES = [
+    // ===== 闵行 食堂 =====
+    { name: '一餐·中式点心/超霖/淮扬', cat: 'canteen', campus: 'mh',
+      pestControl: [8,4,8,6], sub: '一楼正常营业' },
+    { name: '一餐·麦当劳', cat: 'canteen', campus: 'mh',
+      pestControl: [8,4,8,6] },
+    { name: '一餐·民族风味', cat: 'canteen', campus: 'mh',
+      pestControl: [8,4,8,6] },
+    { name: '二餐·学生档位', cat: 'canteen', campus: 'mh',
+      pestControl: [8,7,8,9], sub: '一楼/其他楼层正常' },
+    { name: '三餐·外婆桥', cat: 'canteen', campus: 'mh',
+      pestControl: [8,1,8,3], sub: '二楼' },
+    { name: '三餐·民族风味', cat: 'canteen', campus: 'mh',
+      pestControl: [8,1,8,3], sub: '二楼' },
+    { name: '四餐·二楼', cat: 'canteen', campus: 'mh',
+      pestControl: [8,14,8,16], sub: '正常营业' },
+    { name: '四餐·一楼', cat: 'canteen', campus: 'mh',
+      pestControl: [8,14,8,16], sub: '视装修情况开放' },
+    { name: '五餐·学生餐厅/东湖面馆', cat: 'canteen', campus: 'mh',
+      pestControl: [8,21,8,23] },
+    { name: '五餐·吉姆丽德', cat: 'canteen', campus: 'mh',
+      pestControl: [8,21,8,23], sub: '三楼' },
+    { name: '六餐·学生餐厅', cat: 'canteen', campus: 'mh',
+      pestControl: [9,4,9,6] },
+    { name: '七餐·中餐厅', cat: 'canteen', campus: 'mh',
+      pestControl: [8,7,8,9] },
+    { name: '玉兰苑', cat: 'canteen', campus: 'mh',
+      pestControl: [8,10,8,12] },
+    { name: '南洋北苑餐厅', cat: 'canteen', campus: 'mh' },
+    { name: '思源北苑餐厅', cat: 'canteen', campus: 'mh',
+      pestControl: [8,6,8,9] },
+
+    // ===== 徐汇 食堂 =====
+    { name: '徐汇二餐·学生餐厅/KFC', cat: 'canteen', campus: 'xh',
+      sub: '一楼正常营业' },
+    { name: '徐汇二餐·西餐厅/中式点心', cat: 'canteen', campus: 'xh' },
+    { name: '徐汇二餐·民族/教工/大众', cat: 'canteen', campus: 'xh',
+      sub: '二楼' },
+    { name: '徐汇·思源里', cat: 'canteen', campus: 'xh' },
+
+    // ===== 七宝 食堂 =====
+    { name: '七宝第一食堂', cat: 'canteen', campus: 'qb',
+      sub: '早7-9 午11-13 晚16:30-19' },
+
+    // ===== 图书馆 =====
+    { name: '包玉刚图书馆', cat: 'library', campus: 'mh',
+      sub: '阅览/借还正常' },
+    { name: '主图书馆·服务台', cat: 'library', campus: 'mh',
+      sub: '部分区域开放' },
+    { name: '主馆·科技查新', cat: 'library', campus: 'mh',
+      sub: '工作日 B109 8:30-16:30',
+      closedRanges: [[8,3,8,9]] },
+    { name: '徐汇图书阅览空间', cat: 'library', campus: 'xh',
+      sub: '阅览/借还正常' },
+
+    // ===== 教学楼/自习 =====
+    { name: '东上院/东中院/东下院', cat: 'class', campus: 'mh',
+      sub: '公共教学楼自习室' },
+    { name: '陈瑞球楼/文选医学楼', cat: 'class', campus: 'mh',
+      sub: '部分教室可自习' },
+    { name: '学生创新中心C楼', cat: 'class', campus: 'mh',
+      sub: '8:00-22:00（仅东大门）' },
+    { name: 'C楼·3D打印/创客工坊', cat: 'class', campus: 'mh',
+      sub: '18:00-22:00  C200' },
+    { name: 'C楼·设备/激光切割', cat: 'class', campus: 'mh',
+      sub: '12:00-17:00' },
+    { name: '徐汇·新上院自习室', cat: 'class', campus: 'xh' },
+    { name: '学生中心研讨室', cat: 'class', campus: 'mh',
+      sub: '需提前预约' },
+
+    // ===== 便利店/其他 =====
+    { name: '南体教育超市', cat: 'shop', campus: 'mh' },
+    { name: '蓁蓁楼教育超市', cat: 'shop', campus: 'mh' },
+    { name: '四餐全家', cat: 'shop', campus: 'mh' },
+    { name: '玉兰苑罗森', cat: 'shop', campus: 'mh' },
+    { name: '八期公寓罗森', cat: 'shop', campus: 'mh' },
+    { name: '二餐便利店', cat: 'shop', campus: 'mh' },
+    { name: '捭阖坊思源便利店', cat: 'shop', campus: 'mh' },
+];
+
+/* ==================== 渲染逻辑 ==================== */
+
+const WEEKDAYS = ['周日','周一','周二','周三','周四','周五','周六'];
+const MH = '闵行', XH = '徐汇', QB = '七宝';
+
+function fmtDate(y, m, d) {
+    return `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+}
+
+// 某天某场所是否开放
+function isPlaceOpen(place, m, d) {
+    // 停业区间
+    if (inClosedRange(m, d, place.closedRanges)) return false;
+    // 灭四害
+    if (inPestControl(m, d, place.pestControl)) return false;
+    return true;
+}
+
+// 获取当天开放的场所列表
+function getOpenPlaces(m, d, y=2026) {
+    return PLACES.filter(p => isPlaceOpen(p, m, d));
+}
+
+// 渲染某一天的行
+function renderDayRow(y, m, d) {
+    const date = new Date(y, m-1, d);
+    const weekday = date.getDay();
+    const isWeekend = weekday === 0 || weekday === 6;
+    const dateKey = fmtDate(y, m, d);
+    const isDuty = DUTY_DATES.has(dateKey);
+    const today = new Date();
+    const isToday = today.getFullYear()===y && today.getMonth()===m-1 && today.getDate()===d;
+    const holiday = HOLIDAYS[dateKey];
+
+    // 暑假范围 8.3 - 9.13
+    const dayIdx = m*100 + d;
+    if (dayIdx < 803 || dayIdx > 913) return '';
+
+    const openPlaces = getOpenPlaces(m, d, y);
+    const byCat = { canteen:[], library:[], class:[], shop:[] };
+    openPlaces.forEach(p => byCat[p.cat].push(p));
+
+    let contentHtml = '';
+    let anyVisible = false;
+    const catNames = { canteen:'🍽️ 食堂', library:'📚 图书馆', class:'🏫 自习空间', shop:'🛒 便利店' };
+
+    for (const cat of ['canteen','library','class','shop']) {
+        const places = byCat[cat];
+        let chipsHtml = '';
+        if (places.length) {
+            chipsHtml = places.map(p => {
+                const sub = p.sub ? `<small>${p.sub}</small>` : '';
+                const campusClass = p.campus ? `campus-${p.campus}` : '';
+                return `<div class="chip ${cat} ${campusClass}">${p.name}${sub}</div>`;
+            }).join('');
+        } else {
+            chipsHtml = `<div class="empty-hint">当日暂无开放</div>`;
+        }
+        const groupClass = places.length === 0 ? 'cat-group hidden' : 'cat-group';
+        if (places.length) anyVisible = true;
+        contentHtml += `
+            <div class="cat-group" data-cat="${cat}">
+                <div class="cat-label ${cat}">${catNames[cat]}</div>
+                <div class="place-chips">${chipsHtml}</div>
+            </div>
+        `;
+    }
+
+    if (!anyVisible) {
+        contentHtml = `<div class="empty-hint" style="padding:8px 0;font-size:14px;">💤 今日无开放场所（或全部暂停营业）</div>`;
+    }
+
+    const classes = ['day-row'];
+    if (isWeekend) classes.push('weekend');
+    if (isDuty) classes.push('duty');
+    if (isToday) classes.push('today');
+
+    const tags = [];
+    if (isDuty) tags.push(`<span class="day-tag tag-duty">值班</span>`);
+    if (holiday) tags.push(`<span class="day-tag tag-holiday">${holiday}</span>`);
+
+    return `
+        <div class="${classes.join(' ')}" data-date="${dateKey}" data-has-open="${anyVisible ? 1 : 0}">
+            <div class="day-info">
+                <div class="day-date">${m}月${d}日</div>
+                <div class="day-week">${WEEKDAYS[weekday]}</div>
+                ${tags.length ? `<div class="day-tags">${tags.join('')}</div>` : ''}
+            </div>
+            <div class="day-content">${contentHtml}</div>
+        </div>
+    `;
+}
+
+// 渲染整个暑假
+function renderAll() {
+    let html = '';
+    // 8月
+    for (let d = 1; d <= 31; d++) {
+        html += renderDayRow(2026, 8, d);
+    }
+    // 9月
+    for (let d = 1; d <= 13; d++) {
+        html += renderDayRow(2026, 9, d);
+    }
+    document.getElementById('dayList').innerHTML = html;
+    renderSummary();
+}
+
+// 顶部汇总（今天的各分类开放数）
+function renderSummary() {
+    const today = new Date();
+    const y = today.getFullYear(), m = today.getMonth()+1, d = today.getDate();
+    const dayIdx = m*100 + d;
+
+    let canteenN = 0, libN = 0, classN = 0, shopN = 0;
+    if (dayIdx >= 803 && dayIdx <= 913) {
+        const opens = getOpenPlaces(m, d, y);
+        opens.forEach(p => {
+            if (p.cat==='canteen') canteenN++;
+            if (p.cat==='library') libN++;
+            if (p.cat==='class') classN++;
+            if (p.cat==='shop') shopN++;
+        });
+    }
+
+    const todayText = (dayIdx < 803 || dayIdx > 913) ? '（非暑假）' : `（${m}月${d}日）`;
+
+    document.getElementById('summary').innerHTML = `
+        <div class="sum-card">
+            <div class="sum-icon sc">🍽️</div>
+            <div class="sum-text">
+                <div class="sum-num" style="color:var(--canteen)">${canteenN}</div>
+                <div class="sum-label">食堂营业中${todayText}</div>
+            </div>
+        </div>
+        <div class="sum-card">
+            <div class="sum-icon sl">📚</div>
+            <div class="sum-text">
+                <div class="sum-num" style="color:var(--library)">${libN}</div>
+                <div class="sum-label">图书馆开放${todayText}</div>
+            </div>
+        </div>
+        <div class="sum-card">
+            <div class="sum-icon scl">🏫</div>
+            <div class="sum-text">
+                <div class="sum-num" style="color:var(--class)">${classN}</div>
+                <div class="sum-label">自习空间开放${todayText}</div>
+            </div>
+        </div>
+        <div class="sum-card">
+            <div class="sum-icon ss">🛒</div>
+            <div class="sum-text">
+                <div class="sum-num" style="color:var(--shop)">${shopN}</div>
+                <div class="sum-label">便利店营业${todayText}</div>
+            </div>
+        </div>
+    `;
+}
+
+/* ==================== 交互 ==================== */
+
+// 分类筛选
+let currentCat = 'all';
+document.getElementById('filters').addEventListener('click', e => {
+    const btn = e.target.closest('.filter-btn');
+    if (!btn) return;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentCat = btn.dataset.cat;
+
+    document.querySelectorAll('.cat-group').forEach(g => {
+        if (currentCat === 'all') {
+            g.classList.remove('hidden');
+        } else {
+            g.classList.toggle('hidden', g.dataset.cat !== currentCat);
+        }
+    });
+});
+
+// 隐藏无开放
+let hideClosed = false;
+const hideBtn = document.getElementById('hideClosedBtn');
+hideBtn.addEventListener('click', () => {
+    hideClosed = !hideClosed;
+    hideBtn.classList.toggle('active', hideClosed);
+    hideBtn.textContent = hideClosed ? '显示全部日期' : '隐藏无开放';
+    document.querySelectorAll('.day-row').forEach(row => {
+        const has = row.dataset.hasOpen === '1';
+        row.style.display = (!hideClosed || has) ? '' : 'none';
+    });
+});
+
+// 回到今天
+document.getElementById('todayBtn').addEventListener('click', () => {
+    const today = new Date();
+    const key = fmtDate(today.getFullYear(), today.getMonth()+1, today.getDate());
+    const row = document.querySelector(`.day-row[data-date="${key}"]`);
+    if (row) {
+        row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        row.animate(
+            [{ boxShadow: '0 0 0 6px rgba(66,153,225,0.3)' }, { boxShadow: row.style.boxShadow }],
+            { duration: 1500, iterations: 2 }
+        );
+    } else {
+        // 今天不在暑假里，滚动到第一行（8月3日）
+        const first = document.querySelector('.day-row');
+        if (first) first.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+});
+
+/* ==================== 实时日期 & 跨天自动更新 ==================== */
+
+// 当前渲染用的日期key（用于跨天检测）
+let _renderedDateKey = '';
+const _weekdayShort = ['周日','周一','周二','周三','周四','周五','周六'];
+
+// 更新顶栏"系统时间"显示
+function updateLiveDate() {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = now.getMonth() + 1;
+    const d = now.getDate();
+    const w = _weekdayShort[now.getDay()];
+    const hh = String(now.getHours()).padStart(2, '0');
+    const mm = String(now.getMinutes()).padStart(2, '0');
+    const el = document.getElementById('liveDateStr');
+    if (el) el.textContent = `${y}年${m}月${d}日 ${w} ${hh}:${mm}`;
+}
+
+// 检查是否跨天了，如果是就重新渲染整张表
+function checkDayChangeAndRefresh() {
+    const now = new Date();
+    const key = fmtDate(now.getFullYear(), now.getMonth()+1, now.getDate());
+    if (_renderedDateKey && key !== _renderedDateKey) {
+        // ⚡ 跨天了！重新渲染所有行和汇总
+        renderAll();
+        // 跨天后重置筛选状态（避免用户之前点了筛选导致新的今天被隐藏）
+        hideClosed = false;
+        hideBtn.classList.remove('active');
+        hideBtn.textContent = '隐藏无开放';
+        setTimeout(() => {
+            const row = document.querySelector(`.day-row[data-date="${key}"]`);
+            if (row) row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 500);
+    }
+    _renderedDateKey = key;
+}
+
+// 切回标签页时同步（电脑睡眠醒来也能立刻更新）
+document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) {
+        updateLiveDate();
+        checkDayChangeAndRefresh();
+    }
+});
+
+// 启动
+renderAll();
+{
+    const today = new Date();
+    _renderedDateKey = fmtDate(today.getFullYear(), today.getMonth()+1, today.getDate());
+}
+updateLiveDate();
+
+// 每秒更新顶栏时间显示
+setInterval(updateLiveDate, 1000);
+
+// 每15秒检查一次是否跨天（0点过15秒内必定能检测到）
+setInterval(checkDayChangeAndRefresh, 15000);
+
+// 自动滚到今天（暑假内）
+setTimeout(() => {
+    const today = new Date();
+    const key = fmtDate(today.getFullYear(), today.getMonth()+1, today.getDate());
+    const row = document.querySelector(`.day-row[data-date="${key}"]`);
+    if (row) row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}, 300);
+</script>
+</body>
+</html>
