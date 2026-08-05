@@ -259,20 +259,22 @@ section{margin:0 0 64px;scroll-margin-top:24px}
 /* hover 弹出详情 */
 .cal-cell[data-tip]:hover::after{
   content:attr(data-tip);
-  position:absolute;z-index:20;
+  position:absolute;z-index:50;
   bottom:100%;left:50%;transform:translateX(-50%);
-  min-width:180px;max-width:240px;
-  padding:10px 12px;border-radius:10px;
-  background:var(--ink);color:white;font-size:11.5px;
-  line-height:1.6;white-space:pre-wrap;
-  box-shadow:0 10px 30px rgba(0,0,0,0.2);
-  pointer-events:none;margin-bottom:8px;
+  min-width:260px;max-width:400px;
+  padding:14px 16px;border-radius:14px;
+  background:rgba(15,39,36,0.97);color:white;font-size:12.5px;
+  line-height:1.75;white-space:pre-wrap;
+  box-shadow:0 20px 50px rgba(0,0,0,0.3);
+  pointer-events:none;margin-bottom:10px;
+  backdrop-filter:blur(10px);
+  border:1px solid rgba(255,255,255,0.08);
 }
 .cal-cell[data-tip]:hover::before{
   content:'';position:absolute;bottom:calc(100% - 4px);left:50%;
   transform:translateX(-50%);
-  border-left:7px solid transparent;border-right:7px solid transparent;
-  border-top:7px solid var(--ink);z-index:21;pointer-events:none;
+  border-left:8px solid transparent;border-right:8px solid transparent;
+  border-top:8px solid rgba(15,39,36,0.97);z-index:51;pointer-events:none;
 }
 
 /* ========= 表格 ========= */
@@ -1428,25 +1430,68 @@ function foodOpen(f,m,d){
   return true;
 }
 
-/* 图书馆在某日是否开放（简化） */
-function libOpen(m,d){
-  // 周一闭馆？ 文博场馆是周一闭馆，但图书馆暑假不闭馆（包玉刚正常）。
-  // 主馆 8.3-8.9 闭馆，但服务台/查新8.3-8.9仅线上，其他馆正常。
-  // 简化：只要在暑假，视为有图书馆（包玉刚+徐汇一直开）
-  return true;
+/* 图书馆具体开放列表 */
+function libList(m,d){
+  const out=[];
+  out.push('包玉刚图书馆（闵行，正常开放）');
+  // 主图书馆（杜厦楼）：8.3-8.9 闭馆（仅线上），之后部分开放
+  if(inRange(m,d,[8,3,8,9])){
+    out.push('主图书馆·杜厦楼（闵行，闭馆·仅线上委托取报告）');
+  }else{
+    out.push('主图书馆·杜厦楼（闵行，部分开放·B109查新工作日可办）');
+  }
+  out.push('图书阅览空间（徐汇，正常开放）');
+  // 李政道图书馆：8.1-8.20 闭馆修缮
+  if(inRange(m,d,[8,1,8,20])){
+    out.push('李政道图书馆（闭馆修缮至8.20）');
+  }else{
+    out.push('李政道图书馆（正常开放）');
+  }
+  return out;
 }
-function classOpen(m,d){ return true; } // 教学楼一直有
-function shopOpen(m,d){ return true; }  // 便利店一直有
+function libOpen(m,d){ return libList(m,d).some(n=>!n.includes('闭馆')); }
 
-/* 某日某类开放数量 + 具体清单 */
+/* 自习室具体开放列表 */
+function classList(m,d){
+  const out=[];
+  out.push('东上院 / 东中院 / 东下院（闵行，主要自习楼）');
+  out.push('陈瑞球楼、文选医学楼等（闵行，部分教室）');
+  out.push('新上院（徐汇，日常开放）');
+  out.push('包兆龙图书馆阅览空间（徐汇）');
+  // 创新中心C楼：一直开放
+  out.push('学生创新中心C楼大厅 08:00-22:00（仅东门进出）');
+  return out;
+}
+function classOpen(m,d){ return classList(m,d).length>0; }
+
+/* 便利店/商业具体开放列表 */
+function shopList(m,d){
+  const out=[];
+  out.push('南体教育超市 / 蓁蓁楼教育超市（闵行）');
+  out.push('四餐全家 / 玉兰苑罗森 / 八期公寓罗森（闵行）');
+  out.push('二餐便利店 / 捭阖坊思源便利店（闵行）');
+  out.push('西区理发 / 三餐理发 / 四餐理发（闵行）');
+  out.push('乐学洗衣店（闵行）');
+  out.push('徐汇理发店（徐汇，正常）');
+  return out;
+}
+function shopOpen(m,d){ return shopList(m,d).length>0; }
+
+/* 某日某类开放数量 + 具体完整清单 */
 function dayOpenInfo(y,m,d){
   const food = FOOD.filter(f=>foodOpen(f,m,d));
+  const foodByCampus = {mh:[],xh:[],qb:[]};
+  food.forEach(f=>{ if(foodByCampus[f.c]) foodByCampus[f.c].push(f.n); });
   return {
     food: food.length,
-    foodNames: food.map(f=>f.n.replace(/餐饮大楼·|餐厅·|学生餐厅/g,'')).sort((a,b)=>a.length-b.length).slice(0,6),
+    foodNames: food.map(f=>f.n),
+    foodByCampus,
     lib: libOpen(m,d)?1:0,
+    libNames: libList(m,d),
     cls: classOpen(m,d)?1:0,
+    clsNames: classList(m,d),
     shop: shopOpen(m,d)?1:0,
+    shopNames: shopList(m,d),
   };
 }
 
@@ -1505,12 +1550,36 @@ function renderCal(){
     if(info.cls>0) badges.push(`<span class="mini-b c" title="自习室开放">🏫</span>`);
     if(info.shop>0) badges.push(`<span class="mini-b d" title="便利店开放">🛒</span>`);
 
-    // hover 详情
-    const foodList = info.foodNames.map(n=>'• '+n).join('\n');
-    const tip = `【${calMonth+1}月${d}日 · 周${WN[wk]}】\n`
-      + (isDuty?'⚠️ 今日我值班\n\n':'')
-      + `🍽️ 开放食堂 ${info.food} 处：\n${foodList}${info.foodNames.length<info.food?'\n...等':'...'}\n\n`
-      + `📚 图书馆 · 🏫 自习室 · 🛒 便利店：正常`;
+    // hover 详情（分板块详细罗列）
+    const mhFood = info.foodByCampus.mh.map(n=>'   · '+n).join('\n')||'   · 无';
+    const xhFood = info.foodByCampus.xh.map(n=>'   · '+n).join('\n')||'   · 无';
+    const qbFood = info.foodByCampus.qb.map(n=>'   · '+n).join('\n')||'   · 无';
+    const libL = info.libNames.map(n=>{
+      const mark = n.includes('闭馆')?'   · ⛔ ':'   · ✅ ';
+      return mark+n;
+    }).join('\n');
+    const clsL = info.clsNames.map(n=>'   · '+n).join('\n');
+    const shpL = info.shopNames.map(n=>'   · '+n).join('\n');
+
+    const tip =
+`━━━ ${calMonth+1}月${d}日 · 周${WN[wk]} ━━━${isDuty?'\n⚠️  今日我值班（粉红日期）':''}
+
+🍽️  开放食堂 ${info.food} 处
+  ▸ 闵行 ${info.foodByCampus.mh.length} 家：
+${mhFood}
+  ▸ 徐汇 ${info.foodByCampus.xh.length} 家：
+${xhFood}
+  ▸ 七宝 ${info.foodByCampus.qb.length} 家：
+${qbFood}
+
+📚  图书馆服务
+${libL}
+
+🏫  自习 / 学习空间
+${clsL}
+
+🛒  便利店 / 理发 / 洗衣
+${shpL}`;
 
     const cls=[
       'cal-cell',
