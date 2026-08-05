@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>心脏心率数据可视化</title>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+<style>
+:root {
+  --bg: #f0f2f5;
+  --card: #ffffff;
+  --ink: #1a1a2e;
+  --muted: #6b7280;
+  --rule: #e5e7eb;
+  --accent: #ef4444;
+  --accent-light: #fee2e2;
+  --accent-dark: #b91c1c;
+  --blue: #3b82f6;
+  --blue-light: #dbeafe;
+  --blue-dark: #1e40af;
+  --green: #10b981;
+  --orange: #f59e0b;
+  --purple: #8b5cf6;
+  --radius: 14px;
+  --shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif;
+  background: var(--bg); color: var(--ink); line-height: 1.6;
+  padding: 1rem; max-width: 1400px; margin: 0 auto;
+}
+
+/* Header */
+.header {
+  background: linear-gradient(135deg, #fff5f5 0%, #eff6ff 50%, #f0fdf4 100%);
+  border-radius: var(--radius); padding: 1.5rem 2rem; margin-bottom: 1rem;
+  border: 1px solid var(--rule); box-shadow: var(--shadow);
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;
+}
+.header-left h1 { font-size: 1.5rem; font-weight: 800; margin-bottom: 0.25rem; }
+.header-left h1 .heart { color: var(--accent); animation: beat 1.5s ease-in-out infinite; display: inline-block; }
+@keyframes beat { 0%,100% { transform: scale(1); } 10%,30% { transform: scale(1.2); } 20% { transform: scale(1.1); } }
+.header-left .subtitle { color: var(--muted); font-size: 0.82rem; }
+.header-right { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.header-badge {
+  padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.75rem; font-weight: 700;
+}
+.badge-red { background: var(--accent-light); color: var(--accent-dark); }
+.badge-blue { background: var(--blue-light); color: var(--blue-dark); }
+.badge-green { background: #d1fae5; color: #065f46; }
+
+/* Control Panel */
+.controls {
+  background: var(--card); border-radius: var(--radius); padding: 1rem 1.5rem;
+  margin-bottom: 0.75rem; border: 1px solid var(--rule); box-shadow: var(--shadow);
+}
+.control-row {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem;
+  margin-bottom: 0.6rem;
+}
+.control-row:last-child { margin-bottom: 0; }
+.control-label {
+  font-size: 0.75rem; font-weight: 700; color: var(--muted);
+  text-transform: uppercase; letter-spacing: 0.05em; min-width: 70px;
+}
+
+/* Mode toggle */
+.mode-toggle {
+  display: inline-flex; border-radius: 10px; overflow: hidden; border: 2px solid var(--rule);
+}
+.mode-toggle button {
+  padding: 0.45rem 1.2rem; border: none; cursor: pointer;
+  font-size: 0.85rem; font-weight: 600; transition: all 0.25s;
+  background: var(--bg); color: var(--muted);
+}
+.mode-toggle button.active { background: var(--accent); color: #fff; }
+.mode-toggle button:nth-child(2).active { background: var(--blue); }
+
+/* Button groups */
+.btn-group { display: inline-flex; gap: 0; border-radius: 8px; overflow: hidden; border: 1.5px solid var(--rule); }
+.btn-group button {
+  padding: 0.38rem 0.85rem; border: none; background: var(--card); cursor: pointer;
+  font-size: 0.8rem; font-weight: 500; color: var(--muted); transition: all 0.2s;
+  border-right: 1.5px solid var(--rule);
+}
+.btn-group button:last-child { border-right: none; }
+.btn-group button:hover { background: var(--bg); color: var(--ink); }
+.btn-group button.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+/* Checkboxes */
+.checkbox-group { display: inline-flex; flex-wrap: wrap; gap: 0.4rem; }
+.checkbox-item {
+  display: inline-flex; align-items: center; gap: 0.3rem;
+  padding: 0.32rem 0.7rem; border-radius: 8px; cursor: pointer;
+  border: 1.5px solid var(--rule); background: var(--card);
+  font-size: 0.8rem; font-weight: 500; transition: all 0.2s; user-select: none;
+}
+.checkbox-item:hover { border-color: var(--accent); transform: translateY(-1px); }
+.checkbox-item.checked { border-color: var(--accent); background: var(--accent-light); color: var(--accent-dark); }
+.checkbox-item .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.checkbox-item input { display: none; }
+
+/* Select */
+select {
+  padding: 0.38rem 0.7rem; border: 1.5px solid var(--rule); border-radius: 8px;
+  background: var(--card); font-size: 0.8rem; cursor: pointer; color: var(--ink);
+}
+select:focus { outline: none; border-color: var(--accent); }
+
+/* Period selectors */
+.period-select {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  padding: 0.32rem 0.6rem; border-radius: 8px; border: 2px solid var(--rule);
+}
+.period-select.p1 { border-color: var(--accent); background: var(--accent-light); }
+.period-select.p2 { border-color: var(--blue); background: var(--blue-light); }
+.period-select label { font-size: 0.72rem; font-weight: 700; white-space: nowrap; }
+.period-select.p1 label { color: var(--accent-dark); }
+.period-select.p2 label { color: var(--blue-dark); }
+.period-select select { border: none; background: var(--card); font-size: 0.78rem; }
+
+/* Color preview */
+.color-preview {
+  display: inline-flex; align-items: center; gap: 0.4rem; margin-left: 0.5rem;
+  padding: 0.25rem 0.6rem; border-radius: 20px; background: var(--bg);
+  font-size: 0.72rem; color: var(--muted);
+}
+.color-preview .gradient-bar {
+  width: 80px; height: 10px; border-radius: 5px; display: inline-block;
+}
+
+/* Stats */
+.stats-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.6rem; margin-bottom: 0.75rem;
+}
+.stat-card {
+  background: var(--card); border-radius: var(--radius); padding: 0.9rem 1.1rem;
+  border: 1px solid var(--rule); box-shadow: var(--shadow); text-align: center;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.stat-card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
+.stat-card .stat-label { font-size: 0.72rem; color: var(--muted); font-weight: 600; }
+.stat-card .stat-value { font-size: 1.5rem; font-weight: 800; margin-top: 0.15rem; }
+.stat-card .stat-unit { font-size: 0.7rem; color: var(--muted); }
+.stat-card.red .stat-value { color: var(--accent); }
+.stat-card.blue .stat-value { color: var(--blue); }
+.stat-card.green .stat-value { color: var(--green); }
+.stat-card.orange .stat-value { color: var(--orange); }
+.stat-card.purple .stat-value { color: var(--purple); }
+
+/* Compare stat card */
+.stat-compare { text-align: center; }
+.stat-compare .compare-row { display: flex; justify-content: center; gap: 1rem; margin-top: 0.3rem; align-items: center; }
+.stat-compare .compare-val { font-weight: 800; font-size: 1.25rem; }
+.stat-compare .compare-label { font-size: 0.65rem; color: var(--muted); }
+.stat-compare .compare-vs { font-size: 0.9rem; color: var(--muted); }
+.stat-compare .diff { font-size: 0.72rem; color: var(--muted); margin-top: 0.25rem; }
+.diff-up { color: var(--accent) !important; font-weight: 700; }
+.diff-down { color: var(--green) !important; font-weight: 700; }
+
+/* Chart */
+.chart-container {
+  background: var(--card); border-radius: var(--radius); padding: 1rem;
+  border: 1px solid var(--rule); box-shadow: var(--shadow); margin-bottom: 0.75rem;
+}
+#chart { width: 100%; height: 500px; }
+
+/* Insights */
+.insights {
+  background: var(--card); border-radius: var(--radius); padding: 1rem 1.5rem;
+  border: 1px solid var(--rule); box-shadow: var(--shadow); margin-bottom: 0.75rem;
+}
+.insights h3 { font-size: 0.95rem; font-weight: 700; margin-bottom: 0.5rem; }
+.insight-item {
+  display: inline-block; padding: 0.3rem 0.7rem; margin: 0.2rem 0.3rem 0.2rem 0;
+  border-radius: 8px; font-size: 0.78rem; background: var(--bg);
+}
+.insight-item strong { color: var(--accent); }
+.insight-item.blue strong { color: var(--blue); }
+.insight-item.green strong { color: var(--green); }
+
+/* Hidden */
+.hidden { display: none !important; }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .control-row { flex-direction: column; align-items: flex-start; }
+  .control-label { min-width: auto; }
+  #chart { height: 350px; }
+  .header-left h1 { font-size: 1.2rem; }
+  .header { padding: 1rem; }
+}
+
+/* Loading overlay */
+.loading {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(255,255,255,0.8); display: flex; align-items: center;
+  justify-content: center; z-index: 9999; font-size: 1.2rem; color: var(--accent);
+}
+.loading.hidden { display: none; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <h1><span class="heart">&#10084;</span> 心脏心率数据可视化</h1>
+    <p class="subtitle">华为运动健康备份 | 323 天心率记录 | 2025-07-25 至 2026-07-28</p>
+  </div>
+  <div class="header-right">
+    <span class="header-badge badge-red">最大心率</span>
+    <span class="header-badge badge-blue">平均心率</span>
+    <span class="header-badge badge-green">最小心率</span>
+  </div>
+</div>
+
+<!-- Control Panel -->
+<div class="controls">
+  <div class="control-row">
+    <span class="control-label">模式</span>
+    <div class="mode-toggle">
+      <button id="mode-single" class="active" onclick="switchMode('single')">单时段查看</button>
+      <button id="mode-compare" onclick="switchMode('compare')">双时段对比</button>
+    </div>
+  </div>
+
+  <!-- Single period controls -->
+  <div id="single-controls">
+    <div class="control-row">
+      <span class="control-label">时间范围</span>
+      <div class="btn-group" id="range-btns">
+        <button class="active" data-range="7" onclick="selectRange(7)">最近一周</button>
+        <button data-range="30" onclick="selectRange(30)">最近一月</button>
+        <button data-range="90" onclick="selectRange(90)">最近三月</button>
+        <button data-range="month" onclick="selectRange('month')">指定月份</button>
+      </div>
+      <select id="month-select" class="hidden" onchange="onMonthChange()"></select>
+    </div>
+    <div class="control-row">
+      <span class="control-label">心率指标</span>
+      <div class="checkbox-group" id="metric-checks">
+        <label class="checkbox-item checked" data-metric="maxHeartRate">
+          <input type="checkbox" checked><span class="dot" style="background:#ef4444"></span>最大心率
+        </label>
+        <label class="checkbox-item checked" data-metric="avgHeartRate">
+          <input type="checkbox" checked><span class="dot" style="background:#f59e0b"></span>平均心率
+        </label>
+        <label class="checkbox-item checked" data-metric="minHeartRate">
+          <input type="checkbox" checked><span class="dot" style="background:#3b82f6"></span>最小心率
+        </label>
+        <label class="checkbox-item" data-metric="restingHeartRate">
+          <input type="checkbox"><span class="dot" style="background:#10b981"></span>静息心率
+        </label>
+      </div>
+    </div>
+    <div class="control-row">
+      <span class="control-label">色彩方案</span>
+      <div class="btn-group" id="color-btns">
+        <button class="active" data-color="mono" onclick="selectColor('mono')">单色系（时间渐变）</button>
+        <button data-color="multi" onclick="selectColor('multi')">多色彩</button>
+      </div>
+      <span class="color-preview" id="color-preview">
+        <span class="gradient-bar" id="gradient-bar"></span>
+        <span id="color-text">远 &rarr; 近，浅 &rarr; 深</span>
+      </span>
+    </div>
+  </div>
+
+  <!-- Comparison controls -->
+  <div id="compare-controls" class="hidden">
+    <div class="control-row">
+      <span class="control-label">对比粒度</span>
+      <div class="btn-group" id="compare-granularity">
+        <button class="active" data-granularity="month" onclick="selectGranularity('month')">按月对比</button>
+        <button data-granularity="week" onclick="selectGranularity('week')">按周对比</button>
+      </div>
+    </div>
+    <div class="control-row">
+      <span class="control-label">时段选择</span>
+      <div class="period-select p1">
+        <label>时段A（红色系）:</label>
+        <select id="compare-period1" onchange="renderChart()"></select>
+      </div>
+      <div class="period-select p2">
+        <label>时段B（蓝色系）:</label>
+        <select id="compare-period2" onchange="renderChart()"></select>
+      </div>
+    </div>
+    <div class="control-row">
+      <span class="control-label">心率指标</span>
+      <div class="checkbox-group" id="metric-checks-compare">
+        <label class="checkbox-item checked" data-metric="maxHeartRate">
+          <input type="checkbox" checked><span class="dot" style="background:#ef4444"></span>最大心率
+        </label>
+        <label class="checkbox-item checked" data-metric="avgHeartRate">
+          <input type="checkbox" checked><span class="dot" style="background:#f59e0b"></span>平均心率
+        </label>
+        <label class="checkbox-item" data-metric="minHeartRate">
+          <input type="checkbox"><span class="dot" style="background:#3b82f6"></span>最小心率
+        </label>
+        <label class="checkbox-item" data-metric="restingHeartRate">
+          <input type="checkbox"><span class="dot" style="background:#10b981"></span>静息心率
+        </label>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Stats -->
+<div class="stats-grid" id="stats-grid"></div>
+
+<!-- Chart -->
+<div class="chart-container">
+  <div id="chart"></div>
+</div>
+
+<!-- Insights -->
+<div class="insights" id="insights-box">
+  <h3>&#128161; 数据洞察</h3>
+  <div id="insights-content"></div>
+</div>
+
+<script>
+// ==================== DATA ====================
+var HEART_DATA = [{"date": "2025-07-25", "maxHeartRate": 165, "minHeartRate": 37, "avgHeartRate": 105.6, "restingHeartRate": 68, "lastHeartRate": 0}, {"date": "2025-07-26", "maxHeartRate": 115, "minHeartRate": 61, "avgHeartRate": 89.1, "restingHeartRate": 0, "lastHeartRate": 0}, {"date": "2025-07-27", "maxHeartRate": 112, "minHeartRate": 64, "avgHeartRate": 93.9, "restingHeartRate": 0, "lastHeartRate": 97}, {"date": "2025-07-28", "maxHeartRate": 131, "minHeartRate": 62, "avgHeartRate": 100.7, "restingHeartRate": 0, "lastHeartRate": 120}, {"date": "2025-07-29", "maxHeartRate": 127, "minHeartRate": 65, "avgHeartRate": 92.1, "restingHeartRate": 0, "lastHeartRate": 92}, {"date": "2025-07-30", "maxHeartRate": 116, "minHeartRate": 70, "avgHeartRate": 90.1, "restingHeartRate": 0, "lastHeartRate": 116}, {"date": "2025-07-31", "maxHeartRate": 127, "minHeartRate": 64, "avgHeartRate": 94.8, "restingHeartRate": 0, "lastHeartRate": 0}, {"date": "2025-08-01", "maxHeartRate": 127, "minHeartRate": 64, "avgHeartRate": 96.2, "restingHeartRate": 62, "lastHeartRate": 99}, {"date": "2025-08-02", "maxHeartRate": 115, "minHeartRate": 65, "avgHeartRate": 89.0, "restingHeartRate": 0, "lastHeartRate": 87}, {"date": "2025-08-03", "maxHeartRate": 125, "minHeartRate": 54, "avgHeartRate": 64, "restingHeartRate": 64, "lastHeartRate": 84}, {"date": "2025-08-04", "maxHeartRate": 108, "minHeartRate": 68, "avgHeartRate": 92.1, "restingHeartRate": 0, "lastHeartRate": 0}, {"date": "2025-08-05", "maxHeartRate": 108, "minHeartRate": 68, "avgHeartRate": 98.4, "restingHeartRate": 0, "lastHeartRate": 96}, {"date": "2025-08-06", "maxHeartRate": 121, "minHeartRate": 62, "avgHeartRate": 93.5, "restingHeartRate": 62, "lastHeartRate": 0}, {"date": "2025-08-07", "maxHeartRate": 105, "minHeartRate": 60, "avgHeartRate": 82.6, "restingHeartRate": 66, "lastHeartRate": 0}, {"date": "2025-08-08", "maxHeartRate": 104, "minHeartRate": 60, "avgHeartRate": 81.7, "restingHeartRate": 60, "lastHeartRate": 0}, {"date": "2025-08-09", "maxHeartRate": 115, "minHeartRate": 63, "avgHeartRate": 87.0, "restingHeartRate": 0, "lastHeartRate": 0}, {"date": "2025-08-10", "maxHeartRate": 115, "minHeartRate": 63, "avgHeartRate": 92.8, "restingHeartRate": 60, "lastHeartRate": 83}, {"date": "2025-08-11", "maxHeartRate": 123, "minHeartRate": 66, "avgHeartRate": 89.8, "restingHeartRate": 0, "lastHeartRate": 74}, {"date": "2025-08-12", "maxHeartRate": 112, "minHeartRate": 64, "avgHeartRate": 86.9, "restingHeartRate": 64, "lastHeartRate": 0}, {"date": "2025-08-13", "maxHeartRate": 108, "minHeartRate": 61, "avgHeartRate": 89.1, "restingHeartRate": 0, "lastHeartRate": 0}, {"date": "2025-08-14", "maxHeartRate": 114, "minHeartRate": 60, "avgHeartRate": 87.9, "restingHeartRate": 60, "lastHeartRate": 0}, {"date": "2025-08-15", "maxHeartRate": 114, "minHeartRate": 60, "avgHeartRate": 60, "restingHeartRate": 60, "lastHeartRate": 68}, {"date": "2025-08-16", "maxHeartRate": 111, "minHeartRate": 70, "avgHeartRate": 89.2, "restingHeartRate": 0, "lastHeartRate": 80}, {"date": "2025-08-17", "maxHeartRate": 104, "minHeartRate": 62, "avgHeartRate": 86.5, "restingHeartRate": 0, "lastHeartRate": 0}, {"date": "2025-08-18", "maxHeartRate": 99, "minHeartRate": 71, "avgHeartRate": 86.2, "restingHeartRate": 0, "lastHeartRate": 86}, {"date": "2025-08-19", "maxHeartRate": 113, "minHeartRate": 86, "avgHeartRate": 98.3, "restingHeartRate": 0, "lastHeartRate": 87}, {"date": "2025-08-20", "maxHeartRate": 101, "minHeartRate": 66, "avgHeartRate": 89.4, "restingHeartRate": 0, "lastHeartRate": 90}, {"date": "2025-08-21", "maxHeartRate": 106, "minHeartRate": 67, "avgHeartRate": 89.3, "restingHeartRate": 0, "lastHeartRate": 0}, {"date": "2025-08-22", "maxHeartRate": 109, "minHeartRate": 69, "avgHeartRate": 90.4, "restingHeartRate": 0, "lastHeartRate": 83}, {"date": "2025-08-23", "maxHeartRate": 113, "minHeartRate": 56, "avgHeartRate": 92.7, "restingHeartRate": 0, "lastHeartRate": 0}, {"date": "2025-08-24", "maxHeartRate": 106, "minHeartRate": 55, "avgHeartRate": 65, "restingHeartRate": 65, "lastHeartRate": 96}, {"date": "2025-08-25", "maxHeartRate": 157, "minHeartRate": 68, "avgHeartRate": 68, "restingHeartRate": 68, "lastHeartRate": 85}, {"date": "2025-08-26", "maxHeartRate": 115, "minHeartRate": 61, "avgHeartRate": 63, "restingHeartRate": 63, "lastHeartRate": 71}, {"date": "2025-08-27", "maxHeartRate": 106, "minHeartRate": 62, "avgHeartRate": 89.4, "restingHeartRate": 62, "lastHeartRate": 0}, {"date": "2025-08-28", "maxHeartRate": 106, "minHeartRate": 62, "avgHeartRate": 62, "restingHeartRate": 62, "lastHeartRate": 80}, {"date": "2025-08-29", "maxHeartRate": 106, "minHeartRate": 60, "avgHeartRate": 90.6, "restingHeartRate": 0, "lastHeartRate": 90}, {"date": "2025-08-30", "maxHeartRate": 150, "minHeartRate": 63, "avgHeartRate": 100.6, "restingHeartRate": 0, "lastHeartRate": 0}, {"date": "2025-08-31", "maxHeartRate": 143, "minHeartRate": 62, "avgHeartRate": 96.5, "restingHeartRate": 0, "lastHeartRate": 91}, {"date": "2025-09-01", "maxHeartRate": 116, "minHeartRate": 68, "avgHeartRate": 95.7, "restingHeartRate": 0, "lastHeartRate": 90}, {"date": "2025-09-02", "maxHeartRate": 113, "minHeartRate": 60, "avgHeartRate": 94.5, "restingHeartRate": 0, "lastHeartRate": 92}, {"date": "2025-09-03", "maxHeartRate": 117, "minHeartRate": 61, "avgHeartRate": 95.9, "restingHeartRate": 0, "lastHeartRate": 0}, {"date": "2025-09-04", "maxHeartRate": 118, "minHeartRate": 60, "avgHeartRate": 93.6, "restingHeartRate": 61, "lastHeartRate": 0}, {"date": "2025-09-05", "maxHeartRate": 118, "minHeartRate": 60, "avgHeartRate": 61, "restingHeartRate": 61, "lastHeartRate": 75}, {"date": "2025-09-06", "maxHeartRate": 141, "minHeartRate": 60, "avgHeartRate": 106.8, "restingHeartRate": 0, "lastHeartRate": 94}, {"date": "2025-09-07", "maxHeartRate": 113, "minHeartRate": 61, "avgHeartRate": 95.0, "restingHeartRate": 0, "lastHeartRate": 93}, {"date": "2025-09-08", "maxHeartRate": 106, "minHeartRate": 66, "avgHeartRate": 68, "restingHeartRate": 68, "lastHeartRate": 86}, {"date": "2025-09-09", "maxHeartRate": 122, "minHeartRate": 60, "avgHeartRate": 96.0, "restingHeartRate": 0, "lastHeartRate": 94}, {"date": "2025-09-10", "maxHeartRate": 140, "minHeartRate": 66, "avgHeartRate": 102.9, "restingHeartRate": 0, "lastHeartRate": 0}, {"date": "2025-09-11", "maxHeartRate": 130, "minHeartRate": 60, "avgHeartRate": 65, "restingHeartRate": 65, "lastHeartRate": 98}, {"date": "2025-09-12", "maxHeartRate": 128, "minHeartRate": 74, "avgHeartRate": 99.1, "restingHeartRate": 0, "lastHeartRate": 100}, {"date": "2025-09-13", "maxHeartRate": 130, "minHeartRate": 70, "avgHeartRate": 101.9, "restingHeartRate": 0, "lastHeartRate": 105}, {"date": "2025-09-14", "maxHeartRate": 88, "minHeartRate": 88, "avgHeartRate": 88.0, "restingHeartRate": 0, "lastHeartRate": 88}, {"date": "2025-09-15", "maxHeartRate": 155, "minHeartRate": 60, "avgHeartRate": 108.2, "restingHeartRate": 0, "lastHeartRate": 0}, {"date": "2025-09-16", "maxHeartRate": 137, "minHeartRate": 60, "avgHeartRate": 64, "restingHeartRate": 64, "lastHeartRate": 127}, {"date": "2025-09-17", "maxHeartRate": 142, "minHeartRate": 61, "avgHeartRate": 106.2, "restingHeartRate": 0, "lastHeartRate": 120}, {"date": "2025-09-18", "maxHeartRate": 118, "minHeartRate": 63, "avgHeartRate": 69, "restingHeartRate": 69, "lastHeartRate": 79}, {"date": "2025-09-19", "maxHeartRate": 124, "minHeartRate": 60, "avgHeartRate": 62, "restingHeartRate": 62, "lastHeartRate": 103}, {"date": "2025-09-20", "maxHeartRate": 107, "minHeartRate": 60, "avgHeartRate": 82.3, "restingHeartRate": 68, "lastHeartRate": 0}, {"date": "2025-09-21", "maxHeartRate": 112, "minHeartRate": 67, "avgHeartRate": 93.5, "restingHeartRate": 0, "lastHeartRate": 0}, {"date": "2025-09-22", "maxHeartRate": 112, "minHeartRate": 67, "avgHeartRate": 85.2, "restingHeartRate": 66, "lastHeartRate": 67}, {"date": "2025-09-23", "maxHeartRate": 125, "minHeartRate": 60, "avgHeartRate": 91.4, "restingHeartRate": 69, "lastHeartRate": 0}, {"date": "2025-09-24", "maxHeartRate": 130, "minHeartRate": 60, "avgHeartRate": 88.4, "restingHeartRate": 69, "lastHeartRate": 0}, {"date": "2025-09-25", "maxHeartRate": 130, "minHeartRate": 60, "avgHeartRate": 69, "restingHeartRate": 69, "lastHeartRate": 90}, {"date": "2025-09-26", "maxHeartRate": 132, "minHeartRate": 69, "avgHeartRate": 96.2, "restingHeartRate": 0, "lastHeartRate": 89}, {"date": "2025-09-27", "maxHeartRate": 108, "minHeartRate": 60, "avgHeartRate": 85.7, "restingHeartRate": 0, "lastHeartRate": 0}, {"date": "2025-09-28", "maxHeartRate": 129, "minHeartRate": 60, "avgHeartRate": 65, "restingHeartRate": 65, "lastHeartRate": 121}, {"date": "2025-09-29", "maxHeartRate": 104, "minHeartRate": 60, "avgHeartRate": 60, "restingHeartRate": 60, "lastHeartRate": 90}, {"date": "2025-09-30", "maxHeartRate": 125, "minHeartRate": 60, "avgHeartRate": 66, "restingHeartRate": 66, "lastHeartRate": 112}, {"date": "2025-10-01", "maxHeartRate": 148, "minHeartRate": 60, "avgHeartRate": 95.2, "restingHeartRate": 0, "lastHeartRate": 88}, {"date": "2025-10-02", "maxHeartRate": 126, "minHeartRate": 60, "avgHeartRate": 86.1, "restingHeartRate": 0, "lastHeartRate": 104}, {"date": "2025-10-03", "maxHeartRate": 121, "minHeartRate": 60, "avgHeartRate": 90.9, "restingHeartRate": 64, "lastHeartRate": 0}, {"date": "2025-10-04", "maxHeartRate": 112, "minHeartRate": 60, "avgHeartRate": 69, "restingHeartRate": 69, "lastHeartRate": 70}, {"date": "2025-10-05", "maxHeartRate": 127, "minHeartRate": 60, "avgHeartRate": 94.6, "restingHeartRate": 0, "lastHeartRate": 77}, {"date": "2025-10-06", "maxHeartRate": 90, "minHeartRate": 65, "avgHeartRate": 85.1, "restingHeartRate": 63, "lastHeartRate": 86}, {"date": "2025-10-07", "maxHeartRate": 90, "minHeartRate": 65, "avgHeartRate": 85.0, "restingHeartRate": 0, "lastHeartRate": 0}, {"date": "2025-10-08", "maxHeartRate": 136, "minHeartRate": 71, "avgHeartRate": 104.4, "restingHeartRate": 0, "lastHeartRate": 102}, {"date": "2025-10-09", "maxHeartRate": 151, "minHeartRate": 69, "avgHeartRate": 111.3, "restingHeartRate": 0, "lastHeartRate": 115}, {"date": "2025-10-10", "maxHeartRate": 117, "minHeartRate": 60, "avgHeartRate": 66, "restingHeartRate": 66, "lastHeartRate": 103}, {"date": "2025-10-11", "maxHeartRate": 117, "minHeartRate": 60, "avgHeartRate": 85.8, "restingHeartRate": 0, "lastHeartRate": 91}, {"date": "2025-10-12", "maxHeartRate": 123, "minHeartRate": 72, "avgHeartRate": 103.9, "restingHeartRate": 0, "lastHeartRate": 95}, {"date": "2025-10-13", "maxHeartRate": 120, "minHeartRate": 62, "avgHeartRate": 67, "restingHeartRate": 67, "lastHeartRate": 91}, {"date": "2025-10-14", "maxHeartRate": 132, "minHeartRate": 62, "avgHeartRate": 90.2, "restingHeartRate": 0, "lastHeartRate": 99}, {"date": "2025-10-15", "maxHeartRate": 111, "minHeartRate": 59, "avgHeartRate": 96.3, "restingHeartRate": 0, "lastHeartRate": 111}, {"date": "2025-10-16", "maxHeartRate": 162, "minHeartRate": 64, "avgHeartRate": 106.4, "restingHeartRate": 0, "lastHeartRate": 144}, {"date": "2025-10-17", "maxHeartRate": 151, "minHeartRate": 70, "avgHeartRate": 106.3, "restingHeartRate": 0, "lastHeartRate": 98}, {"date": "2025-10-18", "maxHeartRate": 88, "minHeartRate": 88, "avgHeartRate": 88.0, "restingHeartRate": 0, "lastHeartRate": 88}, {"date": "2025-10-19", "maxHeartRate": 128, "minHeartRate": 60, "avgHeartRate": 67, "restingHeartRate": 67, "lastHeartRate": 100}, {"date": "2025-10-20", "maxHeartRate": 121, "minHeartRate": 63, "avgHeartRate": 90.7, "restingHeartRate": 0, "lastHeartRate": 88}, {"date": "2025-10-21", "maxHeartRate": 119, "minHeartRate": 63, "avgHeartRate": 93.4, "restingHeartRate": 63, "lastHeartRate": 0}, {"date": "2025-10-22", "maxHeartRate": 145, "minHeartRate": 48, "avgHeartRate": 115.2, "restingHeartRate": 0, "lastHeartRate": 124}, {"date": "2025-10-23", "maxHeartRate": 129, "minHeartRate": 62, "avgHeartRate": 69, "restingHeartRate": 69, "lastHeartRate": 111}, {"date": "2025-10-24", "maxHeartRate": 121, "minHeartRate": 60, "avgHeartRate": 66, "restingHeartRate": 66, "lastHeartRate": 85}, {"date": "2025-10-25", "maxHeartRate": 120, "minHeartRate": 74, "avgHeartRate": 99.6, "restingHeartRate": 0, "lastHeartRate": 99}, {"date": "2025-10-26", "maxHeartRate": 123, "minHeartRate": 63, "avgHeartRate": 103.0, "restingHeartRate": 0, "lastHeartRate": 107}, {"date": "2025-10-27", "maxHeartRate": 120, "minHeartRate": 60, "avgHeartRate": 100.8, "restingHeartRate": 0, "lastHeartRate": 108}, {"date": "2025-10-28", "maxHeartRate": 123, "minHeartRate": 46, "avgHeartRate": 95.6, "restingHeartRate": 60, "lastHeartRate": 0}, {"date": "2025-10-29", "maxHeartRate": 106, "minHeartRate": 60, "avgHeartRate": 79.3, "restingHeartRate": 61, "lastHeartRate": 0}, {"date": "2025-10-30", "maxHeartRate": 121, "minHeartRate": 60, "avgHeartRate": 88.9, "restingHeartRate": 63, "lastHeartRate": 0}, {"date": "2025-10-31", "maxHeartRate": 106, "minHeartRate": 65, "avgHeartRate": 80.6, "restingHeartRate": 65, "lastHeartRate": 0}, {"date": "2025-11-01", "maxHeartRate": 109, "minHeartRate": 61, "avgHeartRate": 85.9, "restingHeartRate": 68, "lastHeartRate": 0}, {"date": "2025-11-02", "maxHeartRate": 105, "minHeartRate": 60, "avgHeartRate": 82.7, "restingHeartRate": 0, "lastHeartRate": 79}, {"date": "2025-11-03", "maxHeartRate": 107, "minHeartRate": 59, "avgHeartRate": 63, "restingHeartRate": 63, "lastHeartRate": 88}, {"date": "2025-11-04", "maxHeartRate": 107, "minHeartRate": 61, "avgHeartRate": 66, "restingHeartRate": 66, "lastHeartRate": 85}, {"date": "2025-11-05", "maxHeartRate": 126, "minHeartRate": 63, "avgHeartRate": 81.0, "restingHeartRate": 0, "lastHeartRate": 75}, {"date": "2025-11-06", "maxHeartRate": 111, "minHeartRate": 60, "avgHeartRate": 63, "restingHeartRate": 63, "lastHeartRate": 80}, {"date": "2025-11-07", "maxHeartRate": 141, "minHeartRate": 55, "avgHeartRate": 87.2, "restingHeartRate": 60, "lastHeartRate": 0}, {"date": "2025-11-08", "maxHeartRate": 116, "minHeartRate": 71, "avgHeartRate": 90.4, "restingHeartRate": 0, "lastHeartRate": 0}, {"date": "2025-11-09", "maxHeartRate": 116, "minHeartRate": 71, "avgHeartRate": 83.2, "restingHeartRate": 64, "lastHeartRate": 75}, {"date": "2025-11-10", "maxHeartRate": 103, "minHeartRate": 60, "avgHeartRate": 83.5, "restingHeartRate": 65, "lastHeartRate": 0}, {"date": "2025-11-11", "maxHeartRate": 141, "minHeartRate": 55, "avgHeartRate": 65, "restingHeartRate": 65, "lastHeartRate": 74}, {"date": "2025-11-12", "maxHeartRate": 99, "minHeartRate": 60, "avgHeartRate": 81.8, "restingHeartRate": 0, "lastHeartRate": 85}, {"date": "2025-11-13", "maxHeartRate": 97, "minHeartRate": 63, "avgHeartRate": 80.2, "restingHeartRate": 66, "lastHeartRate": 0}, {"date": "2025-11-14", "maxHeartRate": 97, "minHeartRate": 63, "avgHeartRate": 66, "restingHeartRate": 66, "lastHeartRate": 85}, {"date": "2025-11-15", "maxHeartRate": 101, "minHeartRate": 60, "avgHeartRate": 61, "restingHeartRate": 61, "lastHeartRate": 94}, {"date": "2025-11-16", "maxHeartRate": 120, "minHeartRate": 44, "avgHeartRate": 91.3, "restingHeartRate": 0, "lastHeartRate": 96}, {"date": "2025-11-19", "maxHeartRate": 108, "minHeartRate": 60, "avgHeartRate": 92.5, "restingHeartRate": 66, "lastHeartRate": 0}, {"date": "2025-11-20", "maxHeartRate": 103, "minHeartRate": 61, "avgHeartRate": 87.1, "restingHeartRate": 0, "lastHeartRate": 0}, {"date": "2025-11-21", "maxHeartRate": 103, "minHeartRate": 61, "avgHeartRate": 87.8, "restingHeartRate": 0, "lastHeartRate": 103}, {"date": "2025-11-22", "maxHeartRate": 105, "minHeartRate": 67, "avgHeartRate": 89.7, "restingHeartRate": 0, "lastHeartRate": 0}, {"date": "2025-11-23", "maxHeartRate": 99, "minHeartRate": 60, "avgHeartRate": 80.9, "restingHeartRate": 0, "lastHeartRate": 83}, {"date": "2025-11-24", "maxHeartRate": 162, "minHeartRate": 63, "avgHeartRate": 108.1, "restingHeartRate": 0, "lastHeartRate": 115}, {"date": "2025-11-25", "maxHeartRate": 116, "minHeartRate": 60, "avgHeartRate": 90.6, "restingHeartRate": 0, "lastHeartRate": 0}, {"date": "2025-11-26", "maxHeartRate": 116, "minHeartRate": 60, "avgHeartRate": 79.8, "restingHeartRate": 58, "lastHeartRate": 103}, {"date": "2025-11-27", "maxHeartRate": 111, "minHeartRate": 52, "avgHeartRate": 66, "restingHeartRate": 66, "lastHeartRate": 87}, {"date": "2025-11-28", "maxHeartRate": 102, "minHeartRate": 57, "avgHeartRate": 67, "restingHeartRate": 67, "lastHeartRate": 57}, {"date": "2025-11-29", "maxHeartRate": 119, "minHeartRate": 68, "avgHeartRate": 68, "restingHeartRate": 68, "lastHeartRate": 90}, {"date": "2025-11-30", "maxHeartRate": 105, "minHeartRate": 60, "avgHeartRate": 67, "restingHeartRate": 67, "lastHeartRate": 73}, {"date": "2025-12-01", "maxHeartRate": 159, "minHeartRate": 60, "avgHeartRate": 68, "restingHeartRate": 68, "lastHeartRate": 85}, {"date": "2025-12-02", "maxHeartRate": 122, "minHeartRate": 62, "avgHeartRate": 95.0, "restingHeartRate": 65, "lastHeartRate": 0}, {"date": "2025-12-03", "maxHeartRate": 125, "minHeartRate": 61, "avgHeartRate": 69, "restingHeartRate": 69, "lastHeartRate": 105}, {"date": "2025-12-04", "maxHeartRate": 111, "minHeartRate": 65, "avgHeartRate": 89.6, "restingHeartRate": 0, "lastHeartRate": 0}, {"date": "2025-12-05", "maxHeartRate": 113, "minHeartRate": 62, "avgHeartRate": 89.4, "restingHeartRate": 0, "lastHeartRate": 85}, {"date": "2025-12-06", "maxHeartRate": 110, "minHeartRate": 60, "avgHeartRate": 62, "restingHeartRate": 62, "lastHeartRate": 72}, {"date": "2025-12-07", "maxHeartRate": 130, "minHeartRate": 65, "avgHeartRate": 92.1, "restingHeartRate": 0, "lastHeartRate": 0}, {"date": "2025-12-08", "maxHeartRate": 108, "minHeartRate": 57, "avgHeartRate": 69, "restingHeartRate": 69, "lastHeartRate": 72}, {"date": "2025-12-09", "maxHeartRate": 125, "minHeartRate": 59, "avgHeartRate": 67, "restingHeartRate": 67, "lastHeartRate": 87}, {"date": "2025-12-10", "maxHeartRate": 113, "minHeartRate": 62, "avgHeartRate": 68, "restingHeartRate": 68, "lastHeartRate": 78}, {"date": "2025-12-11", "maxHeartRate": 116, "minHeartRate": 57, "avgHeartRate": 84.4, "restingHeartRate": 0, "lastHeartRate": 100}, {"date": "2025-12-12", "maxHeartRate": 113, "minHeartRate": 60, "avgHeartRate": 63, "restingHeartRate": 63, "lastHeartRate": 100}, {"date": "2025-12-13", "maxHeartRate": 112, "minHeartRate": 64, "avgHeartRate": 84.6, "restingHeartRate": 0, "lastHeartRate": 86}, {"date": "2025-12-14", "maxHeartRate": 111, "minHeartRate": 63, "avgHeartRate": 84.3, "restingHeartRate": 0, "lastHeartRate": 83}, {"date": "2025-12-15", "maxHeartRate": 116, "minHeartRate": 58, "avgHeartRate": 85.2, "restingHeartRate": 69, "lastHeartRate": 0}, {"date": "2025-12-16", "maxHeartRate": 116, "minHeartRate": 60, "avgHeartRate": 60, "restingHeartRate": 60, "lastHeartRate": 101}, {"date": "2025-12-17", "maxHeartRate": 113, "minHeartRate": 61, "avgHeartRate": 88.2, "restingHeartRate": 0, "lastHeartRate": 0}, {"date": "2025-12-18", "maxHeartRate": 107, "minHeartRate": 63, "avgHeartRate": 90.8, "restingHeartRate": 0, "lastHeartRate": 81}, {"date": "2025-12-19", "maxHeartRate": 114, "minHeartRate": 60, "avgHeartRate": 88.0, "restingHeartRate": 60, "lastHeartRate": 0}, {"date": "2025-12-20", "maxHeartRate": 119, "minHeartRate": 46, "avgHeartRate": 64, "restingHeartRate": 64, "lastHeartRate": 85}, {"date": "2025-12-21", "maxHeartRate": 119, "minHeartRate": 52, "avgHeartRate": 65, "restingHeartRate": 65, "lastHeartRate": 68}, {"date": "2025-12-22", "maxHeartRate": 118, "minHeartRate": 62, "avgHeartRate": 89.6, "restingHeartRate": 67, "lastHeartRate": 0}, {"date": "2025-12-25", "maxHeartRate": 106, "minHeartRate": 58, "avgHeartRate": 65, "restingHeartRate": 65, "lastHeartRate": 62}, {"date": "2025-12-26", "maxHeartRate": 103, "minHeartRate": 62, "avgHeartRate": 64, "restingHeartRate": 64, "lastHeartRate": 73}, {"date": "2025-12-27", "maxHeartRate": 142, "minHeartRate": 64, "avgHeartRate": 96.8, "restingHeartRate": 64, "lastHeartRate": 0}, {"date": "2025-12-28", "maxHeartRate": 105, "minHeartRate": 65, "avgHeartRate": 87.5, "restingHeartRate": 0, "lastHeartRate": 0}, {"date": "2025-12-29", "maxHeartRate": 109, "minHeartRate": 60, "avgHeartRate": 65, "restingHeartRate": 65, "lastHeartRate": 85}, {"date": "2025-12-30", "maxHeartRate": 112, "minHeartRate": 60, "avgHeartRate": 67, "restingHeartRate": 67, "lastHeartRate": 86}, {"date": "2025-12-31", "maxHeartRate": 131, "minHeartRate": 61, "avgHeartRate": 90.6, "restingHeartRate": 0, "lastHeartRate": 78}, {"date": "2026-01-01", "maxHeartRate": 112, "minHeartRate": 60, "avgHeartRate": 89.1, "restingHeartRate": 0, "lastHeartRate": 70}, {"date": "2026-01-02", "maxHeartRate": 126, "minHeartRate": 66, "avgHeartRate": 95.6, "restingHeartRate": 0, "lastHeartRate": 84}, {"date": "2026-01-03", "maxHeartRate": 115, "minHeartRate": 62, "avgHeartRate": 95.4, "restingHeartRate": 0, "lastHeartRate": 0}, {"date": "2026-01-04", "maxHeartRate": 115, "minHeartRate": 62, "avgHeartRate": 85.8, "restingHeartRate": 0, "lastHeartRate": 98}, {"date": "2026-01-05", "maxHeartRate": 111, "minHeartRate": 63, "avgHeartRate": 66, "restingHeartRate": 66, "lastHeartRate": 99}, {"date": "2026-01-06", "maxHeartRate": 140, "minHeartRate": 63, "avgHeartRate": 67, "restingHeartRate": 67, "lastHeartRate": 75}, {"date": "2026-01-07", "maxHeartRate": 106, "minHeartRate": 61, "avgHeartRate": 87.9, "restingHeartRate": 0, "lastHeartRate": 0}, {"date": "2026-01-08", "maxHeartRate": 99, "minHeartRate": 61, "avgHeartRate": 87.0, "restingHeartRate": 0, "lastHeartRate": 84}, {"date": "2026-01-09", "maxHeartRate": 108, "minHeartRate": 61, "avgHeartRate": 68, "restingHeartRate": 68, "lastHeartRate": 90}, {"date": "2026-01-10", "maxHeartRate": 125, "minHeartRate": 60, "avgHeartRate": 64, "restingHeartRate": 64, "lastHeartRate": 98}, {"date": "2026-01-11", "maxHeartRate": 110, "minHeartRate": 69, "avgHeartRate": 69, "restingHeartRate": 69, "lastHeartRate": 93}, {"date": "2026-01-12", "maxHeartRate": 97, "minHeartRate": 60, "avgHeartRate": 66, "restingHeartRate": 66, "lastHeartRate": 86}, {"date": "2026-01-13", "maxHeartRate": 109, "minHeartRate": 65, "avgHeartRate": 88.4, "restingHeartRate": 0, "lastHeartRate": 100}, {"date": "2026-01-14", "maxHeartRate": 113, "minHeartRate": 63, "avgHeartRate": 95.5, "restingHeartRate": 0, "lastHeartRate": 96}, {"date": "2026-01-15", "maxHeartRate": 116, "minHeartRate": 60, "avgHeartRate": 89.5, "restingHeartRate": 0, "lastHeartRate": 74}, {"date": "2026-01-16", "maxHeartRate": 104, "minHeartRate": 74, "avgHeartRate": 87.5, "restingHeartRate": 0, "lastHeartRate": 88}, {"date": "2026-01-17", "maxHeartRate": 110, "minHeartRate": 60, "avgHeartRate": 87.6, "restingHeartRate": 0, "lastHeartRate": 0}, {"date": "2026-01-18", "maxHeartRate": 113, "minHeartRate": 60, "avgHeartRate": 60, "restingHeartRate": 60, "lastHeartRate": 70}, {"date": "2026-01-19", "maxHeartRate": 109, "minHeartRate": 65, "avgHeartRate": 65, "restingHeartRate": 65, "lastHeartRate": 88}, {"date": "2026-01-20", "maxHeartRate": 117, "minHeartRate": 61, "avgHeartRate": 61, "restingHeartRate": 61, "lastHeartRate": 87}, {"date": "2026-01-21", "maxHeartRate": 110, "minHeartRate": 61, "avgHeartRate": 92.1, "restingHeartRate": 64, "lastHeartRate": 0}, {"date": "2026-01-22", "maxHeartRate": 115, "minHeartRate": 61, "avgHeartRate": 65, "restingHeartRate": 65, "lastHeartRate": 85}, {"date": "2026-01-23", "maxHeartRate": 105, "minHeartRate": 60, "avgHeartRate": 90.2, "restingHeartRate": 0, "lastHeartRate": 60}, {"date": "2026-01-24", "maxHeartRate": 101, "minHeartRate": 61, "avgHeartRate": 64, "restingHeartRate": 64, "lastHeartRate": 84}, {"date": "2026-01-25", "maxHeartRate": 110, "minHeartRate": 61, "avgHeartRate": 69, "restingHeartRate": 69, "lastHeartRate": 69}, {"date": "2026-01-26", "maxHeartRate": 113, "minHeartRate": 61, "avgHeartRate": 91.5, "restingHeartRate": 0, "lastHeartRate": 0}, {"date": "2026-01-27", "maxHeartRate": 132, "minHeartRate": 58, "avgHeartRate": 67, "restingHeartRate": 67, "lastHeartRate": 76}, {"date": "2026-01-28", "maxHeartRate": 125, "minHeartRate": 60, "avgHeartRate": 73.3, "restingHeartRate": 69, "lastHeartRate": 0}, {"date": "2026-01-29", "maxHeartRate": 108, "minHeartRate": 56, "avgHeartRate": 80.1, "restingHeartRate": 61, "lastHeartRate": 0}, {"date": "2026-01-30", "maxHeartRate": 108, "minHeartRate": 56, "avgHeartRate": 65, "restingHeartRate": 65, "lastHeartRate": 74}, {"date": "2026-01-31", "maxHeartRate": 126, "minHeartRate": 60, "avgHeartRate": 65, "restingHeartRate": 65, "lastHeartRate": 95}, {"date": "2026-02-01", "maxHeartRate": 165, "minHeartRate": 60, "avgHeartRate": 63, "restingHeartRate": 63, "lastHeartRate": 106}, {"date": "2026-02-04", "maxHeartRate": 102, "minHeartRate": 74, "avgHeartRate": 88.7, "restingHeartRate": 0, "lastHeartRate": 0}, {"date": "2026-02-05", "maxHeartRate": 133, "minHeartRate": 74, "avgHeartRate": 101.9, "restingHeartRate": 0, "lastHeartRate": 0}, {"date": "2026-02-06", "maxHeartRate": 130, "minHeartRate": 62, "avgHeartRate": 92.4, "restingHeartRate": 0, "lastHeartRate": 0}, {"date": "2026-02-07", "maxHeartRate": 115, "minHeartRate": 60, "avgHeartRate": 95.6, "restingHeartRate": 0, "lastHeartRate": 0}, {"date": "2026-02-09", "maxHeartRate": 146, "minHeartRate": 58, "avgHeartRate": 103.5, "restingHeartRate": 0, "lastHeartRate": 76}, {"date": "2026-02-10", "maxHeartRate": 116, "minHeartRate": 62, "avgHeartRate": 67, "restingHeartRate": 67, "lastHeartRate": 89}, {"date": "2026-02-11", "maxHeartRate": 123, "minHeartRate": 61, "avgHeartRate": 61, "restingHeartRate": 61, "lastHeartRate": 82}, {"date": "2026-02-12", "maxHeartRate": 149, "minHeartRate": 60, "avgHeartRate": 100.9, "restingHeartRate": 0, "lastHeartRate": 83}, {"date": "2026-02-13", "maxHeartRate": 109, "minHeartRate": 63, "avgHeartRate": 63, "restingHeartRate": 63, "lastHeartRate": 109}, {"date": "2026-02-14", "maxHeartRate": 106, "minHeartRate": 62, "avgHeartRate": 88.5, "restingHeartRate": 0, "lastHeartRate": 85}, {"date": "2026-02-26", "maxHeartRate": 93, "minHeartRate": 63, "avgHeartRate": 64, "restingHeartRate": 64, "lastHeartRate": 87}, {"date": "2026-02-27", "maxHeartRate": 98, "minHeartRate": 60, "avgHeartRate": 60, "restingHeartRate": 60, "lastHeartRate": 83}, {"date": "2026-02-28", "maxHeartRate": 115, "minHeartRate": 63, "avgHeartRate": 93.2, "restingHeartRate": 0, "lastHeartRate": 90}, {"date": "2026-03-01", "maxHeartRate": 98, "minHeartRate": 67, "avgHeartRate": 85.2, "restingHeartRate": 0, "lastHeartRate": 0}, {"date": "2026-03-02", "maxHeartRate": 118, "minHeartRate": 53, "avgHeartRate": 93.1, "restingHeartRate": 0, "lastHeartRate": 99}, {"date": "2026-03-03", "maxHeartRate": 113, "minHeartRate": 65, "avgHeartRate": 91.9, "restingHeartRate": 0, "lastHeartRate": 94}, {"date": "2026-03-04", "maxHeartRate": 111, "minHeartRate": 71, "avgHeartRate": 98.1, "restingHeartRate": 0, "lastHeartRate": 0}, {"date": "2026-03-05", "maxHeartRate": 116, "minHeartRate": 74, "avgHeartRate": 95.3, "restingHeartRate": 0, "lastHeartRate": 80}, {"date": "2026-03-06", "maxHeartRate": 114, "minHeartRate": 62, "avgHeartRate": 66, "restingHeartRate": 66, "lastHeartRate": 100}, {"date": "2026-03-08", "maxHeartRate": 110, "minHeartRate": 60, "avgHeartRate": 94.0, "restingHeartRate": 0, "lastHeartRate": 96}, {"date": "2026-03-09", "maxHeartRate": 130, "minHeartRate": 60, "avgHeartRate": 91.0, "restingHeartRate": 69, "lastHeartRate": 0}, {"date": "2026-03-10", "maxHeartRate": 130, "minHeartRate": 60, "avgHeartRate": 69, "restingHeartRate": 69, "lastHeartRate": 95}, {"date": "2026-03-11", "maxHeartRate": 127, "minHeartRate": 74, "avgHeartRate": 101.4, "restingHeartRate": 0, "lastHeartRate": 0}, {"date": "2026-03-12", "maxHeartRate": 136, "minHeartRate": 61, "avgHeartRate": 104.5, "restingHeartRate": 0, "lastHeartRate": 0}, {"date": "2026-03-13", "maxHeartRate": 130, "minHeartRate": 60, "avgHeartRate": 99.2, "restingHeartRate": 62, "lastHeartRate": 0}, {"date": "2026-03-14", "maxHeartRate": 111, "minHeartRate": 60, "avgHeartRate": 90.2, "restingHeartRate": 68, "lastHeartRate": 0}, {"date": "2026-03-16", "maxHeartRate": 111, "minHeartRate": 60, "avgHeartRate": 68, "restingHeartRate": 68, "lastHeartRate": 91}, {"date": "2026-03-17", "maxHeartRate": 130, "minHeartRate": 62, "avgHeartRate": 100.9, "restingHeartRate": 0, "lastHeartRate": 62}, {"date": "2026-03-18", "maxHeartRate": 117, "minHeartRate": 64, "avgHeartRate": 92.3, "restingHeartRate": 0, "lastHeartRate": 81}, {"date": "2026-03-19", "maxHeartRate": 131, "minHeartRate": 60, "avgHeartRate": 95.1, "restingHeartRate": 0, "lastHeartRate": 0}, {"date": "2026-03-20", "maxHeartRate": 117, "minHeartRate": 67, "avgHeartRate": 96.3, "restingHeartRate": 0, "lastHeartRate": 78}, {"date": "2026-03-21", "maxHeartRate": 107, "minHeartRate": 63, "avgHeartRate": 90.7, "restingHeartRate": 0, "lastHeartRate": 100}, {"date": "2026-03-26", "maxHeartRate": 108, "minHeartRate": 61, "avgHeartRate": 84.6, "restingHeartRate": 69, "lastHeartRate": 0}, {"date": "2026-03-27", "maxHeartRate": 127, "minHeartRate": 60, "avgHeartRate": 96.3, "restingHeartRate": 60, "lastHeartRate": 0}, {"date": "2026-03-28", "maxHeartRate": 128, "minHeartRate": 60, "avgHeartRate": 90.5, "restingHeartRate": 0, "lastHeartRate": 0}, {"date": "2026-03-29", "maxHeartRate": 107, "minHeartRate": 67, "avgHeartRate": 89.8, "restingHeartRate": 0, "lastHeartRate": 0}, {"date": "2026-03-30", "maxHeartRate": 112, "minHeartRate": 66, "avgHeartRate": 91.4, "restingHeartRate": 0, "lastHeartRate": 0}, {"date": "2026-03-31", "maxHeartRate": 121, "minHeartRate": 52, "avgHeartRate": 94.7, "restingHeartRate": 0, "lastHeartRate": 0}, {"date": "2026-04-01", "maxHeartRate": 120, "minHeartRate": 65, "avgHeartRate": 93.1, "restingHeartRate": 0, "lastHeartRate": 85}, {"date": "2026-04-02", "maxHeartRate": 111, "minHeartRate": 69, "avgHeartRate": 86.3, "restingHeartRate": 0, "lastHeartRate": 80}, {"date": "2026-04-03", "maxHeartRate": 126, "minHeartRate": 60, "avgHeartRate": 92.0, "restingHeartRate": 68, "lastHeartRate": 0}, {"date": "2026-04-04", "maxHeartRate": 113, "minHeartRate": 87, "avgHeartRate": 95.6, "restingHeartRate": 0, "lastHeartRate": 0}, {"date": "2026-04-05", "maxHeartRate": 88, "minHeartRate": 75, "avgHeartRate": 81.5, "restingHeartRate": 0, "lastHeartRate": 75}, {"date": "2026-04-06", "maxHeartRate": 129, "minHeartRate": 57, "avgHeartRate": 67, "restingHeartRate": 67, "lastHeartRate": 94}, {"date": "2026-04-07", "maxHeartRate": 126, "minHeartRate": 64, "avgHeartRate": 92.2, "restingHeartRate": 0, "lastHeartRate": 64}, {"date": "2026-04-08", "maxHeartRate": 131, "minHeartRate": 62, "avgHeartRate": 100.0, "restingHeartRate": 0, "lastHeartRate": 84}, {"date": "2026-04-09", "maxHeartRate": 131, "minHeartRate": 70, "avgHeartRate": 101.6, "restingHeartRate": 0, "lastHeartRate": 109}, {"date": "2026-04-10", "maxHeartRate": 128, "minHeartRate": 60, "avgHeartRate": 102.1, "restingHeartRate": 0, "lastHeartRate": 117}, {"date": "2026-04-11", "maxHeartRate": 110, "minHeartRate": 61, "avgHeartRate": 67, "restingHeartRate": 67, "lastHeartRate": 87}, {"date": "2026-04-12", "maxHeartRate": 111, "minHeartRate": 60, "avgHeartRate": 91.5, "restingHeartRate": 0, "lastHeartRate": 89}, {"date": "2026-04-13", "maxHeartRate": 107, "minHeartRate": 70, "avgHeartRate": 88.4, "restingHeartRate": 0, "lastHeartRate": 85}, {"date": "2026-04-14", "maxHeartRate": 121, "minHeartRate": 61, "avgHeartRate": 100.0, "restingHeartRate": 0, "lastHeartRate": 79}, {"date": "2026-04-15", "maxHeartRate": 140, "minHeartRate": 68, "avgHeartRate": 68, "restingHeartRate": 68, "lastHeartRate": 85}, {"date": "2026-04-16", "maxHeartRate": 115, "minHeartRate": 60, "avgHeartRate": 64, "restingHeartRate": 64, "lastHeartRate": 85}, {"date": "2026-04-17", "maxHeartRate": 113, "minHeartRate": 60, "avgHeartRate": 91.2, "restingHeartRate": 61, "lastHeartRate": 0}, {"date": "2026-04-18", "maxHeartRate": 94, "minHeartRate": 60, "avgHeartRate": 78.3, "restingHeartRate": 66, "lastHeartRate": 0}, {"date": "2026-04-19", "maxHeartRate": 122, "minHeartRate": 64, "avgHeartRate": 95.8, "restingHeartRate": 0, "lastHeartRate": 90}, {"date": "2026-04-20", "maxHeartRate": 131, "minHeartRate": 63, "avgHeartRate": 91.6, "restingHeartRate": 0, "lastHeartRate": 90}, {"date": "2026-04-21", "maxHeartRate": 109, "minHeartRate": 60, "avgHeartRate": 65, "restingHeartRate": 65, "lastHeartRate": 80}, {"date": "2026-04-22", "maxHeartRate": 109, "minHeartRate": 60, "avgHeartRate": 65, "restingHeartRate": 65, "lastHeartRate": 71}, {"date": "2026-04-23", "maxHeartRate": 110, "minHeartRate": 63, "avgHeartRate": 86.0, "restingHeartRate": 0, "lastHeartRate": 102}, {"date": "2026-04-24", "maxHeartRate": 131, "minHeartRate": 56, "avgHeartRate": 60, "restingHeartRate": 60, "lastHeartRate": 75}, {"date": "2026-04-25", "maxHeartRate": 109, "minHeartRate": 71, "avgHeartRate": 89.6, "restingHeartRate": 0, "lastHeartRate": 89}, {"date": "2026-04-26", "maxHeartRate": 156, "minHeartRate": 88, "avgHeartRate": 126.8, "restingHeartRate": 0, "lastHeartRate": 0}, {"date": "2026-04-27", "maxHeartRate": 156, "minHeartRate": 88, "avgHeartRate": 102.1, "restingHeartRate": 0, "lastHeartRate": 104}, {"date": "2026-04-28", "maxHeartRate": 119, "minHeartRate": 60, "avgHeartRate": 98.7, "restingHeartRate": 60, "lastHeartRate": 0}, {"date": "2026-04-29", "maxHeartRate": 119, "minHeartRate": 60, "avgHeartRate": 60, "restingHeartRate": 60, "lastHeartRate": 102}, {"date": "2026-04-30", "maxHeartRate": 128, "minHeartRate": 67, "avgHeartRate": 68, "restingHeartRate": 68, "lastHeartRate": 70}, {"date": "2026-05-01", "maxHeartRate": 105, "minHeartRate": 57, "avgHeartRate": 67, "restingHeartRate": 67, "lastHeartRate": 61}, {"date": "2026-05-02", "maxHeartRate": 113, "minHeartRate": 52, "avgHeartRate": 57, "restingHeartRate": 57, "lastHeartRate": 86}, {"date": "2026-05-03", "maxHeartRate": 109, "minHeartRate": 55, "avgHeartRate": 77.0, "restingHeartRate": 63, "lastHeartRate": 0}, {"date": "2026-05-04", "maxHeartRate": 111, "minHeartRate": 54, "avgHeartRate": 72.3, "restingHeartRate": 54, "lastHeartRate": 0}, {"date": "2026-05-05", "maxHeartRate": 112, "minHeartRate": 57, "avgHeartRate": 80.8, "restingHeartRate": 0, "lastHeartRate": 73}, {"date": "2026-05-06", "maxHeartRate": 119, "minHeartRate": 62, "avgHeartRate": 82.6, "restingHeartRate": 64, "lastHeartRate": 0}, {"date": "2026-05-07", "maxHeartRate": 132, "minHeartRate": 52, "avgHeartRate": 91.1, "restingHeartRate": 0, "lastHeartRate": 89}, {"date": "2026-05-08", "maxHeartRate": 100, "minHeartRate": 45, "avgHeartRate": 75.9, "restingHeartRate": 60, "lastHeartRate": 0}, {"date": "2026-05-09", "maxHeartRate": 108, "minHeartRate": 55, "avgHeartRate": 81.6, "restingHeartRate": 65, "lastHeartRate": 0}, {"date": "2026-05-10", "maxHeartRate": 131, "minHeartRate": 54, "avgHeartRate": 88.6, "restingHeartRate": 61, "lastHeartRate": 0}, {"date": "2026-05-11", "maxHeartRate": 110, "minHeartRate": 52, "avgHeartRate": 67, "restingHeartRate": 67, "lastHeartRate": 77}, {"date": "2026-05-12", "maxHeartRate": 106, "minHeartRate": 49, "avgHeartRate": 66, "restingHeartRate": 66, "lastHeartRate": 83}, {"date": "2026-05-13", "maxHeartRate": 105, "minHeartRate": 72, "avgHeartRate": 86.5, "restingHeartRate": 0, "lastHeartRate": 0}, {"date": "2026-05-14", "maxHeartRate": 111, "minHeartRate": 58, "avgHeartRate": 65, "restingHeartRate": 65, "lastHeartRate": 82}, {"date": "2026-05-15", "maxHeartRate": 117, "minHeartRate": 64, "avgHeartRate": 69, "restingHeartRate": 69, "lastHeartRate": 93}, {"date": "2026-05-16", "maxHeartRate": 123, "minHeartRate": 64, "avgHeartRate": 69, "restingHeartRate": 69, "lastHeartRate": 93}, {"date": "2026-05-17", "maxHeartRate": 115, "minHeartRate": 55, "avgHeartRate": 68, "restingHeartRate": 68, "lastHeartRate": 81}, {"date": "2026-05-18", "maxHeartRate": 111, "minHeartRate": 61, "avgHeartRate": 80.3, "restingHeartRate": 64, "lastHeartRate": 0}, {"date": "2026-05-19", "maxHeartRate": 110, "minHeartRate": 60, "avgHeartRate": 84.4, "restingHeartRate": 69, "lastHeartRate": 0}, {"date": "2026-05-20", "maxHeartRate": 111, "minHeartRate": 65, "avgHeartRate": 67, "restingHeartRate": 67, "lastHeartRate": 74}, {"date": "2026-05-21", "maxHeartRate": 103, "minHeartRate": 58, "avgHeartRate": 63, "restingHeartRate": 63, "lastHeartRate": 69}, {"date": "2026-05-22", "maxHeartRate": 115, "minHeartRate": 62, "avgHeartRate": 65, "restingHeartRate": 65, "lastHeartRate": 86}, {"date": "2026-06-01", "maxHeartRate": 108, "minHeartRate": 58, "avgHeartRate": 88.3, "restingHeartRate": 59, "lastHeartRate": 0}, {"date": "2026-06-02", "maxHeartRate": 106, "minHeartRate": 60, "avgHeartRate": 84.4, "restingHeartRate": 61, "lastHeartRate": 0}, {"date": "2026-06-03", "maxHeartRate": 114, "minHeartRate": 63, "avgHeartRate": 88.1, "restingHeartRate": 68, "lastHeartRate": 0}, {"date": "2026-06-04", "maxHeartRate": 106, "minHeartRate": 50, "avgHeartRate": 81.8, "restingHeartRate": 67, "lastHeartRate": 0}, {"date": "2026-06-05", "maxHeartRate": 106, "minHeartRate": 50, "avgHeartRate": 67, "restingHeartRate": 67, "lastHeartRate": 71}, {"date": "2026-06-08", "maxHeartRate": 88, "minHeartRate": 63, "avgHeartRate": 77.8, "restingHeartRate": 0, "lastHeartRate": 0}, {"date": "2026-06-10", "maxHeartRate": 107, "minHeartRate": 60, "avgHeartRate": 77.4, "restingHeartRate": 60, "lastHeartRate": 0}, {"date": "2026-06-11", "maxHeartRate": 155, "minHeartRate": 60, "avgHeartRate": 67, "restingHeartRate": 67, "lastHeartRate": 103}, {"date": "2026-06-22", "maxHeartRate": 146, "minHeartRate": 61, "avgHeartRate": 86.8, "restingHeartRate": 0, "lastHeartRate": 75}, {"date": "2026-06-23", "maxHeartRate": 113, "minHeartRate": 53, "avgHeartRate": 78.8, "restingHeartRate": 63, "lastHeartRate": 62}, {"date": "2026-06-24", "maxHeartRate": 100, "minHeartRate": 54, "avgHeartRate": 76.7, "restingHeartRate": 56, "lastHeartRate": 65}, {"date": "2026-06-25", "maxHeartRate": 125, "minHeartRate": 48, "avgHeartRate": 83.3, "restingHeartRate": 53, "lastHeartRate": 67}, {"date": "2026-06-26", "maxHeartRate": 109, "minHeartRate": 49, "avgHeartRate": 76.4, "restingHeartRate": 62, "lastHeartRate": 0}, {"date": "2026-06-27", "maxHeartRate": 121, "minHeartRate": 51, "avgHeartRate": 60, "restingHeartRate": 60, "lastHeartRate": 71}, {"date": "2026-06-28", "maxHeartRate": 120, "minHeartRate": 53, "avgHeartRate": 81.0, "restingHeartRate": 63, "lastHeartRate": 0}, {"date": "2026-06-29", "maxHeartRate": 113, "minHeartRate": 49, "avgHeartRate": 78.7, "restingHeartRate": 60, "lastHeartRate": 70}, {"date": "2026-06-30", "maxHeartRate": 116, "minHeartRate": 50, "avgHeartRate": 78.1, "restingHeartRate": 57, "lastHeartRate": 57}, {"date": "2026-07-01", "maxHeartRate": 116, "minHeartRate": 51, "avgHeartRate": 79.9, "restingHeartRate": 57, "lastHeartRate": 58}, {"date": "2026-07-02", "maxHeartRate": 118, "minHeartRate": 54, "avgHeartRate": 77.3, "restingHeartRate": 57, "lastHeartRate": 75}, {"date": "2026-07-03", "maxHeartRate": 116, "minHeartRate": 54, "avgHeartRate": 78.6, "restingHeartRate": 58, "lastHeartRate": 59}, {"date": "2026-07-04", "maxHeartRate": 119, "minHeartRate": 51, "avgHeartRate": 80.2, "restingHeartRate": 56, "lastHeartRate": 60}, {"date": "2026-07-05", "maxHeartRate": 120, "minHeartRate": 46, "avgHeartRate": 77.7, "restingHeartRate": 58, "lastHeartRate": 51}, {"date": "2026-07-06", "maxHeartRate": 120, "minHeartRate": 53, "avgHeartRate": 64, "restingHeartRate": 64, "lastHeartRate": 62}, {"date": "2026-07-07", "maxHeartRate": 120, "minHeartRate": 60, "avgHeartRate": 66, "restingHeartRate": 66, "lastHeartRate": 85}, {"date": "2026-07-08", "maxHeartRate": 124, "minHeartRate": 55, "avgHeartRate": 86.3, "restingHeartRate": 0, "lastHeartRate": 0}, {"date": "2026-07-09", "maxHeartRate": 117, "minHeartRate": 48, "avgHeartRate": 82.6, "restingHeartRate": 61, "lastHeartRate": 61}, {"date": "2026-07-10", "maxHeartRate": 117, "minHeartRate": 48, "avgHeartRate": 80.9, "restingHeartRate": 0, "lastHeartRate": 0}, {"date": "2026-07-11", "maxHeartRate": 117, "minHeartRate": 48, "avgHeartRate": 80.5, "restingHeartRate": 59, "lastHeartRate": 53}, {"date": "2026-07-12", "maxHeartRate": 124, "minHeartRate": 49, "avgHeartRate": 83.4, "restingHeartRate": 58, "lastHeartRate": 76}, {"date": "2026-07-13", "maxHeartRate": 113, "minHeartRate": 46, "avgHeartRate": 78.6, "restingHeartRate": 55, "lastHeartRate": 62}, {"date": "2026-07-14", "maxHeartRate": 118, "minHeartRate": 46, "avgHeartRate": 81.3, "restingHeartRate": 0, "lastHeartRate": 0}, {"date": "2026-07-15", "maxHeartRate": 118, "minHeartRate": 46, "avgHeartRate": 86.8, "restingHeartRate": 55, "lastHeartRate": 67}, {"date": "2026-07-16", "maxHeartRate": 117, "minHeartRate": 47, "avgHeartRate": 83.1, "restingHeartRate": 0, "lastHeartRate": 0}, {"date": "2026-07-17", "maxHeartRate": 117, "minHeartRate": 47, "avgHeartRate": 80.6, "restingHeartRate": 62, "lastHeartRate": 64}, {"date": "2026-07-18", "maxHeartRate": 121, "minHeartRate": 45, "avgHeartRate": 82.4, "restingHeartRate": 58, "lastHeartRate": 68}, {"date": "2026-07-19", "maxHeartRate": 112, "minHeartRate": 47, "avgHeartRate": 77.5, "restingHeartRate": 0, "lastHeartRate": 0}, {"date": "2026-07-20", "maxHeartRate": 128, "minHeartRate": 47, "avgHeartRate": 89.2, "restingHeartRate": 61, "lastHeartRate": 93}, {"date": "2026-07-21", "maxHeartRate": 125, "minHeartRate": 54, "avgHeartRate": 86.6, "restingHeartRate": 0, "lastHeartRate": 0}, {"date": "2026-07-22", "maxHeartRate": 124, "minHeartRate": 49, "avgHeartRate": 83.1, "restingHeartRate": 0, "lastHeartRate": 0}, {"date": "2026-07-23", "maxHeartRate": 123, "minHeartRate": 50, "avgHeartRate": 84.5, "restingHeartRate": 0, "lastHeartRate": 0}, {"date": "2026-07-24", "maxHeartRate": 114, "minHeartRate": 50, "avgHeartRate": 82.2, "restingHeartRate": 0, "lastHeartRate": 0}, {"date": "2026-07-25", "maxHeartRate": 114, "minHeartRate": 50, "avgHeartRate": 89.3, "restingHeartRate": 54, "lastHeartRate": 64}, {"date": "2026-07-26", "maxHeartRate": 118, "minHeartRate": 55, "avgHeartRate": 85.7, "restingHeartRate": 0, "lastHeartRate": 0}, {"date": "2026-07-27", "maxHeartRate": 118, "minHeartRate": 55, "avgHeartRate": 85.0, "restingHeartRate": 57, "lastHeartRate": 97}, {"date": "2026-07-28", "maxHeartRate": 120, "minHeartRate": 51, "avgHeartRate": 85.2, "restingHeartRate": 62, "lastHeartRate": 72}];
+
+// ==================== Config ====================
+var METRIC_DEFS = {
+  maxHeartRate: { name: '最大心率', short: '最大', unit: 'bpm' },
+  avgHeartRate: { name: '平均心率', short: '平均', unit: 'bpm' },
+  minHeartRate: { name: '最小心率', short: '最小', unit: 'bpm' },
+  restingHeartRate: { name: '静息心率', short: '静息', unit: 'bpm' },
+};
+
+// Monochrome palettes: light -> dark (far -> near)
+var MONO_PALETTES = {
+  red:    ['#fecaca', '#fca5a5', '#f87171', '#ef4444', '#dc2626', '#b91c1c', '#7f1d1d'],
+  orange: ['#fef3c7', '#fde68a', '#fcd34d', '#fbbf24', '#f59e0b', '#d97706', '#b45309'],
+  blue:   ['#dbeafe', '#bfdbfe', '#93c5fd', '#60a5fa', '#3b82f6', '#2563eb', '#1e3a8a'],
+  green:  ['#d1fae5', '#a7f3d0', '#6ee7b7', '#34d399', '#10b981', '#059669', '#064e3b'],
+  purple: ['#ede9fe', '#ddd6fe', '#c4b5fd', '#a78bfa', '#8b5cf6', '#7c3aed', '#5b21b6'],
+};
+
+// Multi-color palette
+var MULTI_COLORS = {
+  maxHeartRate: '#ef4444',
+  avgHeartRate: '#f59e0b',
+  minHeartRate: '#3b82f6',
+  restingHeartRate: '#10b981',
+};
+
+// Metric to mono palette mapping (for single mode)
+var METRIC_MONO = {
+  maxHeartRate: 'red',
+  avgHeartRate: 'orange',
+  minHeartRate: 'blue',
+  restingHeartRate: 'green',
+};
+
+// ==================== State ====================
+var state = {
+  mode: 'single',
+  range: 7,
+  selectedMonth: null,
+  metrics: ['maxHeartRate', 'avgHeartRate', 'minHeartRate'],
+  colorScheme: 'mono',
+  compareGranularity: 'month',
+  comparePeriod1: null,
+  comparePeriod2: null,
+  compareMetrics: ['maxHeartRate', 'avgHeartRate'],
+};
+
+var chart = null;
+
+// ==================== Init ====================
+function init() {
+  chart = echarts.init(document.getElementById('chart'), null, { renderer: 'canvas' });
+  window.addEventListener('resize', function() { chart.resize(); });
+
+  populateMonthSelects();
+  bindCheckboxes('metric-checks', function(metrics) {
+    if (metrics.length === 0) return;
+    state.metrics = metrics;
+    renderChart();
+  });
+  bindCheckboxes('metric-checks-compare', function(metrics) {
+    if (metrics.length === 0) return;
+    state.compareMetrics = metrics;
+    renderChart();
+  });
+
+  // Default compare periods
+  var months = getAvailableMonths();
+  if (months.length >= 2) {
+    state.comparePeriod1 = months[months.length - 1];
+    state.comparePeriod2 = months[months.length - 2];
+    document.getElementById('compare-period1').value = state.comparePeriod1;
+    document.getElementById('compare-period2').value = state.comparePeriod2;
+  }
+
+  updateColorPreview();
+  renderChart();
+}
+
+// ==================== Populate selects ====================
+function populateMonthSelects() {
+  var months = getAvailableMonths();
+  var singleSelect = document.getElementById('month-select');
+  var compare1 = document.getElementById('compare-period1');
+  var compare2 = document.getElementById('compare-period2');
+
+  singleSelect.innerHTML = '<option value="">选择月份...</option>';
+  compare1.innerHTML = '';
+  compare2.innerHTML = '';
+
+  months.forEach(function(m) {
+    singleSelect.innerHTML += '<option value="' + m + '">' + m + '</option>';
+    compare1.innerHTML += '<option value="' + m + '">' + m + '</option>';
+    compare2.innerHTML += '<option value="' + m + '">' + m + '</option>';
+  });
+}
+
+function getAvailableMonths() {
+  var months = new Set();
+  HEART_DATA.forEach(function(d) { months.add(d.date.substring(0, 7)); });
+  return Array.from(months).sort();
+}
+
+function getAvailableWeeks() {
+  var weeks = {};
+  HEART_DATA.forEach(function(d) {
+    var wk = getWeekKey(d.date);
+    if (!weeks[wk]) weeks[wk] = wk;
+  });
+  return Object.keys(weeks).sort();
+}
+
+function getWeekKey(dateStr) {
+  var date = new Date(dateStr);
+  var yearStart = new Date(date.getFullYear(), 0, 1);
+  var weekNum = Math.ceil(((date - yearStart) / 86400000 + yearStart.getDay() + 1) / 7);
+  return date.getFullYear() + '-W' + String(weekNum).padStart(2, '0');
+}
+
+// ==================== Checkboxes ====================
+function bindCheckboxes(containerId, callback) {
+  var container = document.getElementById(containerId);
+  container.querySelectorAll('.checkbox-item').forEach(function(item) {
+    item.addEventListener('click', function(e) {
+      e.preventDefault();
+      var checkbox = item.querySelector('input');
+      var isChecked = item.classList.contains('checked');
+      if (isChecked) {
+        item.classList.remove('checked');
+        checkbox.checked = false;
+      } else {
+        item.classList.add('checked');
+        checkbox.checked = true;
+      }
+      var checked = [];
+      container.querySelectorAll('.checkbox-item.checked').forEach(function(el) {
+        checked.push(el.getAttribute('data-metric'));
+      });
+      callback(checked);
+    });
+  });
+}
+
+// ==================== Mode switching ====================
+function switchMode(mode) {
+  state.mode = mode;
+  document.getElementById('mode-single').classList.toggle('active', mode === 'single');
+  document.getElementById('mode-compare').classList.toggle('active', mode === 'compare');
+  document.getElementById('single-controls').classList.toggle('hidden', mode !== 'single');
+  document.getElementById('compare-controls').classList.toggle('hidden', mode !== 'compare');
+  renderChart();
+}
+
+// ==================== Range selection ====================
+function selectRange(range) {
+  state.range = range;
+  document.querySelectorAll('#range-btns button').forEach(function(b) {
+    var val = b.getAttribute('data-range');
+    b.classList.toggle('active', val === String(range));
+  });
+  var monthSelect = document.getElementById('month-select');
+  if (range === 'month') {
+    monthSelect.classList.remove('hidden');
+    if (!monthSelect.value) {
+      var months = getAvailableMonths();
+      state.selectedMonth = months[months.length - 1];
+      monthSelect.value = state.selectedMonth;
+    } else {
+      state.selectedMonth = monthSelect.value;
+    }
+  } else {
+    monthSelect.classList.add('hidden');
+  }
+  renderChart();
+}
+
+function onMonthChange() {
+  var select = document.getElementById('month-select');
+  state.selectedMonth = select.value;
+  if (state.selectedMonth) renderChart();
+}
+
+function selectColor(scheme) {
+  state.colorScheme = scheme;
+  document.querySelectorAll('#color-btns button').forEach(function(b) {
+    b.classList.toggle('active', b.getAttribute('data-color') === scheme);
+  });
+  updateColorPreview();
+  renderChart();
+}
+
+function updateColorPreview() {
+  var bar = document.getElementById('gradient-bar');
+  var text = document.getElementById('color-text');
+  if (state.colorScheme === 'mono') {
+    bar.style.background = 'linear-gradient(to right, #fecaca, #ef4444, #7f1d1d)';
+    text.textContent = '远 → 近，浅 → 深';
+  } else {
+    bar.style.background = 'linear-gradient(to right, #ef4444, #f59e0b, #3b82f6, #10b981)';
+    text.textContent = '各指标独立配色';
+  }
+}
+
+function selectGranularity(gran) {
+  state.compareGranularity = gran;
+  document.querySelectorAll('#compare-granularity button').forEach(function(b) {
+    b.classList.toggle('active', b.getAttribute('data-granularity') === gran);
+  });
+  populatePeriodSelects();
+  renderChart();
+}
+
+function populatePeriodSelects() {
+  var p1 = document.getElementById('compare-period1');
+  var p2 = document.getElementById('compare-period2');
+  var oldP1 = p1.value, oldP2 = p2.value;
+  p1.innerHTML = '';
+  p2.innerHTML = '';
+
+  if (state.compareGranularity === 'month') {
+    getAvailableMonths().forEach(function(m) {
+      p1.innerHTML += '<option value="' + m + '">' + m + '</option>';
+      p2.innerHTML += '<option value="' + m + '">' + m + '</option>';
+    });
+  } else {
+    getAvailableWeeks().forEach(function(w) {
+      p1.innerHTML += '<option value="' + w + '">' + w + '</option>';
+      p2.innerHTML += '<option value="' + w + '">' + w + '</option>';
+    });
+  }
+
+  if (oldP1 && p1.querySelector('option[value="' + oldP1 + '"]')) p1.value = oldP1;
+  if (oldP2 && p2.querySelector('option[value="' + oldP2 + '"]')) p2.value = oldP2;
+}
+
+// ==================== Data filtering ====================
+function getSinglePeriodData() {
+  if (state.range === 'month' && state.selectedMonth) {
+    return HEART_DATA.filter(function(d) { return d.date.startsWith(state.selectedMonth); });
+  } else if (typeof state.range === 'number') {
+    var sorted = HEART_DATA.slice().sort(function(a, b) { return a.date.localeCompare(b.date); });
+    return sorted.slice(-state.range);
+  }
+  return HEART_DATA.slice(-7);
+}
+
+function getCompareData() {
+  var p1 = document.getElementById('compare-period1').value;
+  var p2 = document.getElementById('compare-period2').value;
+
+  var data1, data2;
+  if (state.compareGranularity === 'month') {
+    data1 = HEART_DATA.filter(function(d) { return d.date.startsWith(p1); });
+    data2 = HEART_DATA.filter(function(d) { return d.date.startsWith(p2); });
+  } else {
+    data1 = HEART_DATA.filter(function(d) { return getWeekKey(d.date) === p1; });
+    data2 = HEART_DATA.filter(function(d) { return getWeekKey(d.date) === p2; });
+  }
+  return { period1: { key: p1, data: data1 }, period2: { key: p2, data: data2 } };
+}
+
+// ==================== Color helpers ====================
+function getMonoColor(paletteName, index, total) {
+  var palette = MONO_PALETTES[paletteName] || MONO_PALETTES.red;
+  if (total <= 1) return palette[palette.length - 1];
+  var pos = Math.floor((index / (total - 1)) * (palette.length - 1));
+  return palette[pos];
+}
+
+function createLineGradient(paletteName, total) {
+  var palette = MONO_PALETTES[paletteName] || MONO_PALETTES.red;
+  var light = palette[0];
+  var dark = palette[palette.length - 1];
+  return new echarts.graphic.LinearGradient(0, 0, 1, 0, [
+    { offset: 0, color: light },
+    { offset: 1, color: dark }
+  ]);
+}
+
+function createAreaGradient(paletteName) {
+  var palette = MONO_PALETTES[paletteName] || MONO_PALETTES.red;
+  var light = palette[0];
+  var dark = palette[palette.length - 1];
+  return new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+    { offset: 0, color: dark + '30' },
+    { offset: 1, color: light + '05' }
+  ]);
+}
+
+// ==================== Chart rendering ====================
+function renderChart() {
+  if (state.mode === 'single') {
+    renderSingleChart();
+  } else {
+    renderCompareChart();
+  }
+}
+
+function renderSingleChart() {
+  var data = getSinglePeriodData();
+  var metrics = state.metrics;
+  var dates = data.map(function(d) { return d.date; });
+  var total = data.length;
+
+  var series = [];
+
+  metrics.forEach(function(metric, mIdx) {
+    var def = METRIC_DEFS[metric];
+    var values = data.map(function(d) {
+      var v = d[metric];
+      return v > 0 ? v : null;
+    });
+
+    var paletteName = METRIC_MONO[metric] || 'red';
+    var seriesItem = {
+      name: def.name,
+      type: 'line',
+      data: values,
+      smooth: true,
+      symbol: 'circle',
+      symbolSize: 7,
+      connectNulls: true,
+      lineStyle: { width: 2.5 },
+      itemStyle: {},
+      emphasis: { focus: 'series' },
+      z: metrics.length - mIdx,
+    };
+
+    if (state.colorScheme === 'mono') {
+      // Per-point coloring: each data point gets a color based on time position
+      seriesItem.lineStyle.color = createLineGradient(paletteName, total);
+      seriesItem.itemStyle = {
+        color: function(params) {
+          return getMonoColor(paletteName, params.dataIndex, total);
+        },
+        borderColor: '#fff',
+        borderWidth: 1.5,
+      };
+      seriesItem.areaStyle = {
+        color: createAreaGradient(paletteName),
+        opacity: 0.15,
+      };
+    } else {
+      // Multi-color: solid color per metric
+      var color = MULTI_COLORS[metric] || MULTI_COLORS.maxHeartRate;
+      seriesItem.lineStyle.color = color;
+      seriesItem.itemStyle.color = color;
+      seriesItem.itemStyle.borderColor = '#fff';
+      seriesItem.itemStyle.borderWidth = 1.5;
+      seriesItem.areaStyle = {
+        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+          { offset: 0, color: color + '25' },
+          { offset: 1, color: color + '05' }
+        ]),
+        opacity: 0.6,
+      };
+    }
+
+    series.push(seriesItem);
+  });
+
+  var option = buildChartOption(dates, series, 'single', null);
+  chart.setOption(option, true);
+  renderStats(data, metrics);
+  renderInsights(data, metrics);
+}
+
+function renderCompareChart() {
+  var compareData = getCompareData();
+  var p1Data = compareData.period1.data;
+  var p2Data = compareData.period2.data;
+  var metrics = state.compareMetrics;
+
+  // Align by day index
+  var maxLen = Math.max(p1Data.length, p2Data.length);
+  var xLabels = [];
+  for (var i = 0; i < maxLen; i++) { xLabels.push('第' + (i + 1) + '天'); }
+
+  var series = [];
+
+  metrics.forEach(function(metric, mIdx) {
+    var def = METRIC_DEFS[metric];
+
+    // Period 1 - Red family
+    var p1Values = p1Data.map(function(d) {
+      var v = d[metric]; return v > 0 ? v : null;
+    });
+    var p1Total = p1Data.length;
+    var p1Palette = MONO_PALETTES.red;
+    var p1ColorIdx = Math.min(mIdx, 3); // shift within red palette for different metrics
+
+    var p1Series = {
+      name: 'A ' + def.short + ' (' + compareData.period1.key + ')',
+      type: 'line',
+      data: p1Values,
+      smooth: true,
+      symbol: 'circle',
+      symbolSize: 7,
+      connectNulls: true,
+      lineStyle: { width: 2.5 },
+      itemStyle: {},
+      z: 10,
+    };
+
+    // Period 2 - Blue family
+    var p2Values = p2Data.map(function(d) {
+      var v = d[metric]; return v > 0 ? v : null;
+    });
+    var p2Total = p2Data.length;
+
+    var p2Series = {
+      name: 'B ' + def.short + ' (' + compareData.period2.key + ')',
+      type: 'line',
+      data: p2Values,
+      smooth: true,
+      symbol: 'diamond',
+      symbolSize: 7,
+      connectNulls: true,
+      lineStyle: { width: 2.5, type: 'dashed' },
+      itemStyle: {},
+      z: 9,
+    };
+
+    // Coloring
+    if (state.colorScheme === 'mono') {
+      // Red gradient for period 1 (per-point)
+      p1Series.lineStyle.color = createLineGradient('red', p1Total);
+      p1Series.itemStyle = {
+        color: function(params) { return getMonoColor('red', params.dataIndex, p1Total); },
+        borderColor: '#fff', borderWidth: 1.5,
+      };
+      p1Series.areaStyle = { color: createAreaGradient('red'), opacity: 0.1 };
+
+      // Blue gradient for period 2 (per-point)
+      p2Series.lineStyle.color = createLineGradient('blue', p2Total);
+      p2Series.itemStyle = {
+        color: function(params) { return getMonoColor('blue', params.dataIndex, p2Total); },
+        borderColor: '#fff', borderWidth: 1.5,
+      };
+    } else {
+      // Multi-color: same metric uses same color, differentiated by line style
+      var color = MULTI_COLORS[metric] || '#ef4444';
+      p1Series.lineStyle.color = color;
+      p1Series.itemStyle.color = color;
+      p1Series.itemStyle.borderColor = '#fff';
+      p1Series.itemStyle.borderWidth = 1.5;
+
+      p2Series.lineStyle.color = color;
+      p2Series.itemStyle.color = color;
+      p2Series.itemStyle.borderColor = '#fff';
+      p2Series.itemStyle.borderWidth = 1.5;
+      p2Series.lineStyle.type = 'dashed';
+      p2Series.lineStyle.width = 3;
+    }
+
+    series.push(p1Series);
+    series.push(p2Series);
+  });
+
+  var option = buildChartOption(xLabels, series, 'compare', compareData);
+  chart.setOption(option, true);
+  renderCompareStats(p1Data, p2Data, metrics, compareData);
+  renderCompareInsights(p1Data, p2Data, metrics, compareData);
+}
+
+function buildChartOption(xLabels, series, mode, compareData) {
+  var legendData = series.map(function(s) { return s.name; });
+
+  var titleText = mode === 'single' ? '每日心率趋势' : '双时段心率对比';
+  var subtext = '';
+  if (mode === 'compare' && compareData) {
+    subtext = 'A: ' + compareData.period1.key + ' (红色系)  vs  B: ' + compareData.period2.key + ' (蓝色系)';
+  }
+
+  var option = {
+    backgroundColor: 'transparent',
+    title: {
+      text: titleText, left: 'center', top: 5,
+      textStyle: { fontSize: 15, fontWeight: 700, color: '#1a1a2e' },
+      subtext: subtext,
+      subtextStyle: { fontSize: 11, color: '#6b7280' }
+    },
+    tooltip: {
+      trigger: 'axis',
+      backgroundColor: 'rgba(255,255,255,0.96)',
+      borderColor: '#e5e7eb', borderWidth: 1,
+      textStyle: { color: '#1a1a2e', fontSize: 12 },
+      axisPointer: { type: 'cross', label: { backgroundColor: '#6b7280' } },
+      formatter: function(params) {
+        var html = '<div style="font-weight:700;margin-bottom:4px">' + params[0].axisValue + '</div>';
+        params.forEach(function(p) {
+          var val = p.value;
+          if (val !== null && val !== undefined && val !== '-') {
+            html += '<div style="margin:2px 0">' +
+              '<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:' +
+              p.color + ';margin-right:6px"></span>' +
+              p.seriesName + ': <strong>' + val + ' bpm</strong></div>';
+          }
+        });
+        return html;
+      }
+    },
+    legend: {
+      data: legendData, bottom: 5,
+      textStyle: { fontSize: 11, color: '#6b7280' },
+      itemWidth: 20, itemHeight: 12, type: 'scroll',
+    },
+    grid: { left: '3%', right: '3%', top: mode === 'compare' ? 80 : 55, bottom: 55, containLabel: true },
+    xAxis: {
+      type: 'category', data: xLabels, boundaryGap: false,
+      axisLine: { lineStyle: { color: '#e5e7eb' } },
+      axisLabel: { color: '#6b7280', fontSize: 11, rotate: xLabels.length > 15 ? 35 : 0 },
+      splitLine: { show: false },
+    },
+    yAxis: {
+      type: 'value', name: '心率 (bpm)',
+      nameTextStyle: { color: '#6b7280', fontSize: 11 },
+      axisLine: { show: false }, axisTick: { show: false },
+      axisLabel: { color: '#6b7280', fontSize: 11 },
+      splitLine: { lineStyle: { color: '#f3f4f6', type: 'dashed' } },
+      min: 30, max: 180,
+    },
+    series: series,
+    dataZoom: xLabels.length > 20 ? [
+      { type: 'inside', start: 0, end: 100 },
+      { type: 'slider', start: 0, end: 100, height: 18, bottom: 28 }
+    ] : [],
+    animation: true,
+    animationDuration: 800,
+    animationEasing: 'cubicOut',
+  };
+
+  return option;
+}
+
+// ==================== Stats ====================
+function renderStats(data, metrics) {
+  var grid = document.getElementById('stats-grid');
+  var html = '';
+  var colorClasses = { maxHeartRate: 'red', avgHeartRate: 'orange', minHeartRate: 'blue', restingHeartRate: 'green' };
+
+  metrics.forEach(function(metric) {
+    var def = METRIC_DEFS[metric];
+    var values = data.map(function(d) { return d[metric]; }).filter(function(v) { return v > 0; });
+    if (values.length === 0) return;
+
+    var avg = (values.reduce(function(a, b) { return a + b; }, 0) / values.length).toFixed(1);
+    var max = Math.max.apply(null, values);
+    var min = Math.min.apply(null, values);
+    var cls = colorClasses[metric] || 'red';
+
+    html += '<div class="stat-card ' + cls + '">' +
+      '<div class="stat-label">' + def.name + '</div>' +
+      '<div class="stat-value">' + avg + '</div>' +
+      '<div class="stat-unit">平均 bpm | 范围 ' + min + '-' + max + '</div>' +
+      '</div>';
+  });
+
+  grid.innerHTML = html;
+}
+
+function renderCompareStats(p1Data, p2Data, metrics, compareData) {
+  var grid = document.getElementById('stats-grid');
+  var html = '';
+
+  metrics.forEach(function(metric) {
+    var def = METRIC_DEFS[metric];
+    var p1Values = p1Data.map(function(d) { return d[metric]; }).filter(function(v) { return v > 0; });
+    var p2Values = p2Data.map(function(d) { return d[metric]; }).filter(function(v) { return v > 0; });
+    if (p1Values.length === 0 && p2Values.length === 0) return;
+
+    var p1Avg = p1Values.length > 0 ? (p1Values.reduce(function(a,b){return a+b;},0)/p1Values.length).toFixed(1) : '-';
+    var p2Avg = p2Values.length > 0 ? (p2Values.reduce(function(a,b){return a+b;},0)/p2Values.length).toFixed(1) : '-';
+    var diff = '-';
+    var diffCls = '';
+    if (p1Avg !== '-' && p2Avg !== '-') {
+      var d = parseFloat(p1Avg) - parseFloat(p2Avg);
+      diff = (d > 0 ? '+' : '') + d.toFixed(1);
+      diffCls = d > 0 ? 'diff-up' : (d < 0 ? 'diff-down' : '');
+    }
+
+    html += '<div class="stat-card stat-compare" style="border-left:4px solid #ef4444;border-right:4px solid #3b82f6">' +
+      '<div class="stat-label">' + def.name + ' 对比</div>' +
+      '<div class="compare-row">' +
+        '<div><div class="compare-val" style="color:#ef4444">' + p1Avg + '</div><div class="compare-label">A ' + compareData.period1.key + '</div></div>' +
+        '<div class="compare-vs">vs</div>' +
+        '<div><div class="compare-val" style="color:#3b82f6">' + p2Avg + '</div><div class="compare-label">B ' + compareData.period2.key + '</div></div>' +
+      '</div>' +
+      '<div class="diff ' + diffCls + '">差值: ' + diff + ' bpm</div>' +
+      '</div>';
+  });
+
+  grid.innerHTML = html;
+}
+
+// ==================== Insights ====================
+function renderInsights(data, metrics) {
+  var box = document.getElementById('insights-content');
+  var html = '';
+  var hasMax = metrics.indexOf('maxHeartRate') >= 0;
+  var hasMin = metrics.indexOf('minHeartRate') >= 0;
+  var hasAvg = metrics.indexOf('avgHeartRate') >= 0;
+  var hasRest = metrics.indexOf('restingHeartRate') >= 0;
+
+  // Find peak day
+  if (hasMax) {
+    var maxEntry = data.reduce(function(prev, curr) {
+      return (curr.maxHeartRate > prev.maxHeartRate) ? curr : prev;
+    }, data[0]);
+    html += '<span class="insight-item">最高心率出现在 <strong>' + maxEntry.date + '</strong>，达 <strong>' + maxEntry.maxHeartRate + ' bpm</strong></span>';
+  }
+
+  // Find lowest avg
+  if (hasAvg) {
+    var avgValues = data.filter(function(d) { return d.avgHeartRate > 0; });
+    if (avgValues.length > 0) {
+      var minAvgEntry = avgValues.reduce(function(prev, curr) {
+        return (curr.avgHeartRate < prev.avgHeartRate) ? curr : prev;
+      });
+      html += '<span class="insight-item green">最低平均心率在 <strong>' + minAvgEntry.date + '</strong>，仅 <strong>' + minAvgEntry.avgHeartRate + ' bpm</strong></span>';
+    }
+  }
+
+  // Resting heart rate trend
+  if (hasRest) {
+    var restValues = data.filter(function(d) { return d.restingHeartRate > 0; });
+    if (restValues.length >= 2) {
+      var firstRest = restValues[0].restingHeartRate;
+      var lastRest = restValues[restValues.length - 1].restingHeartRate;
+      var trend = lastRest < firstRest ? '下降' : '上升';
+      html += '<span class="insight-item blue">静息心率从 <strong>' + firstRest + '</strong> ' + trend + '至 <strong>' + lastRest + ' bpm</strong></span>';
+    }
+  }
+
+  // Heart rate variability
+  if (hasMax && hasMin) {
+    var validDays = data.filter(function(d) { return d.maxHeartRate > 0 && d.minHeartRate > 0; });
+    if (validDays.length > 0) {
+      var avgRange = validDays.reduce(function(sum, d) { return sum + (d.maxHeartRate - d.minHeartRate); }, 0) / validDays.length;
+      html += '<span class="insight-item">日均心率波动幅度 <strong>' + avgRange.toFixed(0) + ' bpm</strong></span>';
+    }
+  }
+
+  // Data completeness
+  var totalDays = data.length;
+  var completeDays = data.filter(function(d) {
+    return d.maxHeartRate > 0 && d.avgHeartRate > 0 && d.minHeartRate > 0;
+  }).length;
+  html += '<span class="insight-item">数据完整度 <strong>' + Math.round(completeDays / totalDays * 100) + '%</strong> (' + completeDays + '/' + totalDays + ' 天)</span>';
+
+  box.innerHTML = html;
+}
+
+function renderCompareInsights(p1Data, p2Data, metrics, compareData) {
+  var box = document.getElementById('insights-content');
+  var html = '';
+
+  metrics.forEach(function(metric) {
+    var def = METRIC_DEFS[metric];
+    var p1Values = p1Data.map(function(d) { return d[metric]; }).filter(function(v) { return v > 0; });
+    var p2Values = p2Data.map(function(d) { return d[metric]; }).filter(function(v) { return v > 0; });
+    if (p1Values.length === 0 || p2Values.length === 0) return;
+
+    var p1Avg = p1Values.reduce(function(a,b){return a+b;},0) / p1Values.length;
+    var p2Avg = p2Values.reduce(function(a,b){return a+b;},0) / p2Values.length;
+    var diff = p1Avg - p2Avg;
+    var trend = diff > 0 ? '高于' : (diff < 0 ? '低于' : '等于');
+
+    html += '<span class="insight-item">' + def.name + '：时段A <strong>' + p1Avg.toFixed(1) + '</strong> ' + trend + ' 时段B <strong>' + p2Avg.toFixed(1) + ' bpm</strong>（差值 ' + (diff > 0 ? '+' : '') + diff.toFixed(1) + '）</span>';
+  });
+
+  html += '<span class="insight-item blue">时段A：' + compareData.period1.key + '（' + p1Data.length + ' 天） vs 时段B：' + compareData.period2.key + '（' + p2Data.length + ' 天）</span>';
+
+  box.innerHTML = html;
+}
+
+// ==================== Boot ====================
+window.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
