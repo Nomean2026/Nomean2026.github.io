@@ -85,6 +85,22 @@ body::before{
   padding:28px 0 40px;
   transition:transform .3s ease;
 }
+/* 移动端遮罩：侧栏打开时显示，点击关闭 */
+.sidebar-overlay{
+  position:fixed;inset:0;
+  background:rgba(15,39,36,0.35);
+  backdrop-filter:blur(2px);
+  z-index:49;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .25s ease;
+}
+.sidebar.open ~ .sidebar-overlay,  /* fallback, though order is overlay -> sidebar */
+body.sb-open .sidebar-overlay{
+  opacity:1;
+  pointer-events:auto;
+}
+body.sb-open{overflow:hidden; /* 禁止背景滚动 */ touch-action:none}
 .sidebar::-webkit-scrollbar{width:6px}
 .sidebar::-webkit-scrollbar-thumb{background:var(--primary-soft);border-radius:3px}
 .brand{
@@ -603,9 +619,12 @@ footer .emo{font-size:20px;letter-spacing:8px;margin-bottom:10px}
 
 <!-- 移动端顶栏 -->
 <div class="topbar-mobile">
-  <button class="menu-btn" onclick="document.querySelector('.sidebar').classList.toggle('open')">☰</button>
+  <button class="menu-btn" onclick="toggleSidebar()">☰</button>
   <div class="tb-title">交大2026暑假·服务指南</div>
 </div>
+
+<!-- 移动端遮罩（点击右侧关闭侧栏） -->
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar(false)"></div>
 
 <!-- ============== 左侧导航 ============== -->
 <aside class="sidebar" id="sidebar">
@@ -2162,6 +2181,31 @@ ${shpL}`;
   }
 }
 
+/* ========= 移动端侧栏开关 ========= */
+function toggleSidebar(force){
+  const sb=document.getElementById('sidebar');
+  const body=document.body;
+  // 非移动端不处理
+  if(window.innerWidth>1080) return;
+  let open;
+  if(typeof force==='boolean') open=force;
+  else open=!sb.classList.contains('open');
+  if(open){
+    sb.classList.add('open');
+    body.classList.add('sb-open');
+  }else{
+    sb.classList.remove('open');
+    body.classList.remove('sb-open');
+  }
+}
+// 窗口变到桌面尺寸时，清理移动端的锁定和遮罩状态
+window.addEventListener('resize',()=>{
+  if(window.innerWidth>1080){
+    document.getElementById('sidebar').classList.remove('open');
+    document.body.classList.remove('sb-open');
+  }
+});
+
 /* ========= 左侧导航滚动高亮 ========= */
 function initNavSpy(){
   const navs = document.querySelectorAll('.nav-item');
@@ -2182,9 +2226,9 @@ function initNavSpy(){
   },{rootMargin:'-40% 0px -55% 0px',threshold:0});
   sections.forEach(s=>observer.observe(s));
 
-  // 移动端：点导航自动收
+  // 移动端：点导航自动收侧栏+遮罩
   navs.forEach(n=>n.addEventListener('click',()=>{
-    if(window.innerWidth<=1080) document.getElementById('sidebar').classList.remove('open');
+    if(window.innerWidth<=1080) toggleSidebar(false);
   }));
 }
 
