@@ -381,6 +381,154 @@ footer{
 }
 footer .emo{font-size:20px;letter-spacing:8px;margin-bottom:10px}
 
+/* ========= 每日详情样式（整合自速查表） ========= */
+:root{
+  --dd-duty-bg: linear-gradient(90deg, #fff5f5 0%, #fed7d7 100%);
+  --dd-duty-border: #fc8181;
+  --dd-today-bg: linear-gradient(90deg, #ebf8ff 0%, #bee3f8 100%);
+  --dd-today-border: #4299e1;
+  --dd-weekend-bg: #fafafa;
+  --dd-canteen:#e53e3e; --dd-canteen-bg:#fff5f5;
+  --dd-library:#2c5aa0; --dd-library-bg:#ebf8ff;
+  --dd-class:#16a34a;    --dd-class-bg:#f0fff4;
+  --dd-shop:#ca8a04;     --dd-shop-bg:#fffff0;
+}
+/* 顶部工具条（当日详情） */
+.dd-toolbar{
+  display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  padding:16px 22px;margin-bottom:16px;
+  background:linear-gradient(135deg,#f8fcfb,#f6fbfa);
+  border:1px solid var(--line);border-radius:18px;
+}
+.dd-filters{display:flex;gap:8px;flex-wrap:wrap}
+.dd-filter{
+  padding:7px 14px;border:1.5px solid var(--line);background:white;
+  border-radius:100px;font-size:13px;font-weight:500;cursor:pointer;
+  transition:all .2s;display:flex;align-items:center;gap:6px;color:var(--ink-2);
+}
+.dd-filter:hover{border-color:#cbd5e0}
+.dd-filter.active{border-color:transparent;color:white}
+.dd-filter[data-cat="all"].active{background:linear-gradient(135deg,#667eea,#764ba2)}
+.dd-filter[data-cat="canteen"].active{background:var(--dd-canteen)}
+.dd-filter[data-cat="library"].active{background:var(--dd-library)}
+.dd-filter[data-cat="class"].active{background:var(--dd-class)}
+.dd-filter[data-cat="shop"].active{background:var(--dd-shop)}
+.dd-dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.dd-dot.canteen{background:var(--dd-canteen)}
+.dd-dot.library{background:var(--dd-library)}
+.dd-dot.class{background:var(--dd-class)}
+.dd-dot.shop{background:var(--dd-shop)}
+.dd-live{
+  margin-left:auto;padding:6px 14px;
+  background:linear-gradient(135deg,#f6f8fc,#edf2f7);
+  border-radius:100px;font-size:13px;color:var(--ink-2);
+  display:flex;align-items:center;gap:6px;font-weight:500;border:1px solid #e2e8f0;
+}
+.dd-live .pulse{
+  width:8px;height:8px;background:#38a169;border-radius:50%;
+  box-shadow:0 0 0 0 rgba(56,161,105,.6);animation:ddpulse 2s infinite;
+}
+@keyframes ddpulse{0%{box-shadow:0 0 0 0 rgba(56,161,105,.5)}70%{box-shadow:0 0 0 8px rgba(56,161,105,0)}100%{box-shadow:0 0 0 0 rgba(56,161,105,0)}}
+.dd-actions{display:flex;gap:8px}
+.dd-btn{
+  padding:7px 14px;border-radius:100px;border:none;font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;
+}
+.dd-btn.primary{background:linear-gradient(135deg,#4299e1,#667eea);color:white}
+.dd-btn.primary:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(66,153,225,.3)}
+.dd-btn.ghost{background:#edf2f7;color:var(--ink-2)}
+.dd-btn.ghost.active{background:#4a5568;color:white}
+
+/* 汇总卡 */
+.dd-summary{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+  gap:14px;margin:0 0 18px;
+}
+.dd-sum{
+  background:white;border-radius:16px;padding:16px 18px;border:1px solid var(--line);
+  display:flex;align-items:center;gap:14px;box-shadow:var(--shadow);
+}
+.dd-sum-icon{
+  width:46px;height:46px;border-radius:14px;
+  display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;
+}
+.dd-sum-icon.sc{background:var(--dd-canteen-bg)}
+.dd-sum-icon.sl{background:var(--dd-library-bg)}
+.dd-sum-icon.scl{background:var(--dd-class-bg)}
+.dd-sum-icon.ss{background:var(--dd-shop-bg)}
+.dd-sum-num{font-family:'Noto Serif SC',serif;font-size:24px;font-weight:700;line-height:1}
+.dd-sum-label{font-size:12px;color:var(--muted);margin-top:3px}
+
+/* 日详情行 */
+.dd-day-row{
+  display:grid;grid-template-columns:180px 1fr;gap:20px;
+  padding:20px 22px;background:white;border:1px solid var(--line);
+  border-radius:20px;box-shadow:var(--shadow);transition:all .2s;
+}
+.dd-day-row:hover{box-shadow:var(--shadow-lg);transform:translateY(-1px)}
+.dd-day-row.weekend{background:var(--dd-weekend-bg)}
+.dd-day-row.duty{background:var(--dd-duty-bg);border-left:6px solid var(--dd-duty-border)}
+.dd-day-row.today{
+  background:var(--dd-today-bg);border-left:6px solid var(--dd-today-border);
+  box-shadow:0 0 0 3px rgba(66,153,225,.12);position:relative;
+}
+.dd-day-row.today::after{
+  content:'TODAY';position:absolute;top:-1px;right:20px;
+  background:linear-gradient(135deg,#4299e1,#667eea);color:white;
+  font-size:10px;font-weight:700;padding:3px 10px;border-radius:0 0 10px 10px;letter-spacing:1px;
+}
+.dd-day-info{
+  display:flex;flex-direction:column;justify-content:center;gap:6px;
+  padding-right:18px;border-right:2px dashed #edf2f7;
+}
+.dd-day-date{font-family:'Noto Serif SC',serif;font-size:30px;font-weight:700;line-height:1;color:var(--ink)}
+.dd-day-week{font-size:14px;font-weight:500;color:var(--ink-2)}
+.dd-day-row.weekend .dd-day-week,.dd-day-row.weekend .dd-day-date{color:#e53e3e}
+.dd-day-tags{display:flex;gap:4px;margin-top:6px;flex-wrap:wrap}
+.dd-day-tag{font-size:10px;padding:2px 8px;border-radius:100px;font-weight:600;color:white}
+.dd-tag-duty{background:#c53030}
+.dd-tag-holiday{background:#805ad5}
+.dd-day-content{display:flex;flex-direction:column;gap:10px}
+.dd-cat-group{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-start}
+.dd-cat-group.hidden{display:none}
+.dd-cat-label{
+  font-size:11px;font-weight:700;padding:4px 10px;border-radius:8px;color:white;
+  flex-shrink:0;margin-top:4px;letter-spacing:.5px;
+}
+.dd-cat-label.canteen{background:var(--dd-canteen)}
+.dd-cat-label.library{background:var(--dd-library)}
+.dd-cat-label.class{background:var(--dd-class)}
+.dd-cat-label.shop{background:var(--dd-shop)}
+.dd-chips{display:flex;flex-wrap:wrap;gap:6px;flex:1;min-width:0}
+.dd-chip{
+  padding:6px 12px;border-radius:10px;font-size:13px;font-weight:500;line-height:1.4;
+  transition:all .15s;border:1px solid transparent;cursor:default;
+}
+.dd-chip:hover{transform:translateY(-1px);box-shadow:0 4px 10px rgba(0,0,0,.08)}
+.dd-chip.canteen{background:var(--dd-canteen-bg);color:#742a2a;border-color:#fed7d7}
+.dd-chip.library{background:var(--dd-library-bg);color:#2a4365;border-color:#bee3f8}
+.dd-chip.class{background:var(--dd-class-bg);color:#22543d;border-color:#c6f6d5}
+.dd-chip.shop{background:var(--dd-shop-bg);color:#744210;border-color:#fefcbf}
+.dd-chip small{display:block;font-size:10.5px;opacity:.75;margin-top:2px;font-weight:400}
+.dd-chip.campus-mh::before,.dd-chip.campus-xh::before,.dd-chip.campus-qb::before{
+  content:'';display:inline-block;width:6px;height:6px;border-radius:50%;
+  margin-right:5px;vertical-align:middle;
+}
+.dd-chip.campus-mh::before{background:#3182ce}
+.dd-chip.campus-xh::before{background:#38a169}
+.dd-chip.campus-qb::before{background:#d69e2e}
+.dd-empty{font-size:13px;color:var(--muted);padding:4px 0;font-style:italic}
+
+/* 完整每日列表 */
+.dd-list{display:flex;flex-direction:column;gap:12px}
+.dd-list .dd-day-row{border-radius:16px}
+
+/* 详情面板：动画 */
+.dd-flash{animation:ddflash 1.2s ease-out 1}
+@keyframes ddflash{
+  0%{box-shadow:0 0 0 8px rgba(66,153,225,.25)}
+  100%{box-shadow:var(--shadow)}
+}
+
 /* ========= 响应式 ========= */
 @media (max-width: 1080px){
   .sidebar{transform:translateX(-100%);width:240px}
@@ -405,6 +553,17 @@ footer .emo{font-size:20px;letter-spacing:8px;margin-bottom:10px}
   .grid-2,.grid-3{grid-template-columns:1fr}
   .cal-cell{aspect-ratio:1/1.3}
   .mini-b{width:12px;height:12px;font-size:7.5px}
+  /* 每日详情：移动端 */
+  .dd-day-row{grid-template-columns:1fr;gap:12px;padding:16px}
+  .dd-day-info{
+    border-right:none;border-bottom:2px dashed #edf2f7;
+    padding-right:0;padding-bottom:12px;
+    flex-direction:row;align-items:center;gap:12px;
+  }
+  .dd-day-date{font-size:22px}
+  .dd-toolbar{gap:10px;padding:14px}
+  .dd-live{margin-left:0;width:100%}
+  .dd-actions{width:100%;justify-content:space-between}
 }
 </style>
 </head>
@@ -426,6 +585,8 @@ footer .emo{font-size:20px;letter-spacing:8px;margin-bottom:10px}
   <div class="nav-group">
     <div class="nav-title">快速导航</div>
     <a class="nav-item active" href="#sec-calendar"><span class="num">00</span><span class="ico">📆</span>日历总览</a>
+    <a class="nav-item" href="#sec-daydetail"><span class="num">00a</span><span class="ico">📍</span>当日开放详情</a>
+    <a class="nav-item" href="#sec-fulldays"><span class="num">00b</span><span class="ico">📋</span>完整每日列表</a>
     <a class="nav-item" href="#sec-time"><span class="num">01</span><span class="ico">⏰</span>暑假时间</a>
   </div>
 
@@ -552,8 +713,52 @@ footer .emo{font-size:20px;letter-spacing:8px;margin-bottom:10px}
       <div class="tip" style="margin:0 30px 8px">
         <strong>使用方式：</strong>
         每个格子底部 <b>A/B/C/D</b> 四个小方块代表「食堂 / 图书馆 / 自习 / 便利」四类服务今日是否均有开放。
-        将鼠标悬停在日期上，会弹出当日具体开放的场所清单；点击日期滚动到对表格区域。
+        将鼠标悬停在日期上，会弹出当日具体开放的场所清单；<b></b>点击日期即可跳转到下方「当日开放详情」并切换到所选日期</b>。
       </div>
+    </div>
+  </section>
+
+  <!-- 00a 当日开放详情 -->
+  <section id="sec-daydetail">
+    <div class="sec-head">
+      <div class="sec-num">📍</div>
+      <div>
+        <div class="sec-title">当日开放详情 <span class="sec-sub">点击日历上方日期切换，默认显示今日</span></div>
+        <div class="sec-desc">按分类查看所选日期开放的食堂、图书馆、自习室、便利店等详细场所信息。</div>
+      </div>
+    </div>
+    <div class="card" style="padding:18px 20px 22px">
+      <!-- 顶部工具条 -->
+      <div class="dd-toolbar">
+        <div class="dd-filters">
+          <button class="dd-filter active" data-cat="all" onclick="setDDCat(this,'all')">
+            <span class="dd-dot" style="background:linear-gradient(135deg,#667eea,#764ba2)"></span>全部
+          </button>
+          <button class="dd-filter" data-cat="canteen" onclick="setDDCat(this,'canteen')">
+            <span class="dd-dot canteen"></span>餐饮
+          </button>
+          <button class="dd-filter" data-cat="library" onclick="setDDCat(this,'library')">
+            <span class="dd-dot library"></span>图书馆
+          </button>
+          <button class="dd-filter" data-cat="class" onclick="setDDCat(this,'class')">
+            <span class="dd-dot class"></span>自习
+          </button>
+          <button class="dd-filter" data-cat="shop" onclick="setDDCat(this,'shop')">
+            <span class="dd-dot shop"></span>便利
+          </button>
+        </div>
+        <div class="dd-live"><span class="pulse"></span><span id="ddLive">实时模式 · 今日</span></div>
+        <div class="dd-actions">
+          <button class="dd-btn ghost" id="btnOnlyOpen" onclick="toggleOnlyOpen(this)">仅显示有开放的分类</button>
+          <button class="dd-btn primary" onclick="gotoToday()">回到今日</button>
+        </div>
+      </div>
+
+      <!-- 汇总卡 -->
+      <div class="dd-summary" id="ddSummary"></div>
+
+      <!-- 单日详情容器 -->
+      <div id="ddSingleWrap"></div>
     </div>
   </section>
 
@@ -1352,6 +1557,46 @@ footer .emo{font-size:20px;letter-spacing:8px;margin-bottom:10px}
     </div>
   </section>
 
+  <!-- 00b 完整暑假每日信息 -->
+  <section id="sec-fulldays">
+    <div class="sec-head">
+      <div class="sec-num">📋</div>
+      <div>
+        <div class="sec-title">完整暑假每日开放信息 <span class="sec-sub">42 天逐天 · 点击左侧导航快速定位</span></div>
+        <div class="sec-desc">
+          按分类筛选按钮查看每日餐饮、图书馆、自习室、便利店开放详情；点击上方「当日开放详情」或日历任意日期可切换到单日视图。
+        </div>
+      </div>
+    </div>
+    <div class="card" style="padding:18px 20px 24px">
+      <!-- 工具条：分类筛选 -->
+      <div class="dd-toolbar" style="margin-bottom:18px">
+        <div class="dd-filters">
+          <button class="dd-filter active" data-cat="all" onclick="setFDCat(this,'all')">
+            <span class="dd-dot" style="background:linear-gradient(135deg,#667eea,#764ba2)"></span>全部
+          </button>
+          <button class="dd-filter" data-cat="canteen" onclick="setFDCat(this,'canteen')">
+            <span class="dd-dot canteen"></span>餐饮
+          </button>
+          <button class="dd-filter" data-cat="library" onclick="setFDCat(this,'library')">
+            <span class="dd-dot library"></span>图书馆
+          </button>
+          <button class="dd-filter" data-cat="class" onclick="setFDCat(this,'class')">
+            <span class="dd-dot class"></span>自习
+          </button>
+          <button class="dd-filter" data-cat="shop" onclick="setFDCat(this,'shop')">
+            <span class="dd-dot shop"></span>便利
+          </button>
+        </div>
+        <div class="dd-actions">
+          <button class="dd-btn ghost active" id="btnFDOnlyOpen" onclick="toggleFDOnlyOpen(this)">仅显示有开放的分类</button>
+        </div>
+      </div>
+      <!-- 完整列表 -->
+      <div class="dd-list" id="fdList"></div>
+    </div>
+  </section>
+
   <footer>
     <div class="emo">🌞 📚 ☕ 🌿 🎓</div>
     <p>愿伴大家安心度过一个平安、充实、愉快的暑假。</p>
@@ -1511,6 +1756,278 @@ function dayOpenInfo(y,m,d){
   };
 }
 
+/* ============================================================
+ * 每日详情：Chip 生成（适配 PLACES 分类/校园/子文本结构）
+ * ============================================================ */
+// 食堂：基于 FOOD 数组生成 chip 对象
+function foodChips(m,d){
+  return FOOD.filter(f=>foodOpen(f,m,d)).map(f=>{
+    const subs=[];
+    if(f.sub) subs.push(f.sub);
+    if(f.s==='close') subs.push('暂停');
+    return { name:f.n, cat:'canteen', campus:f.c, sub:subs.length?subs.join(' · '):null };
+  });
+}
+// 图书馆
+function libChips(m,d){
+  const out=[];
+  // 包玉刚（闵行，正常）
+  out.push({name:'包玉刚图书馆',cat:'library',campus:'mh',sub:'阅览/借还正常'});
+  // 主图书馆
+  if(inRange(m,d,[8,3,8,9])){
+    out.push({name:'主图书馆·杜厦楼',cat:'library',campus:'mh',sub:'8.3-8.9 闭馆·线上委托可取'});
+  }else{
+    out.push({name:'主图书馆·杜厦楼',cat:'library',campus:'mh',sub:'部分开放·查新工作日 8:30-16:30'});
+  }
+  // 徐汇
+  out.push({name:'图书阅览空间',cat:'library',campus:'xh',sub:'阅览/借还正常'});
+  // 李政道
+  if(inRange(m,d,[8,1,8,20])){
+    out.push({name:'李政道图书馆',cat:'library',campus:'mh',sub:'闭馆修缮至 8.20'});
+  }else{
+    out.push({name:'李政道图书馆',cat:'library',campus:'mh',sub:'正常开放'});
+  }
+  return out;
+}
+// 自习
+function classChips(m,d){
+  return [
+    {name:'东上院 / 东中院 / 东下院',cat:'class',campus:'mh',sub:'主要自习楼'},
+    {name:'陈瑞球楼、文选医学楼',cat:'class',campus:'mh',sub:'部分教室可自习'},
+    {name:'新上院自习室',cat:'class',campus:'xh'},
+    {name:'包兆龙图书馆阅览空间',cat:'class',campus:'xh'},
+    {name:'学生创新中心 C 楼大厅',cat:'class',campus:'mh',sub:'08:00-22:00（仅东门进出）'},
+  ];
+}
+// 便利店/商业
+function shopChips(m,d){
+  return [
+    {name:'南体教育超市 / 蓁蓁楼教育超市',cat:'shop',campus:'mh'},
+    {name:'四餐全家 / 玉兰苑罗森 / 八期公寓罗森',cat:'shop',campus:'mh'},
+    {name:'二餐便利店 / 捭阖坊思源便利店',cat:'shop',campus:'mh'},
+    {name:'西区理发 / 三餐理发 / 四餐理发',cat:'shop',campus:'mh'},
+    {name:'乐学洗衣店',cat:'shop',campus:'mh'},
+    {name:'徐汇理发店',cat:'shop',campus:'xh'},
+  ];
+}
+function allChipsForDate(y,m,d){
+  return foodChips(m,d).concat(libChips(m,d),classChips(m,d),shopChips(m,d));
+}
+
+/* ============================================================
+ * 每日详情：渲染
+ * ============================================================ */
+const WEEKDAYS=['周日','周一','周二','周三','周四','周五','周六'];
+const CAT_NAMES={canteen:'🍽️ 食堂',library:'📚 图书馆',class:'🏫 自习空间',shop:'🛒 便利店'};
+const CAT_ORDER=['canteen','library','class','shop'];
+const HOLIDAYS={
+  '2026-09-10':'教师节'
+};
+// 当日详情面板：当前筛选状态
+let ddCat='all';
+let ddOnlyOpen=true;
+// 完整列表：当前筛选状态
+let fdCat='all';
+let fdOnlyOpen=true;
+// 当前选中日期（详情面板显示）
+let selectedDateKey=null;
+
+/* 构造日详情行 HTML（参数 opts: {forFullList}） */
+function buildDayRowHTML(y,m,d,opts={}){
+  const forFullList=!!opts.forFullList;
+  const date=new Date(y,m-1,d);
+  const weekday=date.getDay();
+  const isWeekend=weekday===0||weekday===6;
+  const dateKey=`${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+  const isDuty=DUTY.has(dateKey);
+  const today=new Date();
+  const isToday=today.getFullYear()===y && today.getMonth()===m-1 && today.getDate()===d;
+  const holiday=HOLIDAYS[dateKey];
+  // 暑假范围：8.3-9.13
+  const dayIdx=m*100+d;
+  if(dayIdx<803||dayIdx>913) return '';
+
+  const chips=allChipsForDate(y,m,d);
+  const byCat={canteen:[],library:[],class:[],shop:[]};
+  chips.forEach(p=>byCat[p.cat].push(p));
+
+  // 根据当前分类 / only-open 状态，决定 cat-group 是否显示（仅渲染时加 class.hidden，避免数据不完整）
+  let contentHtml='';
+  let anyVisible=false;
+  for(const cat of CAT_ORDER){
+    const places=byCat[cat];
+    const filterCat = forFullList ? fdCat : ddCat;
+    const onlyOpen  = forFullList ? fdOnlyOpen : ddOnlyOpen;
+    // 分类筛选
+    const catHidden = (filterCat!=='all' && filterCat!==cat);
+    // 无开放 + onlyOpen
+    const noOpenHidden = (onlyOpen && places.length===0);
+    let chipsHtml='';
+    if(places.length){
+      chipsHtml=places.map(p=>{
+        const sub=p.sub?`<small>${p.sub}</small>`:'';
+        const cls=p.campus?`campus-${p.campus}`:'';
+        return `<div class="dd-chip ${cat} ${cls}">${p.name}${sub}</div>`;
+      }).join('');
+    }else{
+      chipsHtml=`<div class="dd-empty">当日暂无开放</div>`;
+    }
+    if(!catHidden && !noOpenHidden) anyVisible=true;
+    const groupCls=['dd-cat-group',
+      catHidden?'hidden':'',
+      noOpenHidden?'hidden':'',
+    ].filter(Boolean).join(' ');
+    contentHtml+=`
+      <div class="${groupCls}" data-cat="${cat}">
+        <div class="dd-cat-label ${cat}">${CAT_NAMES[cat]}</div>
+        <div class="dd-chips">${chipsHtml}</div>
+      </div>`;
+  }
+  if(!anyVisible){
+    contentHtml=`<div class="dd-empty" style="padding:6px 0;font-size:14px;">💤 暂无符合筛选条件的开放场所</div>`;
+  }
+  const classes=['dd-day-row'];
+  if(isWeekend) classes.push('weekend');
+  if(isDuty) classes.push('duty');
+  if(isToday) classes.push('today');
+  const tags=[];
+  if(isDuty) tags.push(`<span class="dd-day-tag dd-tag-duty">值班</span>`);
+  if(holiday) tags.push(`<span class="dd-day-tag dd-tag-holiday">${holiday}</span>`);
+  return `
+    <div class="${classes.join(' ')}" data-date="${dateKey}" data-has-open="${chips.length>0?1:0}">
+      <div class="dd-day-info">
+        <div class="dd-day-date">${m}月${d}日</div>
+        <div class="dd-day-week">${WEEKDAYS[weekday]}</div>
+        ${tags.length?`<div class="dd-day-tags">${tags.join('')}</div>`:''}
+      </div>
+      <div class="dd-day-content">${contentHtml}</div>
+    </div>`;
+}
+
+/* 渲染汇总卡（针对某个日期） */
+function renderSummaryFor(y,m,d,wrapId){
+  const dayIdx=m*100+d;
+  let canteenN=0,libN=0,classN=0,shopN=0;
+  if(dayIdx>=803 && dayIdx<=913){
+    const all=allChipsForDate(y,m,d);
+    // 图书馆/自习/便利：以"非闭馆或说明"的条目为准
+    all.forEach(p=>{
+      if(p.cat==='canteen') canteenN++;
+      else if(p.cat==='library' && !/闭馆/.test(p.sub||'')) libN++;
+      else if(p.cat==='library') libN=libN;      // 闭馆不算
+      else if(p.cat==='class') classN++;
+      else if(p.cat==='shop') shopN++;
+    });
+  }
+  document.getElementById(wrapId).innerHTML=`
+    <div class="dd-sum"><div class="dd-sum-icon sc">🍽️</div>
+      <div><div class="dd-sum-num" style="color:var(--dd-canteen)">${canteenN}</div>
+      <div class="dd-sum-label">食堂营业中 · ${m}月${d}日</div></div></div>
+    <div class="dd-sum"><div class="dd-sum-icon sl">📚</div>
+      <div><div class="dd-sum-num" style="color:var(--dd-library)">${libN}</div>
+      <div class="dd-sum-label">图书馆开放 · ${m}月${d}日</div></div></div>
+    <div class="dd-sum"><div class="dd-sum-icon scl">🏫</div>
+      <div><div class="dd-sum-num" style="color:var(--dd-class)">${classN}</div>
+      <div class="dd-sum-label">自习空间开放 · ${m}月${d}日</div></div></div>
+    <div class="dd-sum"><div class="dd-sum-icon ss">🛒</div>
+      <div><div class="dd-sum-num" style="color:var(--dd-shop)">${shopN}</div>
+      <div class="dd-sum-label">便利店营业 · ${m}月${d}日</div></div></div>
+  `;
+}
+
+/* ============================================================
+ * 当日开放详情（sec-daydetail）
+ * ============================================================ */
+function refreshDDPanel(){
+  let dk=selectedDateKey;
+  if(!dk){
+    const today=new Date();
+    dk=`${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+  }
+  // 如果不在暑假，就显示 8.3
+  const [y,m,d]=dk.split('-').map(Number);
+  const inVac=(m===8&&d>=3)||(m===9&&d<=13);
+  const use = inVac?{y,m,d}:{y:2026,m:8,d:3};
+  const useKey=`${use.y}-${String(use.m).padStart(2,'0')}-${String(use.d).padStart(2,'0')}`;
+  selectedDateKey=useKey;
+  // 更新 live 文案
+  const todayKey=fmtTodayKey();
+  const liveEl=document.getElementById('ddLive');
+  if(useKey===todayKey) liveEl.textContent='实时模式 · 今日';
+  else liveEl.textContent=`已选择 · ${use.m}月${use.d}日`;
+  renderSummaryFor(use.y,use.m,use.d,'ddSummary');
+  document.getElementById('ddSingleWrap').innerHTML=buildDayRowHTML(use.y,use.m,use.d);
+  // 闪烁高亮动画（切换时）
+  const row=document.querySelector('#ddSingleWrap .dd-day-row');
+  if(row){
+    row.classList.remove('dd-flash');
+    // reflow
+    void row.offsetWidth;
+    row.classList.add('dd-flash');
+  }
+}
+function fmtTodayKey(){
+  const t=new Date();
+  return `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;
+}
+/* 显示指定日期：切详情 + 滚动到当日面板 + 可选闪烁 */
+function showDayDetail(dateKey, opts={}){
+  if(!dateKey) return;
+  selectedDateKey=dateKey;
+  refreshDDPanel();
+  const sec=document.getElementById('sec-daydetail');
+  if(sec && opts.scroll!==false){
+    sec.scrollIntoView({behavior:'smooth',block:'start'});
+  }
+}
+function setDDCat(btn, cat){
+  document.querySelectorAll('#sec-daydetail .dd-filter').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  ddCat=cat;
+  refreshDDPanel();
+}
+function toggleOnlyOpen(btn){
+  ddOnlyOpen=!ddOnlyOpen;
+  btn.classList.toggle('active',ddOnlyOpen);
+  refreshDDPanel();
+}
+function gotoToday(){
+  const today=new Date();
+  let m=today.getMonth()+1, d=today.getDate();
+  const inVac=(m===8&&d>=3)||(m===9&&d<=13);
+  if(inVac){
+    showDayDetail(fmtTodayKey());
+  }else{
+    showDayDetail('2026-08-03');
+  }
+}
+
+/* ============================================================
+ * 完整暑假每日列表（sec-fulldays）
+ * ============================================================ */
+function renderFullDays(){
+  let html='';
+  // 8月
+  for(let d=1;d<=31;d++) html+=buildDayRowHTML(2026,8,d,{forFullList:true});
+  // 9月
+  for(let d=1;d<=13;d++) html+=buildDayRowHTML(2026,9,d,{forFullList:true});
+  document.getElementById('fdList').innerHTML=html;
+}
+function setFDCat(btn, cat){
+  document.querySelectorAll('#sec-fulldays .dd-filter').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  fdCat=cat;
+  renderFullDays();
+  // 滚动到顶部，防止跳变
+  const list=document.getElementById('fdList');
+  if(list) list.scrollIntoView({behavior:'instant',block:'nearest'});
+}
+function toggleFDOnlyOpen(btn){
+  fdOnlyOpen=!fdOnlyOpen;
+  btn.classList.toggle('active',fdOnlyOpen);
+  renderFullDays();
+}
+
 /* ========= 日历渲染 ========= */
 let calYear = 2026, calMonth = 7; // 0-indexed => 7 = Aug
 function changeCal(dir){
@@ -1604,7 +2121,7 @@ ${shpL}`;
       isToday?'today':''
     ].filter(Boolean).join(' ');
 
-    body.innerHTML += `<div class="${cls}" data-tip="${tip.replace(/"/g,'&quot;')}" onclick="document.getElementById('sec-${isDuty?'food':'calendar'}')?.scrollIntoView({behavior:'smooth'})">
+    body.innerHTML += `<div class="${cls}" data-tip="${tip.replace(/"/g,'&quot;')}" onclick="showDayDetail('${dateKey}')">
       ${!isToday ? `<div class="badge-count">${info.food}处</div>`:''}
       <div class="dt">${d}</div>
       <div class="wk">周${WN[wk]}</div>
@@ -1642,7 +2159,27 @@ function initNavSpy(){
 /* ========= 启动 ========= */
 renderFoodTable();
 renderCal();
+refreshDDPanel();     // 当日详情默认显示今日
+renderFullDays();      // 完整42天每日列表
 initNavSpy();
+
+/* ========= 跨天自动更新 ========= */
+let _lastDayKey = fmtTodayKey();
+setInterval(()=>{
+  const now = fmtTodayKey();
+  if(now !== _lastDayKey){
+    _lastDayKey = now;
+    renderCal();
+    // 当日详情：如果当前选中的是"昨天"，自动切到今天
+    if(selectedDateKey && selectedDateKey < now &&
+      ((+selectedDateKey.replace(/-/g,'')) < 20260914)){
+      gotoToday();
+    }else{
+      refreshDDPanel();
+    }
+    renderFullDays();
+  }
+}, 60*1000);
 </script>
 </body>
 </html>
