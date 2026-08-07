@@ -2,14 +2,22 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>交大2026暑假·完整校园服务指南</title>
 <meta name="description" content="上海交通大学2026暑假完整服务安排：食堂、图书馆、自习室、便利店、交通、医疗、体育、行政值班等38+项服务，附每日开放日历与值班日高亮，一目了然。">
 <meta name="keywords" content="上海交通大学,交大,2026暑假,食堂开放,图书馆,自习室,校园服务,值班表,SJTU">
 <meta name="theme-color" content="#1a7a6d">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="交大暑假">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="msapplication-TileColor" content="#1a7a6d">
+<meta name="msapplication-tap-highlight" content="no">
+<meta name="format-detection" content="telephone=no, email=no, adress=no">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🌞%3C/text%3E%3C/svg%3E">
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="./apple-touch-icon.svg">
+<link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.svg">
 
 <!-- ==================== Open Graph（微信/FB/LinkedIn 分享卡片） ==================== -->
 <meta property="og:type"        content="website">
@@ -18,7 +26,7 @@
 <meta property="og:description" content="42天每日开放日历 · 食堂/图书馆/自习/便利店/交通/医疗/体育/行政值班 38+项服务全收录，值班日高亮标红，一键查询每日开放场所。">
 <meta property="og:url"         content="https://nomean2026.github.io/summer2026/">
 <meta property="og:locale"      content="zh_CN">
-<meta property="og:image"       content="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Shanghai%20Jiao%20Tong%20University%20summer%20campus%20service%20guide%20cover%20illustration%2C%20fresh%20summer%20aesthetic%2C%20soft%20teal%20green%20and%20warm%20amber%20color%20palette%2C%20elegant%20minimal%20composition%2C%20subtle%20sycamore%20leaves%20and%20sunlight%20rays%20on%20white%20background%2C%20university%20hall%20silhouette%2C%20open%20book%20and%20coffee%20cup%20icon%2C%20Chinese%20title%20in%20serif%20font%3A%20%E4%BA%A4%E5%A4%A72026%E6%9A%91%E5%81%87%20%C2%B7%20%E6%A0%A1%E5%9B%AD%E6%9C%8D%E5%8A%A1%E6%8C%87%E5%8D%97%2C%20flat%20illustration%20style%2C%20plenty%20of%20white%20space%2C%20premium%20editorial%20design%2C%20perfect%20for%20WeChat%20moments%20sharing&image_size=landscape_16_9">
+<meta property="og:image"       content="https://mmbiz.qpic.cn/mmbiz_jpg/0wic5YtUmqakcmRg7EySIxXEqF760VUpMOcxrR91ibjMa9pnibcTYwfRRbg9TwlGouNp7cTvCiciaWLxZwAfTyiaHWruqnFtNCyDMCXO8XMZZNk3s/640?wx_fmt=jpeg&from=appmsg&tp=webp&wxfrom=5&wx_lazy=1#imgIndex=1">
 <meta property="og:image:type"  content="image/png">
 <meta property="og:image:width"  content="1200">
 <meta property="og:image:height" content="675">
@@ -60,6 +68,26 @@
   --shadow-lg:0 20px 60px rgba(14,63,55,0.10);
 }
 html{scroll-behavior:smooth}
+/* iOS PWA 全屏 + 刘海/手势条安全区适配 */
+:root{
+  --sat: env(safe-area-inset-top);
+  --sar: env(safe-area-inset-right);
+  --sab: env(safe-area-inset-bottom);
+  --sal: env(safe-area-inset-left);
+}
+@supports (padding: max(0px)){
+  .sidebar{padding-top: max(28px, calc(28px + var(--sat))); padding-left: calc(var(--sal)); padding-bottom: calc(40px + var(--sab))}
+  .main{padding-left: max(56px, calc(56px + var(--sal))); padding-right: max(56px, calc(56px + var(--sar))); padding-bottom: max(120px, calc(120px + var(--sab)))}
+  .topbar-mobile{padding-top: max(12px, calc(12px + var(--sat))); padding-left: calc(18px + var(--sal)); padding-right: calc(18px + var(--sar))}
+  footer{padding-bottom: calc(30px + var(--sab))}
+  .sidebar-overlay{top: var(--sat); right: var(--sar); bottom: var(--sab); left: var(--sal)}
+}
+/* PWA standalone 模式下禁用双击缩放 */
+@media (display-mode: standalone), (display-mode: fullscreen), (display-mode: minimal-ui){
+  html,body{touch-action: manipulation}
+  body{user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent}
+  .main, .card{user-select: text; -webkit-user-select: text}
+}
 body{
   font-family:'Noto Sans SC',sans-serif;
   background:var(--bg);
@@ -635,10 +663,10 @@ footer .emo{font-size:20px;letter-spacing:8px;margin-bottom:10px}
 
   <div class="nav-group">
     <div class="nav-title">快速导航</div>
-    <a class="nav-item active" href="#sec-calendar"><span class="num">00</span><span class="ico">📆</span>日历总览</a>
-    <a class="nav-item" href="#sec-daydetail"><span class="num">00a</span><span class="ico">📍</span>当日开放详情</a>
-    <a class="nav-item" href="#sec-fulldays"><span class="num">00b</span><span class="ico">📋</span>完整每日列表</a>
-    <a class="nav-item" href="#sec-time"><span class="num">01</span><span class="ico">⏰</span>暑假时间</a>
+    <a class="nav-item active" href="#sec-daydetail"><span class="num">00</span><span class="ico">�</span>今日开放详情</a>
+    <a class="nav-item" href="#sec-calendar"><span class="num">01</span><span class="ico">�</span>日历总览</a>
+    <a class="nav-item" href="#sec-fulldays"><span class="num">02</span><span class="ico">📋</span>完整每日列表</a>
+    <a class="nav-item" href="#sec-time"><span class="num">03</span><span class="ico">⏰</span>暑假时间</a>
   </div>
 
   <div class="nav-group">
@@ -725,56 +753,12 @@ footer .emo{font-size:20px;letter-spacing:8px;margin-bottom:10px}
     </div>
   </section>
 
-  <!-- 00 日历 -->
-  <section id="sec-calendar">
-    <div class="sec-head">
-      <div class="sec-num">📆</div>
-      <div>
-        <div class="sec-title">暑假每日开放日历 <span class="sec-sub">Hover 查看当日开放场所</span></div>
-      </div>
-    </div>
-    <div class="card cal-wrap">
-      <div class="cal-head">
-        <div style="display:flex;align-items:center;gap:14px">
-          <div class="cal-month" id="calMonth">2026 年 8 月</div>
-          <div class="cal-nav">
-            <button class="cal-btn" onclick="changeCal(-1)">‹</button>
-            <button class="cal-btn" onclick="changeCal(0)">⏺</button>
-            <button class="cal-btn" onclick="changeCal(1)">›</button>
-          </div>
-        </div>
-        <div class="cal-legend">
-          <span class="legend-dot"><span class="sw duty"></span>值班日</span>
-          <span class="legend-dot"><span class="sw today"></span>今天</span>
-          <span class="legend-dot"><span class="sw wk"></span>周末</span>
-          <span class="legend-dot">
-            <span class="legend-mini"><i class="a">🍽</i></span>食堂
-            <span class="legend-mini"><i class="b">📚</i></span>图书馆
-            <span class="legend-mini"><i class="c">🏫</i></span>自习
-            <span class="legend-mini"><i class="d">🛒</i></span>便利
-          </span>
-        </div>
-      </div>
-      <div class="cal-grid-wrap">
-        <div class="cal-days">
-          <div class="we">日</div><div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div class="we">六</div>
-        </div>
-        <div class="cal-body" id="calBody"></div>
-      </div>
-      <div class="tip" style="margin:0 30px 8px">
-        <strong>使用方式：</strong>
-        每个格子底部 <b>A/B/C/D</b> 四个小方块代表「食堂 / 图书馆 / 自习 / 便利」四类服务今日是否均有开放。
-        将鼠标悬停在日期上，会弹出当日具体开放的场所清单；<b></b>点击日期即可跳转到下方「当日开放详情」并切换到所选日期</b>。
-      </div>
-    </div>
-  </section>
-
-  <!-- 00a 当日开放详情 -->
+  <!-- 00 今日开放详情 -->
   <section id="sec-daydetail">
     <div class="sec-head">
-      <div class="sec-num">📍</div>
+      <div class="sec-num">�</div>
       <div>
-        <div class="sec-title">当日开放详情 <span class="sec-sub">点击日历上方日期切换，默认显示今日</span></div>
+        <div class="sec-title">今日开放详情 <span class="sec-sub">点击下方日历日期切换，默认显示今日</span></div>
         <div class="sec-desc">按分类查看所选日期开放的食堂、图书馆、自习室、便利店等详细场所信息。</div>
       </div>
     </div>
@@ -813,7 +797,51 @@ footer .emo{font-size:20px;letter-spacing:8px;margin-bottom:10px}
     </div>
   </section>
 
-  <!-- 01 时间 -->
+  <!-- 01 日历 -->
+  <section id="sec-calendar">
+    <div class="sec-head">
+      <div class="sec-num">�</div>
+      <div>
+        <div class="sec-title">暑假每日开放日历 <span class="sec-sub">Hover 查看当日开放场所</span></div>
+      </div>
+    </div>
+    <div class="card cal-wrap">
+      <div class="cal-head">
+        <div style="display:flex;align-items:center;gap:14px">
+          <div class="cal-month" id="calMonth">2026 年 8 月</div>
+          <div class="cal-nav">
+            <button class="cal-btn" onclick="changeCal(-1)">‹</button>
+            <button class="cal-btn" onclick="changeCal(0)">⏺</button>
+            <button class="cal-btn" onclick="changeCal(1)">›</button>
+          </div>
+        </div>
+        <div class="cal-legend">
+          <span class="legend-dot"><span class="sw duty"></span>值班日</span>
+          <span class="legend-dot"><span class="sw today"></span>今天</span>
+          <span class="legend-dot"><span class="sw wk"></span>周末</span>
+          <span class="legend-dot">
+            <span class="legend-mini"><i class="a">🍽</i></span>食堂
+            <span class="legend-mini"><i class="b">📚</i></span>图书馆
+            <span class="legend-mini"><i class="c">🏫</i></span>自习
+            <span class="legend-mini"><i class="d">🛒</i></span>便利
+          </span>
+        </div>
+      </div>
+      <div class="cal-grid-wrap">
+        <div class="cal-days">
+          <div class="we">日</div><div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div class="we">六</div>
+        </div>
+        <div class="cal-body" id="calBody"></div>
+      </div>
+      <div class="tip" style="margin:0 30px 8px">
+        <strong>使用方式：</strong>
+        每个格子底部 <b>A/B/C/D</b> 四个小方块代表「食堂 / 图书馆 / 自习 / 便利」四类服务今日是否均有开放。
+        将鼠标悬停在日期上，会弹出当日具体开放的场所清单；<b>点击日期即可跳转到页面最顶部的「今日开放详情」切换到所选日期</b>。
+      </div>
+    </div>
+  </section>
+
+  <!-- 02 时间 -->
   <section id="sec-time">
     <div class="sec-head"><div class="sec-num">01</div><div class="sec-title">暑假时间安排 <span class="sec-sub">各年级报到 / 注册时间</span></div></div>
     <div class="grid-2">
@@ -2256,6 +2284,46 @@ setInterval(()=>{
     renderFullDays();
   }
 }, 60*1000);
+
+/* ========= Service Worker 注册（PWA 离线 + 安装） ========= */
+(function(){
+  if (!('serviceWorker' in navigator)) return;
+  // 仅 HTTP/HTTPS 协议下，或 localhost 下注册
+  const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.protocol === 'file:';
+  if (!/^https?:/i.test(location.protocol) && !isLocal) return;
+  window.addEventListener('load', () => {
+    const swUrl = (location.pathname.endsWith('.html') || location.pathname.endsWith('/'))
+      ? './sw.js'
+      : 'sw.js';
+    navigator.serviceWorker.register(swUrl, { scope: './' })
+      .then((reg) => {
+        // 有新版本自动升级
+        if (reg.waiting) reg.waiting.postMessage('SKIP_WAITING');
+        reg.addEventListener('updatefound', () => {
+          const nw = reg.installing;
+          if (!nw) return;
+          nw.addEventListener('statechange', () => {
+            if (nw.state === 'installed' && navigator.serviceWorker.controller) {
+              try { nw.postMessage('SKIP_WAITING'); } catch(e) {}
+            }
+          });
+        });
+        // 每 1h 尝试更新一次 SW
+        setInterval(() => reg.update().catch(()=>{}), 60*60*1000);
+      })
+      .catch((e) => {
+        // Service Worker 注册失败不影响页面正常使用
+        if (console && console.warn) console.warn('[PWA] Service Worker 注册失败，已降级为普通网页：', e);
+      });
+  });
+  // 新 SW 激活后刷新页面生效
+  let refreshing = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (refreshing) return;
+    refreshing = true;
+    location.reload();
+  });
+})();
 </script>
 </body>
 </html>

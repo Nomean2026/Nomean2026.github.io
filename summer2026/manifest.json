@@ -1,0 +1,58 @@
+{
+  "name": "交大2026暑假·完整校园服务指南",
+  "short_name": "交大暑假服务",
+  "description": "上海交通大学2026暑假每日开放查询：食堂/图书馆/自习/便利店/交通/医疗/值班，42天逐天日历",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["standalone", "fullscreen", "minimal-ui"],
+  "orientation": "portrait-primary",
+  "background_color": "#f6fbfa",
+  "theme_color": "#1a7a6d",
+  "lang": "zh-CN",
+  "dir": "ltr",
+  "categories": ["education", "productivity", "lifestyle"],
+  "shortcuts": [
+    {
+      "name": "今日开放",
+      "short_name": "今日",
+      "description": "查看今日所有开放场所",
+      "url": "./#sec-daydetail",
+      "icons": [{ "src": "./icon-192.svg", "sizes": "192x192", "type": "image/svg+xml" }]
+    },
+    {
+      "name": "日历总览",
+      "short_name": "日历",
+      "description": "暑假42天开放日历",
+      "url": "./#sec-calendar",
+      "icons": [{ "src": "./icon-192.svg", "sizes": "192x192", "type": "image/svg+xml" }]
+    },
+    {
+      "name": "完整每日列表",
+      "short_name": "完整列表",
+      "description": "查看42天逐天开放信息",
+      "url": "./#sec-fulldays",
+      "icons": [{ "src": "./icon-192.svg", "sizes": "192x192", "type": "image/svg+xml" }]
+    }
+  ],
+  "icons": [
+    {
+      "src": "./icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "./icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "./icon-maskable.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}

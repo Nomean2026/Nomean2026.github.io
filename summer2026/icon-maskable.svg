@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!--
+    Maskable Icon (512x512)
+    Android 自适应图标：安全圆(≈ 中心 80% 直径)内必须包含所有关键视觉
+  -->
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1a7a6d"/>
+      <stop offset="100%" stop-color="#16a34a"/>
+    </linearGradient>
+    <linearGradient id="ring" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fde7c9"/>
+      <stop offset="100%" stop-color="#d97706"/>
+    </linearGradient>
+  </defs>
+  <!-- 全填充背景（不透明，mask 裁剪后边缘不透明） -->
+  <rect x="0" y="0" width="512" height="512" fill="url(#bg)"/>
+  <!-- 背景光斑（缩小到中心区域） -->
+  <circle cx="376" cy="132" r="120" fill="#ffffff" fill-opacity="0.08"/>
+  <circle cx="118" cy="400" r="100" fill="#fde7c9" fill-opacity="0.12"/>
+  <!-- 中心缩放 0.8，内容居中在 205px 半径安全圆内 -->
+  <g transform="translate(256 256) scale(0.8) translate(-256 -256)">
+    <circle cx="256" cy="256" r="150" fill="none" stroke="url(#ring)" stroke-width="10" stroke-opacity="0.7"/>
+    <rect x="118" y="136" width="276" height="276" rx="54" ry="54" fill="#ffffff" fill-opacity="0.98"/>
+    <g transform="translate(256 224)">
+      <g stroke="#d97706" stroke-width="8" stroke-linecap="round" opacity="0.9">
+        <line x1="0" y1="-96" x2="0" y2="-120"/>
+        <line x1="0" y1="96" x2="0" y2="120"/>
+        <line x1="-96" y1="0" x2="-120" y2="0"/>
+        <line x1="96" y1="0" x2="120" y2="0"/>
+        <line x1="-68" y1="-68" x2="-86" y2="-86"/>
+        <line x1="68" y1="-68" x2="86" y2="-86"/>
+        <line x1="-68" y1="68" x2="-86" y2="86"/>
+        <line x1="68" y1="68" x2="86" y2="86"/>
+      </g>
+      <circle cx="0" cy="0" r="62" fill="#fbbf24"/>
+      <circle cx="-18" cy="-14" r="9" fill="#fde7c9" fill-opacity="0.7"/>
+    </g>
+    <g font-family="Noto Serif SC, -apple-system, PingFang SC, Microsoft YaHei, serif" text-anchor="middle">
+      <text x="256" y="352" font-size="38" font-weight="900" fill="#0f2724" letter-spacing="4">交大·2026</text>
+      <text x="256" y="394" font-size="26" font-weight="700" fill="#1a7a6d" letter-spacing="6">暑 假 服 务</text>
+    </g>
+  </g>
+</svg>
