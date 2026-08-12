@@ -45,8 +45,6 @@
     .empty-state .emoji{font-size:48px;margin-bottom:16px}.empty-state p{font-size:15px}
     .skeleton{background:var(--skeleton-bg);border:1px solid var(--border);border-radius:var(--radius);height:140px;animation:shimmer 1.5s infinite}
     @keyframes shimmer{0%{opacity:.4}50%{opacity:.7}100%{opacity:.4}}
-    .error-banner{background:var(--err-bg);border:1px solid var(--err-border);border-radius:var(--radius);padding:16px 20px;color:var(--err-text);font-size:14px;margin-bottom:24px;display:none}
-    .error-banner.show{display:block}
     footer{text-align:center;color:var(--text-dim);font-size:13px;padding-top:40px;border-top:1px solid var(--border);margin-top:16px}
     footer a{color:var(--accent);text-decoration:none}footer a:hover{text-decoration:underline}
     .discovery-note{text-align:center;margin-top:-32px;margin-bottom:32px;font-size:13px;color:var(--text-dim)}
@@ -85,7 +83,6 @@
         <div class="stat-item"><div class="num" id="updatedCount">—</div><div class="label">更新</div></div>
       </div>
     </header>
-    <div class="error-banner" id="errorBanner">⚠️ <span id="errorMsg">加载失败</span> · <a href="javascript:void(0)" onclick="location.reload()" style="color:inherit;text-decoration:underline">重试</a></div>
     <div class="section-title">GitHub Pages</div>
     <div class="repo-grid" id="repoGrid"></div>
     <footer><a href="https://github.com/Nomean2026" target="_blank" rel="noopener">Nomean2026</a> · <span id="footerYear"></span></footer>
@@ -113,13 +110,13 @@
 
     // ─── DOM refs ─────────────────────────────────────────────
     const $ = id => document.getElementById(id);
-    const grid = $('repoGrid'), errB = $('errorBanner'), errMsg = $('errorMsg');
+    const grid = $('repoGrid');
     const repoStat = $('repoCount'), starStat = $('starCount'), updStat = $('updatedCount');
     $('footerYear').textContent = new Date().getFullYear();
 
     // ─── Config ────────────────────────────────────────────────
     // 默认数据源是 /pages.json（由 .github/workflows/github-actions-update-pages-json.yml
-    // 自动维护：扫描所有开启 Pages 的独立仓库 + 根目录含 project.json 的子文件夹）。
+    // 自动维护：扫描所有开启 Pages 的独立仓库 + 根目录含 index.html 的子文件夹）。
     // KNOWN_PAGES 只是离线兜底：当 /pages.json 获取失败时使用，
     // 内容应与 pages.json 保持同步。
     const KNOWN_PAGES = [
@@ -130,6 +127,8 @@
       { name: 'Nomean2026.github.io', description: '项目门户主页（本仓库）' },
       { name: 'test',               description: '日常测试与实验场' },
       { name: 'personal-thought-construction', description: '个人思考构建 — 思维笔记与成长记录' },
+      { name: 'summer2026',         description: '2026 夏日计划日历' },
+      { name: 'TwoWeekss',          description: '两周总结与反思' },
     ];
 
     const CACHE_KEY = 'nomean-pages-cache';
@@ -138,7 +137,7 @@
 
     // ─── Helpers ──────────────────────────────────────────────
     function getIcon(name, lang) {
-      const m = { minimindTutorials:'🧠', RLHF:'🤖', test:'🧪', 'personal-thought-construction':'📝', 'Js-Ts-Onehour':'⚡', myheart:'❤️', 'Nomean2026.github.io':'🏠' };
+      const m = { minimindTutorials:'🧠', RLHF:'🤖', test:'🧪', 'personal-thought-construction':'📝', 'Js-Ts-Onehour':'⚡', myheart:'❤️', 'Nomean2026.github.io':'🏠', summer2026:'📅', TwoWeekss:'📓' };
       if (m[name]) return m[name];
       const lm = { Python:'🐍', JavaScript:'🟨', TypeScript:'🔷', HTML:'🌐', CSS:'🎨', Rust:'🦀', Go:'🐹', Java:'☕', Shell:'🐚' };
       return lm[lang] || '📦';
@@ -160,7 +159,7 @@
         return fa !== fb ? fa - fb : (b.stargazers_count || 0) - (a.stargazers_count || 0);
       });
       grid.innerHTML = sorted.map(r => {
-        const url = `https://${USERNAME.toLowerCase()}.github.io/${r.name}/`;
+        const url = r.pages || `https://${USERNAME.toLowerCase()}.github.io/${r.name}/`;
         const desc = r.description || 'No description';
         const icon = getIcon(r.name, r.language);
         const badge = getBadge(r);
@@ -175,7 +174,6 @@
     }
 
     function showSkeletons(n) { grid.innerHTML = Array.from({ length: n || 4 }, () => '<div class="skeleton"></div>').join(''); }
-    function showError(msg) { errMsg.textContent = msg; errB.classList.add('show'); }
     function addNote(html) { const e = document.querySelector('.discovery-note'); if (e) e.remove(); const d = document.createElement('div'); d.className = 'discovery-note'; d.innerHTML = html; document.querySelector('.section-title').after(d); }
 
     // ─── Fetch all repos ──────────────────────────────────────
@@ -206,7 +204,7 @@
     // pages.json 由 GitHub Actions 自动维护（见 .github/workflows/
     // github-actions-update-pages-json.yml），包含两类项目：
     //   1. source:"repo"      开启 Pages 的独立仓库（含 stars/语言/更新时间）
-    //   2. source:"subfolder" 本仓库根目录内含 project.json 的子文件夹
+    //   2. source:"subfolder" 本仓库根目录内含 index.html 的子文件夹
     // 前端以它为默认数据源；获取失败时依次回退到缓存、KNOWN_PAGES。
     async function loadPagesJson() {
       try {
@@ -232,53 +230,41 @@
       const cached = loadCache();
       const fallback = KNOWN_PAGES;
 
+      // 富信息（stars/语言/更新时间）尽力获取；失败不阻塞 pages.json
+      let repoMap = {};
       try {
         const allRepos = await fetchRepos();
-        const repoMap = {};
         allRepos.forEach(r => { repoMap[r.name] = r; });
-
-        // 默认数据源：/pages.json（GitHub Actions 自动维护）
-        const pagesJson = await loadPagesJson();
-        let pages;
-
-        if (pagesJson && pagesJson.length > 0) {
-          // 信任 pages.json：subfolder 项目不是独立仓库，无需按 API 列表过滤
-          pages = merge(pagesJson, repoMap);
-          saveCache(pages);
-          addNote('🔄 <code>pages.json</code> 自动维护 · 新增 Pages 仓库会自动出现');
-        } else if (cached && cached.repos && cached.repos.length > 0) {
-          pages = merge(cached.repos, repoMap);
-          addNote('💾 使用缓存列表 · <a href="javascript:location.reload()">刷新重试</a>');
-        } else {
-          pages = merge(fallback, repoMap);
-          addNote('💡 <code>pages.json</code> 未就绪，使用内置列表兜底');
-        }
-
-        // Stats
-        repoStat.textContent = pages.length.toString();
-        let stars = 0;
-        pages.forEach(r => { stars += r.stargazers_count || 0; });
-        starStat.textContent = stars;
-        const recent = pages.filter(r => r.updated_at).sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
-        updStat.textContent = recent.length ? new Date(recent[0].updated_at).toLocaleDateString('zh-CN', { month:'short', day:'numeric' }) : '—';
-
-        render(pages);
-
       } catch (err) {
-        console.warn(err);
-        showError(err.message || '无法连接 GitHub API');
-        let repos;
-        if (cached && cached.repos && cached.repos.length > 0) {
-          repos = cached.repos;
-          showError('使用缓存列表（上次更新: ' + new Date(cached.timestamp).toLocaleDateString('zh-CN') + '）');
-        } else {
-          repos = fallback;
-        }
-        render(repos);
-        repoStat.textContent = repos.length.toString();
-        starStat.textContent = '—';
-        updStat.textContent = '—';
+        console.warn('GitHub API 暂不可用，降级使用 pages.json 自带信息：', err.message || err);
       }
+
+      // 默认数据源：/pages.json（GitHub Actions 自动维护）
+      const pagesJson = await loadPagesJson();
+      let pages;
+
+      if (pagesJson && pagesJson.length > 0) {
+        // 信任 pages.json：subfolder 项目不是独立仓库，无需按 API 列表过滤
+        pages = merge(pagesJson, repoMap);
+        saveCache(pages);
+        addNote('🔄 <code>pages.json</code> 自动维护 · 新增 Pages 仓库会自动出现');
+      } else if (cached && cached.repos && cached.repos.length > 0) {
+        pages = merge(cached.repos, repoMap);
+        addNote('💾 使用缓存列表 · <a href="javascript:location.reload()">刷新重试</a>');
+      } else {
+        pages = merge(fallback, repoMap);
+        addNote('💡 <code>pages.json</code> 未就绪，使用内置列表兜底');
+      }
+
+      // Stats
+      repoStat.textContent = pages.length.toString();
+      let stars = 0;
+      pages.forEach(r => { stars += r.stargazers_count || 0; });
+      starStat.textContent = stars;
+      const recent = pages.filter(r => r.updated_at).sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
+      updStat.textContent = recent.length ? new Date(recent[0].updated_at).toLocaleDateString('zh-CN', { month:'short', day:'numeric' }) : '—';
+
+      render(pages);
     }
 
     (function() { const p = new URLSearchParams(location.search), t = p.get('token'); if (t) window.__GITHUB_TOKEN = t; })();

@@ -25,15 +25,14 @@
 
 ## 配置
 
-编辑 `index.html` 中的 `KNOWN_PAGES_REPOS` 列表，添加或移除你的 Pages 项目：
+门户数据由 GitHub Actions 自动维护（见 `.github/workflows/github-actions-update-pages-json.yml`）：
+每次 push（除 `pages.json` 外）立即扫描、每天 02:17 UTC 兜底，把两类项目写入根目录 `pages.json`：
 
-```js
-const KNOWN_PAGES_REPOS = [
-  { name: 'minimindTutorials', desc: '...' },
-  { name: 'RLHF',               desc: '...' },
-  // ...
-];
-```
+1. **独立仓库** — 名下开启 Pages 的所有仓库（含 stars / 语言 / 更新时间）
+2. **子文件夹** — 本仓库根目录下含 `index.html` 的文件夹
+
+`index.html` 前端以 `/pages.json` 为默认数据源；获取失败时依次回退到本地缓存和内置
+`KNOWN_PAGES` 列表（该列表仅为离线兜底，内容应与 `pages.json` 保持同步）。
 
 ## License
 
