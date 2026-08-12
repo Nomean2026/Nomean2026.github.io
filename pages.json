@@ -15,7 +15,7 @@
     "description": "",
     "language": "HTML",
     "stargazers_count": 0,
-    "updated_at": "2026-08-12T13:54:19Z",
+    "updated_at": "2026-08-12T14:15:55Z",
     "repo": "https://github.com/Nomean2026/Nomean2026.github.io",
     "pages": "https://nomean2026.github.io/Nomean2026.github.io/",
     "project_json": "https://nomean2026.github.io/Nomean2026.github.io/project.json",
@@ -26,11 +26,22 @@
     "description": "Deployed from C:\\Users\\ll\\Desktop\\00_每日总结\\RLHF",
     "language": "HTML",
     "stargazers_count": 0,
-    "updated_at": "2026-07-19T13:22:58Z",
+    "updated_at": "2026-08-12T14:21:48Z",
     "repo": "https://github.com/Nomean2026/RLHF",
     "pages": "https://nomean2026.github.io/RLHF/",
     "project_json": "https://nomean2026.github.io/RLHF/project.json",
     "source": "repo"
+  },
+  {
+    "name": "TwoWeekss",
+    "description": "",
+    "language": "",
+    "stargazers_count": 0,
+    "updated_at": "",
+    "repo": "https://github.com/Nomean2026/Nomean2026.github.io/tree/main/TwoWeekss",
+    "pages": "https://nomean2026.github.io/TwoWeekss/",
+    "project_json": "",
+    "source": "subfolder"
   },
   {
     "name": "minimindTutorials",
@@ -55,6 +66,17 @@
     "source": "repo"
   },
   {
+    "name": "pages_scripts",
+    "description": "",
+    "language": "",
+    "stargazers_count": 0,
+    "updated_at": "",
+    "repo": "https://github.com/Nomean2026/Nomean2026.github.io/tree/main/pages_scripts",
+    "pages": "https://nomean2026.github.io/pages_scripts/",
+    "project_json": "",
+    "source": "subfolder"
+  },
+  {
     "name": "personal-thought-construction",
     "description": "",
     "language": "HTML",
@@ -64,6 +86,17 @@
     "pages": "https://nomean2026.github.io/personal-thought-construction/",
     "project_json": "https://nomean2026.github.io/personal-thought-construction/project.json",
     "source": "repo"
+  },
+  {
+    "name": "summer2026",
+    "description": "",
+    "language": "",
+    "stargazers_count": 0,
+    "updated_at": "",
+    "repo": "https://github.com/Nomean2026/Nomean2026.github.io/tree/main/summer2026",
+    "pages": "https://nomean2026.github.io/summer2026/",
+    "project_json": "",
+    "source": "subfolder"
   },
   {
     "name": "test",
