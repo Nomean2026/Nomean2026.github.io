@@ -4,10 +4,10 @@
 
 | 文件 | 用途 | 放在哪 |
 |------|------|--------|
-| `deploy_all.ps1` | 每个项目的部署脚本（生成 `project.json` + 更新主页 `.pages.json` + 推送） | 复制到**每个项目文件夹**，右键"使用 PowerShell 运行" |
+| `deploy_all.ps1` | 每个项目的部署脚本（生成 `project.json` + 更新主页 `pages.json` + 推送） | 复制到**每个项目文件夹**，右键"使用 PowerShell 运行" |
 | `index.html` | 主页门户（显示所有子项目的 URL：独立 Pages 仓库 + 主项目子文件夹） | 主页仓库 `Nomean2026.github.io` 的根目录 |
 | `index_project.html` | **单项目入口页**：扫描自己所在库的文件，渲染层级目录 | 复制到**每个项目文件夹**根目录（可重命名为 `index.html` 作为该项目的入口页） |
-| `github-actions-update-pages-json.yml` | 每天自动重建主页 `.pages.json`（兜底） | 主页仓库 `Nomean2026.github.io` 的 `.github/workflows/` |
+| `github-actions-update-pages-json.yml` | 每天自动重建主页 `pages.json`（兜底） | 主页仓库 `Nomean2026.github.io` 的 `.github/workflows/` |
 
 ---
 
@@ -20,8 +20,8 @@
    - 忽略部署时本来就会排除的项（`.git`、`node_modules`、`dist`、`*.log` 等，与上传规则一致）
    - 生成的 `project.json` 随项目一起推送
 
-2. **更新主页 `.pages.json`**：推送成功后，通过 `gh api` 直接修改
-   `Nomean2026.github.io` 仓库根目录的 `.pages.json`，为当前项目写入（或合并更新）条目，
+2. **更新主页 `pages.json`**：推送成功后，通过 `gh api` 直接修改
+   `Nomean2026.github.io` 仓库根目录的 `pages.json`，为当前项目写入（或合并更新）条目，
    在原有格式上新增**项目位置信息**：
 
 ```json
@@ -71,7 +71,7 @@
    （最完整：含目录/文件/大小/生成时间，且不受 GitHub API 限速影响）
 2. GitHub API —— `git/trees/{branch}?recursive=1` 递归文件树（子文件夹模式自动按项目名过滤）
 
-## 3. GitHub Actions — 每天兜底更新 .pages.json
+## 3. GitHub Actions — 每天兜底更新 pages.json
 
 **回答你的疑问：放在 `username.github.io` 的 Action，其他仓库的 push 会不会触发它？**
 → **不会。** GitHub Actions 只响应它所在仓库的事件。其他仓库更新时，
@@ -84,7 +84,7 @@
 它做的事：
 1. 调 GitHub API 列出你名下所有非 fork 仓库，逐个探测是否开启 Pages（`/repos/{user}/{repo}/pages` 返回 200 即开启），写入条目
 2. 扫描主页仓库里**根目录含 `project.json` 的文件夹**，识别子文件夹模式的项目
-3. 合并去重、按名字排序，写回 `.pages.json` 并自动提交推送
+3. 合并去重、按名字排序，写回 `pages.json` 并自动提交推送
 
 **部署步骤**：
 1. 把 `github-actions-update-pages-json.yml` 复制到 `Nomean2026.github.io` 仓库的
@@ -100,7 +100,7 @@
 你改完项目 → 运行 deploy_all.ps1
    ├─ 扫描文件结构 → project.json（随项目推送）
    ├─ git 提交推送项目
-   └─ gh api 更新主页 .pages.json（含位置信息）→ 主页立即导航
-每天凌晨 → GitHub Actions 重建 .pages.json（兜底：处理没跑脚本的更新/新仓库）
-主页访问 → index.html 读 .pages.json → 卡片列表 → 点卡片读 project.json 渲染文件树
+   └─ gh api 更新主页 pages.json（含位置信息）→ 主页立即导航
+每天凌晨 → GitHub Actions 重建 pages.json（兜底：处理没跑脚本的更新/新仓库）
+主页访问 → index.html 读 pages.json → 卡片列表 → 点卡片读 project.json 渲染文件树
 ```

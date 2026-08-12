@@ -118,12 +118,16 @@
     $('footerYear').textContent = new Date().getFullYear();
 
     // ─── Config ────────────────────────────────────────────────
-    // KNOWN_PAGES: 你手动维护的 Pages 仓库列表。
-    // 新增 Pages 仓库后请在这里添加一条记录。
-    // Auto-discovery（检测下面）会和 API 配合，在刷新时自动发现新仓库。
+    // 默认数据源是 /pages.json（由 .github/workflows/github-actions-update-pages-json.yml
+    // 自动维护：扫描所有开启 Pages 的独立仓库 + 根目录含 project.json 的子文件夹）。
+    // KNOWN_PAGES 只是离线兜底：当 /pages.json 获取失败时使用，
+    // 内容应与 pages.json 保持同步。
     const KNOWN_PAGES = [
       { name: 'minimindTutorials', description: 'MiniMind 大模型训练教程 — 从零搭建你的第一个 Transformer 模型' },
       { name: 'RLHF',               description: 'RLHF 从理论到实践 — 强化学习与人类反馈对齐' },
+      { name: 'myheart',            description: '心率数据可视化' },
+      { name: 'Js-Ts-Onehour',      description: 'JS/TS 一小时入门' },
+      { name: 'Nomean2026.github.io', description: '项目门户主页（本仓库）' },
       { name: 'test',               description: '日常测试与实验场' },
       { name: 'personal-thought-construction', description: '个人思考构建 — 思维笔记与成长记录' },
     ];
@@ -134,7 +138,7 @@
 
     // ─── Helpers ──────────────────────────────────────────────
     function getIcon(name, lang) {
-      const m = { minimindTutorials:'🧠', RLHF:'🤖', test:'🧪', 'personal-thought-construction':'📝' };
+      const m = { minimindTutorials:'🧠', RLHF:'🤖', test:'🧪', 'personal-thought-construction':'📝', 'Js-Ts-Onehour':'⚡', myheart:'❤️', 'Nomean2026.github.io':'🏠' };
       if (m[name]) return m[name];
       const lm = { Python:'🐍', JavaScript:'🟨', TypeScript:'🔷', HTML:'🌐', CSS:'🎨', Rust:'🦀', Go:'🐹', Java:'☕', Shell:'🐚' };
       return lm[lang] || '📦';
@@ -198,85 +202,21 @@
       return all;
     }
 
-    // ─── Detect Pages repos ────────────────────────────────────
-    // 四层检测策略（层叠互补，每层都不删除）：
-    //
-    // 第 1 层：/.pages.json — GitHub Actions 自动生成，最完整
-    // 第 2 层：GitHub 仓库页面探测 — 直接访问 github.com/{user}/{repo}
-    //   GitHub.com 设置了 Access-Control-Allow-Origin: *，允许跨域
-    //   在 HTML 中搜索 github.io 链接即可判断是否开启了 Pages
-    //   实时、零 API 成本、精确区分
-    // 第 3 层：KNOWN_PAGES 手动维护列表 — 永不失效的兜底
-    //
-    // 所有层的数据都会 merge 上 live repo API 数据（stars, language, updated_at）
-
-    async function detectPages(allRepos) {
-      const detected = [];
-      const alreadyFound = new Set();
-
-      // ── 层 1：/.pages.json（GitHub Actions 自动生成）──
+    // ─── 数据源：/pages.json ──────────────────────────────────
+    // pages.json 由 GitHub Actions 自动维护（见 .github/workflows/
+    // github-actions-update-pages-json.yml），包含两类项目：
+    //   1. source:"repo"      开启 Pages 的独立仓库（含 stars/语言/更新时间）
+    //   2. source:"subfolder" 本仓库根目录内含 project.json 的子文件夹
+    // 前端以它为默认数据源；获取失败时依次回退到缓存、KNOWN_PAGES。
+    async function loadPagesJson() {
       try {
-        const res = await fetch('/.pages.json', { signal: AbortSignal.timeout(4000) });
-        if (res.ok) {
-          const data = await res.json();
-          if (Array.isArray(data)) {
-            data.forEach(r => { detected.push(r); alreadyFound.add(r.name); });
-          }
-        }
-      } catch {}
-
-      // ── 层 2：GitHub 仓库页面探测 ──
-      // fetch github.com/{user}/{repo}，GitHub.com 允许跨域读取
-      // 在返回的 HTML 中查找 github.io 链接（右侧栏 Pages 区块）
-      // 如果有 → 仓库开启了 Pages
-      // 如果没有 → 没开 Pages
-
-      async function probeViaGitHub(repoName) {
-        try {
-          const res = await fetch(`https://github.com/${USERNAME}/${repoName}`, {
-            signal: AbortSignal.timeout(8000),
-            headers: { 'Accept': 'text/html' }
-          });
-          if (!res.ok) return false;
-          const html = await res.text();
-          // 检查是否包含 github.io 链接（右侧栏 Pages 区块的特征）
-          const pagesUrl = `${USERNAME.toLowerCase()}.github.io/${repoName}`;
-          return html.includes(pagesUrl);
-        } catch {
-          return false;
-        }
+        const res = await fetch('/pages.json', { signal: AbortSignal.timeout(4000) });
+        if (!res.ok) return null;
+        const data = await res.json();
+        return Array.isArray(data) ? data : null;
+      } catch {
+        return null;
       }
-
-      // 需要探测的仓库：API 列表 + KNOWN_PAGES 中未发现的
-      const candidates = allRepos.filter(r => !r.fork && !alreadyFound.has(r.name));
-      const probeNames = [...new Set([
-        ...KNOWN_PAGES.map(k => k.name).filter(n => !alreadyFound.has(n)),
-        ...candidates.map(r => r.name)
-      ])];
-
-      // 并发 3 个探测（每个要下载完整 HTML，慢一些）
-      const CON = 3;
-      for (let i = 0; i < probeNames.length; i += CON) {
-        const batch = probeNames.slice(i, i + CON);
-        const results = await Promise.allSettled(
-          batch.map(async name => ({ name, hasPages: await probeViaGitHub(name) }))
-        );
-        for (const r of results) {
-          if (r.status === 'fulfilled' && r.value.hasPages && !alreadyFound.has(r.value.name)) {
-            const repo = allRepos.find(a => a.name === r.value.name);
-            detected.push({
-              name: r.value.name,
-              description: repo?.description || '',
-              language: repo?.language || '',
-              stargazers_count: repo?.stargazers_count || 0,
-              updated_at: repo?.updated_at || null,
-            });
-            alreadyFound.add(r.value.name);
-          }
-        }
-      }
-
-      return detected;
     }
 
     function merge(pagesList, repoMap) {
@@ -297,31 +237,21 @@
         const repoMap = {};
         allRepos.forEach(r => { repoMap[r.name] = r; });
 
-        // 尝试自动探测
-        const detected = await detectPages(allRepos);
+        // 默认数据源：/pages.json（GitHub Actions 自动维护）
+        const pagesJson = await loadPagesJson();
         let pages;
 
-        if (detected.length > 0) {
-          // 用 allRepos 过滤已删除的仓库
-          const validNames = new Set(allRepos.map(r => r.name));
-          const filtered = detected.filter(r => validNames.has(r.name));
-          pages = merge(filtered, repoMap);
-          if (filtered.length !== detected.length) {
-            // 有仓库被删了，更新缓存
-            saveCache(filtered);
-          } else {
-            saveCache(pages);
-          }
-          addNote('🔄 新增或删除 Pages 仓库后 <a href="javascript:location.reload()">刷新页面</a> 即可同步');
+        if (pagesJson && pagesJson.length > 0) {
+          // 信任 pages.json：subfolder 项目不是独立仓库，无需按 API 列表过滤
+          pages = merge(pagesJson, repoMap);
+          saveCache(pages);
+          addNote('🔄 <code>pages.json</code> 自动维护 · 新增 Pages 仓库会自动出现');
         } else if (cached && cached.repos && cached.repos.length > 0) {
-          // 缓存也过滤一下
-          const validNames = new Set(allRepos.map(r => r.name));
-          const filtered = cached.repos.filter(r => validNames.has(r.name));
-          pages = merge(filtered, repoMap);
+          pages = merge(cached.repos, repoMap);
           addNote('💾 使用缓存列表 · <a href="javascript:location.reload()">刷新重试</a>');
         } else {
           pages = merge(fallback, repoMap);
-          addNote('💡 新增 Pages 仓库？编辑 <code>index.html</code> 中的 <code>KNOWN_PAGES</code> 列表即可');
+          addNote('💡 <code>pages.json</code> 未就绪，使用内置列表兜底');
         }
 
         // Stats

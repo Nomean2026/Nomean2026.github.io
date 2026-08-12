@@ -1,5 +1,5 @@
 # ═══════════════════════════════════════════════════════════════
-#  Update .pages.json — 主页门户导航自动更新
+#  Update pages.json — 主页门户导航自动更新
 #
 #  ⚠️ 重要：请把本文件放到「主页仓库」的 .github/workflows/ 目录
 #     （即 Nomean2026.github.io 仓库），不是放到各项目仓库！
@@ -8,31 +8,31 @@
 #     → 不会。GitHub Actions 只会响应【它所在仓库】的事件，
 #       其他仓库的 push 不会触发这里的 workflow。
 #     所以本 Action 采用：
-#       • push：主页仓库每次有更新（排除 .pages.json）立即扫描一次
+#       • push：主页仓库每次有更新（排除 pages.json）立即扫描一次
 #       • schedule：每天 02:17 UTC（北京时间 10:17）自动兜底跑一次
 #       • workflow_dispatch：在 Actions 页面手动点 Run workflow 随时跑
 #
-#   ⚠️ 防死循环说明：push 触发必须排除 .pages.json，
-#      否则脚本自己提交 .pages.json 会再次触发 push → 无限循环。
+#   ⚠️ 防死循环说明：push 触发必须排除 pages.json，
+#      否则脚本自己提交 pages.json 会再次触发 push → 无限循环。
 #
-#  它做的事（两路检测，结果合并写入 .pages.json 并提交回主页仓库）：
+#  它做的事（两路检测，结果合并写入 pages.json 并提交回主页仓库）：
 #     1. 独立仓库模式：调用 GitHub API 列出你名下所有非 fork 仓库，
 #        逐个探测是否开启了 Pages，开了的写入条目（含 stars/语言/更新时间）
 #     2. 子文件夹模式：主页仓库中根目录含 project.json 的文件夹视为项目，
 #        自动写入条目（无需 API 探测）
 # ═══════════════════════════════════════════════════════════════
-name: Update .pages.json
+name: Update pages.json
 
 on:
   push:                     # 主页仓库有更新时立即扫描
-    paths-ignore:           # 排除脚本自己提交的 .pages.json，避免触发循环
-      - '.pages.json'
+    paths-ignore:           # 排除脚本自己提交的 pages.json，避免触发循环
+      - 'pages.json'
   schedule:
     - cron: '17 2 * * *'   # 每天 02:17 UTC（北京时间 10:17）
   workflow_dispatch: {}     # 支持手动触发
 
 permissions:
-  contents: write           # 允许把 .pages.json 提交回本仓库
+  contents: write           # 允许把 pages.json 提交回本仓库
 
 concurrency:
   group: update-pages-json
@@ -45,14 +45,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Generate .pages.json
+      - name: Generate pages.json
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
           USER="Nomean2026"            # ← 改成你的 GitHub 用户名
           HOME_REPO="${USER}.github.io"
-          OUT=".pages.json"
+          OUT="pages.json"
 
           echo "⏳ 扫描独立仓库模式（API 探测 Pages）..."
           entries="[]"
@@ -108,9 +108,9 @@ jobs:
           git config user.email "41898252+github-actions[bot]@users.noreply.github.com"
           git add "$OUT"
           if git diff --cached --quiet; then
-            echo "✅ .pages.json 无变化，跳过提交"
+            echo "✅ pages.json 无变化，跳过提交"
           else
-            git commit -m "chore: update .pages.json ($(date -u +%F))"
+            git commit -m "chore: update pages.json ($(date -u +%F))"
             git push
-            echo "✅ .pages.json 已更新并推送"
+            echo "✅ pages.json 已更新并推送"
           fi
