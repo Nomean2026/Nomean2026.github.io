@@ -1,0 +1,116 @@
+# ═══════════════════════════════════════════════════════════════
+#  Update .pages.json — 主页门户导航自动更新
+#
+#  ⚠️ 重要：请把本文件放到「主页仓库」的 .github/workflows/ 目录
+#     （即 Nomean2026.github.io 仓库），不是放到各项目仓库！
+#
+#  ❓ 其他仓库更新会触发本 Action 吗？
+#     → 不会。GitHub Actions 只会响应【它所在仓库】的事件，
+#       其他仓库的 push 不会触发这里的 workflow。
+#     所以本 Action 采用：
+#       • push：主页仓库每次有更新（排除 .pages.json）立即扫描一次
+#       • schedule：每天 02:17 UTC（北京时间 10:17）自动兜底跑一次
+#       • workflow_dispatch：在 Actions 页面手动点 Run workflow 随时跑
+#
+#   ⚠️ 防死循环说明：push 触发必须排除 .pages.json，
+#      否则脚本自己提交 .pages.json 会再次触发 push → 无限循环。
+#
+#  它做的事（两路检测，结果合并写入 .pages.json 并提交回主页仓库）：
+#     1. 独立仓库模式：调用 GitHub API 列出你名下所有非 fork 仓库，
+#        逐个探测是否开启了 Pages，开了的写入条目（含 stars/语言/更新时间）
+#     2. 子文件夹模式：主页仓库中根目录含 project.json 的文件夹视为项目，
+#        自动写入条目（无需 API 探测）
+# ═══════════════════════════════════════════════════════════════
+name: Update .pages.json
+
+on:
+  push:                     # 主页仓库有更新时立即扫描
+    paths-ignore:           # 排除脚本自己提交的 .pages.json，避免触发循环
+      - '.pages.json'
+  schedule:
+    - cron: '17 2 * * *'   # 每天 02:17 UTC（北京时间 10:17）
+  workflow_dispatch: {}     # 支持手动触发
+
+permissions:
+  contents: write           # 允许把 .pages.json 提交回本仓库
+
+concurrency:
+  group: update-pages-json
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Generate .pages.json
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          USER="Nomean2026"            # ← 改成你的 GitHub 用户名
+          HOME_REPO="${USER}.github.io"
+          OUT=".pages.json"
+
+          echo "⏳ 扫描独立仓库模式（API 探测 Pages）..."
+          entries="[]"
+          page=1
+          while :; do
+            repos="$(gh api "/users/${USER}/repos?per_page=100&page=${page}&sort=updated" \
+              --jq '.[] | select(.fork | not) | {name, description, language, stargazers_count, updated_at}' 2>/dev/null || true)"
+            [ -z "$repos" ] && break
+            while IFS= read -r repo; do
+              [ -z "$repo" ] && continue
+              name="$(jq -r '.name' <<<"$repo")"
+              # 探测该仓库是否开启 Pages（开启返回 200，未开启返回 404）
+              if gh api "/repos/${USER}/${name}/pages" >/dev/null 2>&1; then
+                entry="$(jq -n \
+                  --arg name "$name" \
+                  --arg desc "$(jq -r '.description // ""' <<<"$repo")" \
+                  --arg lang "$(jq -r '.language // ""' <<<"$repo")" \
+                  --arg stars "$(jq -r '.stargazers_count // 0' <<<"$repo")" \
+                  --arg updated "$(jq -r '.updated_at // ""' <<<"$repo")" \
+                  --arg repo_url "https://github.com/${USER}/${name}" \
+                  --arg pages "https://${USER,,}.github.io/${name}/" \
+                  '{name:$name, description:$desc, language:$lang, stargazers_count:($stars|tonumber), updated_at:$updated, repo:$repo_url, pages:$pages, project_json:($pages+"project.json"), source:"repo"}')"
+                entries="$(jq --argjson e "$entry" '. + [$e]' <<<"$entries")"
+                echo "  ✔ $name (Pages 已开启)"
+              fi
+            done <<<"$repos"
+            page=$((page + 1))
+            [ "$(jq length <<<"$repos")" -lt 100 ] && break
+          done
+
+          echo "⏳ 扫描子文件夹模式（主页仓库内含 project.json 的目录）..."
+          subs="[]"
+          for d in $(git ls-tree -d --name-only HEAD 2>/dev/null || true); do
+            if git cat-file -e "HEAD:${d}/project.json" 2>/dev/null; then
+              sub="$(jq -n \
+                --arg name "$d" \
+                --arg repo "https://github.com/${USER}/${HOME_REPO}/tree/main/${d}" \
+                --arg pages "https://${USER,,}.github.io/${d}/" \
+                '{name:$name, description:"", language:"", stargazers_count:0, updated_at:"", repo:$repo, pages:$pages, project_json:($pages+"project.json"), source:"subfolder"}')"
+              subs="$(jq --argjson e "$sub" '. + [$e]' <<<"$subs")"
+              echo "  ✔ $d/ (子文件夹项目)"
+            fi
+          done
+
+          # 合并去重：独立仓库条目在前（信息更全），按名字排序
+          merged="$(jq -s 'add | group_by(.name) | map(.[0]) | sort_by(.name)' <<<"$entries
+          $subs")"
+
+          printf '%s\n' "$merged" > "$OUT"
+          echo "📦 共 $(jq 'length' "$OUT") 个项目"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898252+github-actions[bot]@users.noreply.github.com"
+          git add "$OUT"
+          if git diff --cached --quiet; then
+            echo "✅ .pages.json 无变化，跳过提交"
+          else
+            git commit -m "chore: update .pages.json ($(date -u +%F))"
+            git push
+            echo "✅ .pages.json 已更新并推送"
+          fi

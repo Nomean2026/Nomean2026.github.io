@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nomean · 项目门户</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌀</text></svg>">
+  <style>
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    [data-theme="light"]{--bg:#f5f5f7;--surface:#fff;--surface-hover:#f0f0f2;--border:rgba(0,0,0,.08);--text:#1d1d1f;--text-dim:#86868b;--accent:#5b4cdb;--accent-subtle:rgba(91,76,219,.10);--accent-glow:rgba(91,76,219,.18);--cyan:#0096cc;--card-shadow:0 2px 12px rgba(0,0,0,.06);--card-shadow-hover:0 12px 40px rgba(0,0,0,.10);--grid-line:rgba(0,0,0,.04);--glow1:rgba(91,76,219,.08);--glow2:rgba(0,150,204,.07);--badge-bg:rgba(0,150,204,.10);--badge-text:#0096cc;--avatar-bg:linear-gradient(135deg,#5b4cdb,#0096cc);--heading-grad:linear-gradient(135deg,#1d1d1f 40%,#0096cc);--icon-bg:rgba(91,76,219,.12);--arrow-bg:rgba(0,0,0,.05);--skeleton-bg:#e8e8ed;--err-bg:rgba(255,59,48,.08);--err-border:rgba(255,59,48,.18);--err-text:#d63031;--toggle-bg:#e8e8ed;--toggle-dot:#fff;--radius:16px}
+    [data-theme="dark"]{--bg:#0a0a0f;--surface:rgba(255,255,255,.04);--surface-hover:rgba(255,255,255,.08);--border:rgba(255,255,255,.06);--text:#e8e8ed;--text-dim:#8888a0;--accent:#6c5ce7;--accent-subtle:rgba(108,92,231,.10);--accent-glow:rgba(108,92,231,.3);--cyan:#00d4ff;--card-shadow:none;--card-shadow-hover:0 12px 40px rgba(0,0,0,.3);--grid-line:rgba(255,255,255,.02);--glow1:rgba(108,92,231,.12);--glow2:rgba(0,212,255,.10);--badge-bg:rgba(0,212,255,.12);--badge-text:#00d4ff;--avatar-bg:linear-gradient(135deg,#6c5ce7,#00d4ff);--heading-grad:linear-gradient(135deg,#fff 40%,#00d4ff);--icon-bg:rgba(108,92,231,.15);--arrow-bg:rgba(255,255,255,.04);--skeleton-bg:rgba(255,255,255,.04);--err-bg:rgba(255,71,87,.1);--err-border:rgba(255,71,87,.2);--err-text:#ff6b7a;--toggle-bg:#333;--toggle-dot:#fff;--radius:16px}
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;transition:background .35s,color .35s}
+    .bg-grid{position:fixed;inset:0;pointer-events:none;z-index:0;background-image:linear-gradient(var(--grid-line) 1px,transparent 1px),linear-gradient(90deg,var(--grid-line) 1px,transparent 1px);background-size:60px 60px}
+    .bg-glow{position:fixed;inset:0;pointer-events:none;z-index:0}
+    .bg-glow::before{content:'';position:absolute;top:-20%;left:-10%;width:60%;height:60%;background:radial-gradient(ellipse,var(--glow1) 0%,transparent 70%)}
+    .bg-glow::after{content:'';position:absolute;bottom:-20%;right:-10%;width:60%;height:60%;background:radial-gradient(ellipse,var(--glow2) 0%,transparent 70%)}
+    .app{position:relative;z-index:1;max-width:960px;margin:0 auto;padding:48px 24px 80px}
+    .theme-toggle-wrap{display:flex;justify-content:flex-end;margin-bottom:8px}
+    .theme-toggle{position:relative;width:52px;height:28px;background:var(--toggle-bg);border-radius:14px;cursor:pointer;transition:background .3s;border:none;outline:none}
+    .theme-toggle .dot{position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:var(--toggle-dot);transition:transform .35s cubic-bezier(.4,0,.2,1),background .3s;box-shadow:0 1px 4px rgba(0,0,0,.15);display:flex;align-items:center;justify-content:center;font-size:12px}
+    [data-theme="dark"] .theme-toggle .dot{transform:translateX(24px)}
+    header{text-align:center;margin-bottom:56px;padding-top:16px}
+    .avatar{width:72px;height:72px;border-radius:50%;background:var(--avatar-bg);display:inline-flex;align-items:center;justify-content:center;font-size:32px;font-weight:700;color:#fff;margin-bottom:16px;box-shadow:0 0 40px var(--accent-glow)}
+    header h1{font-size:28px;font-weight:700;letter-spacing:-.3px;background:var(--heading-grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    header p{color:var(--text-dim);font-size:15px;margin-top:8px}
+    .stats{display:flex;justify-content:center;gap:32px;margin-top:24px;flex-wrap:wrap}
+    .stat-item{text-align:center}.stat-item .num{font-size:22px;font-weight:700;color:var(--text)}.stat-item .label{font-size:12px;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;margin-top:2px}
+    .section-title{font-size:15px;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:2px;margin-bottom:20px;display:flex;align-items:center;gap:12px}
+    .section-title::after{content:'';flex:1;height:1px;background:var(--border)}
+    .repo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin-bottom:48px}
+    .repo-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;transition:all .3s cubic-bezier(.4,0,.2,1);cursor:pointer;position:relative;overflow:hidden;box-shadow:var(--card-shadow)}
+    .repo-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,transparent 60%,var(--accent-subtle));opacity:0;transition:opacity .3s}
+    .repo-card:hover{background:var(--surface-hover);border-color:var(--accent-subtle);transform:translateY(-4px);box-shadow:var(--card-shadow-hover)}
+    .repo-card:hover::before{opacity:1}
+    .repo-card .card-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px}
+    .repo-card .repo-icon{width:36px;height:36px;border-radius:8px;background:var(--icon-bg);display:flex;align-items:center;justify-content:center;font-size:18px}
+    .repo-card .badge{font-size:11px;padding:2px 10px;border-radius:100px;background:var(--badge-bg);color:var(--badge-text);font-weight:500;letter-spacing:.3px}
+    .repo-card .repo-name{font-size:16px;font-weight:600;color:var(--text);margin-bottom:6px}
+    .repo-card .repo-desc{font-size:13px;color:var(--text-dim);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+    .repo-card .card-footer{display:flex;align-items:center;gap:16px;margin-top:14px;font-size:12px;color:var(--text-dim)}
+    .repo-card .card-footer span{display:flex;align-items:center;gap:4px}
+    .repo-card .arrow{position:absolute;bottom:16px;right:16px;width:28px;height:28px;border-radius:50%;background:var(--arrow-bg);display:flex;align-items:center;justify-content:center;transition:all .3s;font-size:14px;color:var(--text-dim)}
+    .repo-card:hover .arrow{background:var(--accent);color:#fff;transform:translateX(2px)}
+    .empty-state{text-align:center;padding:64px 24px;color:var(--text-dim)}
+    .empty-state .emoji{font-size:48px;margin-bottom:16px}.empty-state p{font-size:15px}
+    .skeleton{background:var(--skeleton-bg);border:1px solid var(--border);border-radius:var(--radius);height:140px;animation:shimmer 1.5s infinite}
+    @keyframes shimmer{0%{opacity:.4}50%{opacity:.7}100%{opacity:.4}}
+    .error-banner{background:var(--err-bg);border:1px solid var(--err-border);border-radius:var(--radius);padding:16px 20px;color:var(--err-text);font-size:14px;margin-bottom:24px;display:none}
+    .error-banner.show{display:block}
+    footer{text-align:center;color:var(--text-dim);font-size:13px;padding-top:40px;border-top:1px solid var(--border);margin-top:16px}
+    footer a{color:var(--accent);text-decoration:none}footer a:hover{text-decoration:underline}
+    .discovery-note{text-align:center;margin-top:-32px;margin-bottom:32px;font-size:13px;color:var(--text-dim)}
+    .discovery-note a{color:var(--accent);text-decoration:underline}
+    @media(max-width:640px){.app{padding:24px 16px 64px}header h1{font-size:24px}.stats{gap:20px}.repo-grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <div class="bg-grid"></div>
+  <div class="bg-glow"></div>
+  <div class="app">
+    <div class="theme-toggle-wrap">
+      <button class="theme-toggle" id="themeToggle" aria-label="切换主题">
+        <span class="dot" id="themeDot">☀️</span>
+      </button>
+    </div>
+    <header>
+      <div class="avatar">N</div>
+      <h1>Nomean · 项目门户</h1>
+      <p>从零搭建 · 持续进化 · 一切皆可习得</p>
+      <div style="margin-top: 12px">
+        <a href="https://github.com/Nomean2026" target="_blank" rel="noopener" style="
+          display: inline-flex; align-items: center; gap: 6px;
+          padding: 8px 18px; border-radius: 100px;
+          background: var(--accent-subtle); color: var(--accent);
+          text-decoration: none; font-size: 14px; font-weight: 500;
+          transition: all .2s;
+        " onmouseover="this.style.background='var(--accent)';this.style.color='#fff'" onmouseout="this.style.background='var(--accent-subtle)';this.style.color='var(--accent)'">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+          GitHub 主页
+        </a>
+      </div>
+      <div class="stats">
+        <div class="stat-item"><div class="num" id="repoCount">—</div><div class="label">项目</div></div>
+        <div class="stat-item"><div class="num" id="starCount">—</div><div class="label">Stars</div></div>
+        <div class="stat-item"><div class="num" id="updatedCount">—</div><div class="label">更新</div></div>
+      </div>
+    </header>
+    <div class="error-banner" id="errorBanner">⚠️ <span id="errorMsg">加载失败</span> · <a href="javascript:void(0)" onclick="location.reload()" style="color:inherit;text-decoration:underline">重试</a></div>
+    <div class="section-title">GitHub Pages</div>
+    <div class="repo-grid" id="repoGrid"></div>
+    <footer><a href="https://github.com/Nomean2026" target="_blank" rel="noopener">Nomean2026</a> · <span id="footerYear"></span></footer>
+  </div>
+
+  <script>
+    const USERNAME = 'Nomean2026';
+
+    // ─── Theme ────────────────────────────────────────────────
+    (function initTheme() {
+      const key = 'nomean-portal-theme';
+      const saved = localStorage.getItem(key);
+      const pref = saved || (window.matchMedia('(prefers-color-scheme:dark)').matches ? 'dark' : 'light');
+      document.documentElement.setAttribute('data-theme', pref);
+      const dot = document.getElementById('themeDot');
+      dot.textContent = pref === 'dark' ? '🌙' : '☀️';
+      document.getElementById('themeToggle').addEventListener('click', () => {
+        const cur = document.documentElement.getAttribute('data-theme');
+        const next = cur === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', next);
+        dot.textContent = next === 'dark' ? '🌙' : '☀️';
+        localStorage.setItem(key, next);
+      });
+    })();
+
+    // ─── DOM refs ─────────────────────────────────────────────
+    const $ = id => document.getElementById(id);
+    const grid = $('repoGrid'), errB = $('errorBanner'), errMsg = $('errorMsg');
+    const repoStat = $('repoCount'), starStat = $('starCount'), updStat = $('updatedCount');
+    $('footerYear').textContent = new Date().getFullYear();
+
+    // ─── Config ────────────────────────────────────────────────
+    // KNOWN_PAGES: 你手动维护的 Pages 仓库列表。
+    // 新增 Pages 仓库后请在这里添加一条记录。
+    // Auto-discovery（检测下面）会和 API 配合，在刷新时自动发现新仓库。
+    const KNOWN_PAGES = [
+      { name: 'minimindTutorials', description: 'MiniMind 大模型训练教程 — 从零搭建你的第一个 Transformer 模型' },
+      { name: 'RLHF',               description: 'RLHF 从理论到实践 — 强化学习与人类反馈对齐' },
+      { name: 'test',               description: '日常测试与实验场' },
+      { name: 'personal-thought-construction', description: '个人思考构建 — 思维笔记与成长记录' },
+    ];
+
+    const CACHE_KEY = 'nomean-pages-cache';
+    function loadCache() { try { const r = localStorage.getItem(CACHE_KEY); return r ? JSON.parse(r) : null; } catch { return null; } }
+    function saveCache(repos) { try { localStorage.setItem(CACHE_KEY, JSON.stringify({ repos, timestamp: Date.now() })); } catch {} }
+
+    // ─── Helpers ──────────────────────────────────────────────
+    function getIcon(name, lang) {
+      const m = { minimindTutorials:'🧠', RLHF:'🤖', test:'🧪', 'personal-thought-construction':'📝' };
+      if (m[name]) return m[name];
+      const lm = { Python:'🐍', JavaScript:'🟨', TypeScript:'🔷', HTML:'🌐', CSS:'🎨', Rust:'🦀', Go:'🐹', Java:'☕', Shell:'🐚' };
+      return lm[lang] || '📦';
+    }
+    function getBadge(r) {
+      if (r.name === 'minimindTutorials' || r.name === 'RLHF') return 'Featured';
+      if (r.stargazers_count > 10) return '⭐ Popular';
+      return '';
+    }
+
+    function render(repos) {
+      if (!repos || !repos.length) {
+        grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="emoji">🔭</div><p>暂无 GitHub Pages 项目</p><p style="font-size:13px;margin-top:8px">在仓库 Settings → Pages 中启用后，刷新本页即可发现</p></div>';
+        return;
+      }
+      const sorted = [...repos].sort((a, b) => {
+        const f = n => (n === 'minimindTutorials' || n === 'RLHF' ? 0 : 1);
+        const fa = f(a.name), fb = f(b.name);
+        return fa !== fb ? fa - fb : (b.stargazers_count || 0) - (a.stargazers_count || 0);
+      });
+      grid.innerHTML = sorted.map(r => {
+        const url = `https://${USERNAME.toLowerCase()}.github.io/${r.name}/`;
+        const desc = r.description || 'No description';
+        const icon = getIcon(r.name, r.language);
+        const badge = getBadge(r);
+        const updated = r.updated_at ? new Date(r.updated_at).toLocaleDateString('zh-CN', { month:'short', day:'numeric' }) : '';
+        return `<div class="repo-card" onclick="window.open('${url}','_blank')" title="打开 ${r.name}">
+          <div class="card-top"><div class="repo-icon">${icon}</div>${badge ? `<span class="badge">${badge}</span>` : ''}</div>
+          <div class="repo-name">${r.name}</div>
+          <div class="repo-desc">${desc}</div>
+          <div class="card-footer">${r.language ? `<span>🔵 ${r.language}</span>` : ''}<span>⭐ ${r.stargazers_count || 0}</span>${updated ? `<span>🕐 ${updated}</span>` : ''}</div>
+          <div class="arrow">→</div></div>`;
+      }).join('');
+    }
+
+    function showSkeletons(n) { grid.innerHTML = Array.from({ length: n || 4 }, () => '<div class="skeleton"></div>').join(''); }
+    function showError(msg) { errMsg.textContent = msg; errB.classList.add('show'); }
+    function addNote(html) { const e = document.querySelector('.discovery-note'); if (e) e.remove(); const d = document.createElement('div'); d.className = 'discovery-note'; d.innerHTML = html; document.querySelector('.section-title').after(d); }
+
+    // ─── Fetch all repos ──────────────────────────────────────
+    async function fetchRepos() {
+      const token = window.__GITHUB_TOKEN || '';
+      const headers = token ? { Authorization: `token ${token}` } : {};
+      let page = 1, all = [];
+      while (true) {
+        const res = await fetch(`https://api.github.com/users/${USERNAME}/repos?per_page=100&page=${page}&sort=updated`, { headers });
+        if (!res.ok) {
+          if (res.status === 403) {
+            const remain = res.headers.get('X-RateLimit-Remaining') || '0';
+            const reset = new Date(parseInt(res.headers.get('X-RateLimit-Reset') || '0') * 1000);
+            throw new Error(`API 限速（剩余 ${remain} 次，${reset.toLocaleTimeString()} 重置）`);
+          }
+          throw new Error(`GitHub API ${res.status}`);
+        }
+        const data = await res.json();
+        if (!data || !data.length) break;
+        all = all.concat(data);
+        if (data.length < 100) break;
+        page++;
+      }
+      return all;
+    }
+
+    // ─── Detect Pages repos ────────────────────────────────────
+    // 四层检测策略（层叠互补，每层都不删除）：
+    //
+    // 第 1 层：/.pages.json — GitHub Actions 自动生成，最完整
+    // 第 2 层：GitHub 仓库页面探测 — 直接访问 github.com/{user}/{repo}
+    //   GitHub.com 设置了 Access-Control-Allow-Origin: *，允许跨域
+    //   在 HTML 中搜索 github.io 链接即可判断是否开启了 Pages
+    //   实时、零 API 成本、精确区分
+    // 第 3 层：KNOWN_PAGES 手动维护列表 — 永不失效的兜底
+    //
+    // 所有层的数据都会 merge 上 live repo API 数据（stars, language, updated_at）
+
+    async function detectPages(allRepos) {
+      const detected = [];
+      const alreadyFound = new Set();
+
+      // ── 层 1：/.pages.json（GitHub Actions 自动生成）──
+      try {
+        const res = await fetch('/.pages.json', { signal: AbortSignal.timeout(4000) });
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data)) {
+            data.forEach(r => { detected.push(r); alreadyFound.add(r.name); });
+          }
+        }
+      } catch {}
+
+      // ── 层 2：GitHub 仓库页面探测 ──
+      // fetch github.com/{user}/{repo}，GitHub.com 允许跨域读取
+      // 在返回的 HTML 中查找 github.io 链接（右侧栏 Pages 区块）
+      // 如果有 → 仓库开启了 Pages
+      // 如果没有 → 没开 Pages
+
+      async function probeViaGitHub(repoName) {
+        try {
+          const res = await fetch(`https://github.com/${USERNAME}/${repoName}`, {
+            signal: AbortSignal.timeout(8000),
+            headers: { 'Accept': 'text/html' }
+          });
+          if (!res.ok) return false;
+          const html = await res.text();
+          // 检查是否包含 github.io 链接（右侧栏 Pages 区块的特征）
+          const pagesUrl = `${USERNAME.toLowerCase()}.github.io/${repoName}`;
+          return html.includes(pagesUrl);
+        } catch {
+          return false;
+        }
+      }
+
+      // 需要探测的仓库：API 列表 + KNOWN_PAGES 中未发现的
+      const candidates = allRepos.filter(r => !r.fork && !alreadyFound.has(r.name));
+      const probeNames = [...new Set([
+        ...KNOWN_PAGES.map(k => k.name).filter(n => !alreadyFound.has(n)),
+        ...candidates.map(r => r.name)
+      ])];
+
+      // 并发 3 个探测（每个要下载完整 HTML，慢一些）
+      const CON = 3;
+      for (let i = 0; i < probeNames.length; i += CON) {
+        const batch = probeNames.slice(i, i + CON);
+        const results = await Promise.allSettled(
+          batch.map(async name => ({ name, hasPages: await probeViaGitHub(name) }))
+        );
+        for (const r of results) {
+          if (r.status === 'fulfilled' && r.value.hasPages && !alreadyFound.has(r.value.name)) {
+            const repo = allRepos.find(a => a.name === r.value.name);
+            detected.push({
+              name: r.value.name,
+              description: repo?.description || '',
+              language: repo?.language || '',
+              stargazers_count: repo?.stargazers_count || 0,
+              updated_at: repo?.updated_at || null,
+            });
+            alreadyFound.add(r.value.name);
+          }
+        }
+      }
+
+      return detected;
+    }
+
+    function merge(pagesList, repoMap) {
+      return pagesList.map(p => {
+        const l = repoMap[p.name];
+        return l ? { ...p, description: l.description || p.description, stargazers_count: l.stargazers_count || 0, language: l.language || '', updated_at: l.updated_at } : p;
+      });
+    }
+
+    // ─── Main ──────────────────────────────────────────────────
+    async function main() {
+      showSkeletons(4);
+      const cached = loadCache();
+      const fallback = KNOWN_PAGES;
+
+      try {
+        const allRepos = await fetchRepos();
+        const repoMap = {};
+        allRepos.forEach(r => { repoMap[r.name] = r; });
+
+        // 尝试自动探测
+        const detected = await detectPages(allRepos);
+        let pages;
+
+        if (detected.length > 0) {
+          // 用 allRepos 过滤已删除的仓库
+          const validNames = new Set(allRepos.map(r => r.name));
+          const filtered = detected.filter(r => validNames.has(r.name));
+          pages = merge(filtered, repoMap);
+          if (filtered.length !== detected.length) {
+            // 有仓库被删了，更新缓存
+            saveCache(filtered);
+          } else {
+            saveCache(pages);
+          }
+          addNote('🔄 新增或删除 Pages 仓库后 <a href="javascript:location.reload()">刷新页面</a> 即可同步');
+        } else if (cached && cached.repos && cached.repos.length > 0) {
+          // 缓存也过滤一下
+          const validNames = new Set(allRepos.map(r => r.name));
+          const filtered = cached.repos.filter(r => validNames.has(r.name));
+          pages = merge(filtered, repoMap);
+          addNote('💾 使用缓存列表 · <a href="javascript:location.reload()">刷新重试</a>');
+        } else {
+          pages = merge(fallback, repoMap);
+          addNote('💡 新增 Pages 仓库？编辑 <code>index.html</code> 中的 <code>KNOWN_PAGES</code> 列表即可');
+        }
+
+        // Stats
+        repoStat.textContent = pages.length.toString();
+        let stars = 0;
+        pages.forEach(r => { stars += r.stargazers_count || 0; });
+        starStat.textContent = stars;
+        const recent = pages.filter(r => r.updated_at).sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
+        updStat.textContent = recent.length ? new Date(recent[0].updated_at).toLocaleDateString('zh-CN', { month:'short', day:'numeric' }) : '—';
+
+        render(pages);
+
+      } catch (err) {
+        console.warn(err);
+        showError(err.message || '无法连接 GitHub API');
+        let repos;
+        if (cached && cached.repos && cached.repos.length > 0) {
+          repos = cached.repos;
+          showError('使用缓存列表（上次更新: ' + new Date(cached.timestamp).toLocaleDateString('zh-CN') + '）');
+        } else {
+          repos = fallback;
+        }
+        render(repos);
+        repoStat.textContent = repos.length.toString();
+        starStat.textContent = '—';
+        updStat.textContent = '—';
+      }
+    }
+
+    (function() { const p = new URLSearchParams(location.search), t = p.get('token'); if (t) window.__GITHUB_TOKEN = t; })();
+    main();
+  </script>
+</body>
+</html>

@@ -1,0 +1,1271 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>从 Python/C 到 JS &amp; TS · 一小时入门</title>
+<meta name="description" content="给懂 Python 和 C 的程序员的一小时 JavaScript &amp; TypeScript 快速入门课程：变量、函数、导入导出、npm、类型系统、真实项目解剖。">
+<style>
+  :root {
+    --bg: #0d1117;
+    --panel: #161b22;
+    --panel-2: #1c222c;
+    --border: #2d333b;
+    --border-soft: #262c34;
+    --code-bg: #0a0d12;
+    --text: #e6edf3;
+    --text-2: #b3bcc7;
+    --text-3: #7d8590;
+    --accent: #e3a05c;
+    --blue: #58a6ff;
+    --green: #3fb950;
+    --red: #f85149;
+    --yellow: #d29922;
+    --py: #3776ab;
+    --js: #f0db4f;
+    --ts: #3178c6;
+    --mono: "Cascadia Code", "JetBrains Mono", Consolas, "Courier New", monospace;
+    --sans: "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 16.5px;
+    line-height: 1.85;
+    -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: rgba(227,160,92,.28); }
+
+  /* ---------- 顶部进度条 ---------- */
+  #progress { position: fixed; top: 0; left: 0; height: 3px; width: 0;
+    background: var(--accent); z-index: 100; transition: width .1s linear; }
+
+  /* ---------- 顶栏 ---------- */
+  .topbar {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(13,17,23,.88);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border-soft);
+  }
+  .topbar-inner {
+    max-width: 1000px; margin: 0 auto;
+    display: flex; align-items: center; gap: 18px;
+    padding: 10px 20px;
+  }
+  .brand { font-weight: 700; font-size: 15px; white-space: nowrap; cursor: pointer; letter-spacing: .01em; }
+  .brand .dot { color: var(--accent); }
+  .nav { display: flex; gap: 2px; overflow-x: auto; scrollbar-width: none; flex: 1; }
+  .nav::-webkit-scrollbar { display: none; }
+  .nav a {
+    white-space: nowrap; padding: 6px 11px; border-radius: 8px;
+    color: var(--text-2); font-size: 13px; text-decoration: none; transition: background .15s, color .15s;
+  }
+  .nav a:hover { color: var(--text); background: var(--panel); }
+  .nav a.active { background: var(--panel-2); color: var(--accent); }
+
+  /* ---------- 主体 ---------- */
+  main { max-width: 1000px; margin: 0 auto; padding: 0 20px; }
+
+  /* ---------- Hero ---------- */
+  .hero { padding: 76px 0 30px; text-align: center; }
+  .hero .kicker {
+    display: inline-block; font-family: var(--mono); font-size: 12.5px; color: var(--accent);
+    border: 1px solid rgba(227,160,92,.4); border-radius: 999px; padding: 5px 14px; margin-bottom: 22px;
+    letter-spacing: .12em;
+  }
+  .hero h1 {
+    font-size: clamp(1.9rem, 4.5vw, 2.9rem); line-height: 1.25; letter-spacing: -.02em; font-weight: 800;
+  }
+  .hero h1 .js { color: var(--js); } .hero h1 .ts { color: var(--ts); }
+  .hero .sub { margin-top: 16px; color: var(--text-2); font-size: 17px; max-width: 620px; margin-left: auto; margin-right: auto; }
+  .hero .from { margin-top: 14px; color: var(--text-3); font-size: 14px; }
+  .hero .from code { font-family: var(--mono); font-size: 13px; }
+
+  .goal-grid {
+    margin: 34px auto 0; max-width: 760px;
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; text-align: left;
+  }
+  .goal {
+    border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; background: var(--panel);
+    font-size: 14.5px; color: var(--text-2);
+  }
+  .goal b { color: var(--text); display: block; margin-bottom: 4px; font-size: 14px; }
+  .goal .gnum { font-family: var(--mono); color: var(--accent); font-size: 12px; display: block; margin-bottom: 6px; letter-spacing: .08em; }
+
+  .timetable { margin: 34px auto 0; max-width: 760px; }
+
+  /* ---------- 章节 ---------- */
+  .chapter { padding: 46px 0 18px; scroll-margin-top: 64px; }
+  .ch-head { display: flex; align-items: baseline; gap: 14px; border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 22px; }
+  .ch-num { font-family: var(--mono); font-size: 14px; color: var(--accent); white-space: nowrap; }
+  .ch-head h2 { font-size: clamp(1.3rem, 2.6vw, 1.55rem); letter-spacing: -.01em; font-weight: 750; }
+  .ch-time { margin-left: auto; font-family: var(--mono); font-size: 12.5px; color: var(--text-3); white-space: nowrap; }
+
+  .chapter h3 { font-size: 1.12rem; margin: 30px 0 10px; font-weight: 700; color: var(--text); }
+  .chapter p { margin: 12px 0; color: var(--text-2); }
+  .chapter p strong, .chapter li strong { color: var(--text); }
+  .chapter ul, .chapter ol { margin: 12px 0; padding-left: 24px; color: var(--text-2); }
+  .chapter li { margin: 6px 0; }
+  .chapter .lead { color: var(--text); font-size: 17px; }
+
+  code.inl {
+    font-family: var(--mono); font-size: .86em;
+    background: var(--panel); border: 1px solid var(--border-soft); border-radius: 6px;
+    padding: 1.5px 7px; color: #ffd9a0;
+  }
+  code.inl.py { color: #9ecbff; }
+
+  /* ---------- 对照双栏 ---------- */
+  .duo { display: grid; grid-template-columns: 1fr auto 1fr; gap: 10px; margin: 20px 0; align-items: stretch; }
+  .duo .eq { display: flex; align-items: center; justify-content: center; color: var(--text-3); font-family: var(--mono); font-size: 18px; user-select: none; }
+  .lang { border: 1px solid var(--border); border-radius: 12px; overflow: hidden; background: var(--panel); }
+  .lang-head { display: flex; align-items: center; gap: 8px; padding: 8px 14px; border-bottom: 1px solid var(--border-soft); font-family: var(--mono); font-size: 12px; color: var(--text-2); background: var(--panel-2); }
+  .lang-head .dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+  .lang pre { background: var(--code-bg); }
+  @media (max-width: 760px) {
+    .duo { grid-template-columns: 1fr; }
+    .duo .eq { transform: rotate(90deg); padding: 4px 0; }
+  }
+
+  /* ---------- 代码块 ---------- */
+  .codeblock { margin: 20px 0; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; background: var(--code-bg); }
+  .codehead { display: flex; align-items: center; gap: 10px; padding: 8px 14px; background: var(--panel); border-bottom: 1px solid var(--border-soft); }
+  .codehead .fname { font-family: var(--mono); font-size: 12.5px; color: var(--text-2); }
+  .codehead .lbl { font-family: var(--mono); font-size: 11px; padding: 2px 8px; border-radius: 999px; letter-spacing: .06em; }
+  .lbl.py { background: rgba(55,118,171,.2); color: #9ecbff; border: 1px solid rgba(55,118,171,.5); }
+  .lbl.js { background: rgba(240,219,79,.12); color: #f0db4f; border: 1px solid rgba(240,219,79,.4); }
+  .lbl.ts { background: rgba(49,120,198,.18); color: #7cb8f0; border: 1px solid rgba(49,120,198,.5); }
+  .lbl.sh { background: rgba(139,148,158,.15); color: #b3bcc7; border: 1px solid var(--border); }
+  .lbl.json { background: rgba(210,153,34,.14); color: #e3b341; border: 1px solid rgba(210,153,34,.45); }
+  .copy-btn {
+    margin-left: auto; font-family: var(--mono); font-size: 11.5px; cursor: pointer;
+    color: var(--text-3); background: transparent; border: 1px solid var(--border); border-radius: 6px; padding: 3px 10px;
+    transition: color .15s, border-color .15s;
+  }
+  .copy-btn:hover { color: var(--accent); border-color: var(--accent); }
+  pre { padding: 16px 18px; overflow-x: auto; font-family: var(--mono); font-size: 13.5px; line-height: 1.75; }
+  pre code { display: block; }
+
+  /* 语法高亮 token */
+  .tok-c { color: #8b949e; font-style: italic; }
+  .tok-s { color: #a5d6ff; }
+  .tok-k { color: #ff7b72; }
+  .tok-n { color: #f2cc60; }
+  .tok-t { color: #ffa657; }
+  .tok-f { color: #d2a8ff; }
+
+  /* ---------- 要点框 ---------- */
+  .note { margin: 20px 0; padding: 14px 18px; border-radius: 10px; border: 1px solid; font-size: 15px; }
+  .note .tag { display: block; font-weight: 700; font-size: 12px; letter-spacing: .1em; margin-bottom: 6px; }
+  .note.tip { border-color: rgba(227,160,92,.4); background: rgba(227,160,92,.07); }
+  .note.tip .tag { color: var(--accent); }
+  .note.warn { border-color: rgba(248,81,73,.4); background: rgba(248,81,73,.06); }
+  .note.warn .tag { color: var(--red); }
+  .note.info { border-color: rgba(88,166,255,.35); background: rgba(88,166,255,.06); }
+  .note.info .tag { color: var(--blue); }
+  .note.ok { border-color: rgba(63,185,80,.35); background: rgba(63,185,80,.06); }
+  .note.ok .tag { color: var(--green); }
+
+  /* ---------- 表格 ---------- */
+  table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14.5px; }
+  th, td { border: 1px solid var(--border); padding: 9px 13px; text-align: left; vertical-align: top; }
+  th { background: var(--panel); font-family: var(--mono); font-size: 12.5px; font-weight: 600; color: var(--text-2); }
+  tbody tr:nth-child(even) { background: rgba(255,255,255,.018); }
+  td code.inl { font-size: .85em; }
+  .tbl-wrap { overflow-x: auto; }
+
+  /* ---------- 自测 ---------- */
+  details.quiz { margin: 20px 0; border: 1px dashed var(--border); border-radius: 10px; padding: 13px 18px; }
+  details.quiz > summary { cursor: pointer; font-weight: 650; color: var(--blue); list-style: none; }
+  details.quiz > summary::before { content: "自测 "; font-family: var(--mono); font-size: 11px; letter-spacing: .08em; color: var(--text-3); margin-right: 4px; }
+  details.quiz > summary:hover { color: #79c0ff; }
+  details.quiz[open] > summary { margin-bottom: 8px; }
+  details.quiz .ans { margin-top: 10px; padding-top: 12px; border-top: 1px dashed var(--border); color: var(--text-2); font-size: 15px; }
+  details.quiz .ans b { color: var(--green); }
+
+  /* ---------- 小结 ---------- */
+  .summary-card {
+    margin: 28px 0 6px; border: 1px solid var(--border); border-left: 3px solid var(--accent);
+    border-radius: 10px; padding: 16px 20px; background: var(--panel);
+  }
+  .summary-card .tag { font-family: var(--mono); font-size: 11.5px; letter-spacing: .12em; color: var(--accent); display: block; margin-bottom: 8px; }
+  .summary-card ul { margin: 0; padding-left: 22px; color: var(--text-2); }
+  .summary-card li { margin: 5px 0; }
+
+  /* ---------- 分页 ---------- */
+  .pager { display: flex; justify-content: space-between; gap: 12px; margin: 46px 0 30px; }
+  .pager button {
+    flex: 1; max-width: 300px; padding: 15px 22px; border-radius: 12px; cursor: pointer;
+    border: 1px solid var(--border); background: var(--panel); color: var(--text);
+    font-family: var(--sans); font-size: 15px; text-align: left; line-height: 1.4;
+    transition: border-color .15s, color .15s, transform .15s;
+  }
+  .pager button .dir { display: block; font-family: var(--mono); font-size: 11px; color: var(--text-3); letter-spacing: .1em; margin-bottom: 3px; }
+  .pager button:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+  .pager button:disabled { opacity: .3; cursor: default; }
+  .pager .next { text-align: right; margin-left: auto; }
+
+  footer { text-align: center; color: var(--text-3); font-size: 13px; padding: 10px 20px 46px; }
+  footer .mono { font-family: var(--mono); }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+    html { scroll-behavior: auto; }
+  }
+</style>
+</head>
+<body>
+
+<div id="progress"></div>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand" onclick="window.scrollTo({top:0,behavior:'smooth'})"><span class="dot">⌘</span> JS/TS 一小时</div>
+    <nav class="nav" id="nav">
+      <a href="#ch0">第 0 章</a>
+      <a href="#ch1">思维映射</a>
+      <a href="#ch2">导入导出</a>
+      <a href="#ch3">npm</a>
+      <a href="#ch4">TypeScript</a>
+      <a href="#ch5">项目解剖</a>
+      <a href="#ch6">异步</a>
+      <a href="#cheat">速查表</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+<!-- ================= HERO ================= -->
+<section class="hero">
+  <span class="kicker">60 分钟 · 循序渐进 · 用你已有的知识</span>
+  <h1>从 <span class="js">Python</span> 与 <span class="ts">C</span>，<br>到 JavaScript &amp; TypeScript</h1>
+  <p class="sub">你懂 Python（动态语言、解释执行、好用的语法糖），也懂 C（静态类型、编译期检查、作用域规则）。这节课就是帮你把这两套知识平移过去 —— 不从头学，只学差异。</p>
+  <p class="from">你的起点：<code>Python</code> · <code>C</code> · 作用域 · 函数 · 类型 · pip</p>
+
+  <div class="goal-grid">
+    <div class="goal"><span class="gnum">GOAL 01</span><b>看懂任何 .js / .ts 文件</b>变量、函数、import/export 一眼扫懂</div>
+    <div class="goal"><span class="gnum">GOAL 02</span><b>理解 npm 包管理</b>@scope/name、package.json、node_modules 全搞清</div>
+    <div class="goal"><span class="gnum">GOAL 03</span><b>看懂真实 TS 项目结构</b>用你工作区里的 Obsidian 插件当活教材</div>
+    <div class="goal"><span class="gnum">GOAL 04</span><b>明白 JS 与 TS 的关系</b>以及 @earendil-works/pi-ai 到底是什么</div>
+  </div>
+
+  <div class="timetable">
+    <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>章节</th><th>内容</th><th>时间</th></tr></thead>
+      <tbody>
+        <tr><td><code class="inl">0</code> 先回答你的问题</td><td>JS 还是 TS？@ 开头的包是什么？</td><td>5 分钟</td></tr>
+        <tr><td><code class="inl">1</code> 思维映射</td><td>变量 / 函数 / 对象 / 数组 / 作用域</td><td>12 分钟</td></tr>
+        <tr><td><code class="inl">2</code> 模块与导入导出</td><td>import / export 全解（重点）</td><td>15 分钟</td></tr>
+        <tr><td><code class="inl">3</code> npm 包管理</td><td>pip 的 Node 版（重点）</td><td>15 分钟</td></tr>
+        <tr><td><code class="inl">4</code> TypeScript</td><td>类型系统：像 C 的编译期检查</td><td>12 分钟</td></tr>
+        <tr><td><code class="inl">5</code> 真实项目解剖</td><td>你的 obsidian-outline-sidebar 插件</td><td>8 分钟</td></tr>
+        <tr><td><code class="inl">6</code> 异步（延伸）</td><td>async / await，和 Python 几乎一样</td><td>可选</td></tr>
+        <tr><td><code class="inl">§</code> 附录速查表</td><td>随时回来查的对照表</td><td>—</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+</section>
+
+<!-- ================= CH0 ================= -->
+<section class="chapter" id="ch0">
+  <div class="ch-head">
+    <span class="ch-num">第 0 章 · 5 min</span>
+    <h2>先回答你的问题：JS 写法还是 TS 写法？@ 包是什么？</h2>
+  </div>
+
+  <p class="lead">你问的 <code class="inl">@earendil-works/pi-ai</code> —— 它不是「JS 写的」也不是「TS 写的」，它是一个 <b>npm 包名</b>。想搞清楚它，只需要先搞懂三件事：JS 和 TS 的关系、npm 的命名规则、import 的语法。这一章先把前两件说清楚，import 语法下一章专门讲。</p>
+
+  <h3>0.1 JS 和 TS 到底什么关系？</h3>
+  <p>一句话：<strong>TS = JS + 类型系统</strong>。TS 是 JS 的超集，所有合法的 JS 代码都是合法的 TS 代码。它们的区别，恰好就是你熟悉的 Python 和 C 的区别：</p>
+
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>维度</th><th>JavaScript</th><th>TypeScript</th><th>像什么</th></tr></thead>
+    <tbody>
+      <tr><td>类型检查</td><td>运行时（动态类型）</td><td>编译期（静态类型）</td><td>JS 像 Python，TS 像 C</td></tr>
+      <tr><td>谁在执行</td><td>浏览器 / Node.js</td><td>先被转译成 JS，再执行</td><td>TS ≈ C 编译成机器码，但转译目标是 JS</td></tr>
+      <tr><td>文件后缀</td><td><code class="inl">.js</code></td><td><code class="inl">.ts</code></td><td>—</td></tr>
+      <tr><td>写代码的体验</td><td>随便写，错了运行时才知道</td><td>写的时候就有类型提示和报错</td><td>TS ≈ 给 JS 加上了 gcc 的 -Wall</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="note info">
+    <span class="tag">关键事实</span>
+    <b>浏览器和 Node 只认识 JS。</b>TS 是给开发者写的，写完必须转译成 JS 才能运行。所以一个项目里往往同时有 <code class="inl">.ts</code>（源码）和 <code class="inl">.js</code>（产物）。你工作区里的 <code class="inl">obsidian-outline-sidebar</code> 就是活例子：<code class="inl">main.ts</code> 是源码，<code class="inl">main.js</code> 是构建产物，Obsidian 插件实际加载的是 main.js。
+  </div>
+
+  <h3>0.2 import 语法在 JS 和 TS 里一样吗？</h3>
+  <p><strong>一样。</strong>因为 TS 是 JS 的超集，import/export 语法是两者共用的。区别只在：TS 在导入时能拿到包自带的<strong>类型声明</strong>（.d.ts 文件），编辑器会给你补全和报错提示；JS 拿不到。但语法本身，完全一样。</p>
+
+  <h3>0.3 @earendil-works/pi-ai 是什么？</h3>
+  <p>它是 npm 上发布的一个包，名字格式是 <code class="inl">@作用域/包名</code>：</p>
+  <ul>
+    <li><code class="inl">@earendil-works</code> —— <b>作用域（scope）</b>，相当于一个命名空间，通常是一个组织或用户名。类比：GitHub 的 <code class="inl">用户名/仓库名</code>。</li>
+    <li><code class="inl">pi-ai</code> —— <b>包名</b>，这个组织里的具体包。</li>
+    <li>安装：<code class="inl">npm install @earendil-works/pi-ai</code></li>
+    <li>使用：<code class="inl">import { ... } from '@earendil-works/pi-ai'</code></li>
+  </ul>
+  <p>想看它到底导出什么、怎么用？两个办法：看它的官方文档；或者装到本地后，打开 <code class="inl">node_modules/@earendil-works/pi-ai/</code> 目录，读它的 <code class="inl">package.json</code>（入口在哪）和类型声明文件（导出了哪些名字）。第 3 章讲完 npm，你就能完全读懂。</p>
+
+  <div class="note tip">
+    <span class="tag">本课程的三句总纲</span>
+    JS = 动态类型 + 解释执行（像 Python），跑在浏览器/Node。<br>
+    TS = JS + 编译期类型检查（像 C 的编译期检查）。<br>
+    npm = pip；package.json ≈ pyproject.toml；node_modules ≈ site-packages。
+  </div>
+
+  <details class="quiz">
+    <summary>检查一下：TS 比 JS 多了什么？</summary>
+    <div class="ans">多了<b>编译期的静态类型系统</b>。写 .ts，用 tsc / esbuild 等工具转译成 .js 再运行。运行时跑的都是 JS。</div>
+  </details>
+</section>
+
+<!-- ================= CH1 ================= -->
+<section class="chapter" id="ch1">
+  <div class="ch-head">
+    <span class="ch-num">第 1 章 · 12 min</span>
+    <h2>思维映射：把 Python/C 的知识平移过来</h2>
+  </div>
+
+  <p class="lead">这一章不做「Hello World 大全」，只讲<b>差异</b>。你已有的概念（变量、函数、dict、list、作用域、闭包）在 JS 里几乎都存在，只是换了写法。</p>
+
+  <h3>1.1 变量：let / const，块级作用域</h3>
+  <div class="duo">
+    <div class="lang">
+      <div class="lang-head"><span class="dot" style="background:var(--py)"></span>Python</div>
+      <pre><code># 变量随时可以重新绑定
+count = 0
+count = count + 1   # OK
+
+PI = 3.14
+PI = 3.0            # 也 OK（大写只是约定）</code></pre>
+    </div>
+    <div class="eq">→</div>
+    <div class="lang">
+      <div class="lang-head"><span class="dot" style="background:var(--js)"></span>JavaScript</div>
+      <pre><code>let count = 0;        // let：可变
+count = count + 1;    // OK
+
+const PI = 3.14;      // const：不可重新赋值
+PI = 3.0;             // ❌ TypeError</code></pre>
+    </div>
+  </div>
+  <p><code class="inl">const</code> 的意思是「这个名字只能绑定一次」，和 C 里 <code class="inl">const</code> 变量的语义一致。注意：const 只禁止<b>重新赋值</b>，不禁止修改对象内部（下面讲对象时你会看到）。JS 的惯例是：默认用 const，确实要改才用 let。</p>
+
+  <h3>1.2 作用域：JS 的 {} 和 C 一样是块级</h3>
+  <div class="duo">
+    <div class="lang">
+      <div class="lang-head"><span class="dot" style="background:var(--py)"></span>Python</div>
+      <pre><code># Python 没有块级作用域
+if True:
+    x = 1
+print(x)   # 1，if 外面也能访问</code></pre>
+    </div>
+    <div class="eq">→</div>
+    <div class="lang">
+      <div class="lang-head"><span class="dot" style="background:var(--js)"></span>JavaScript</div>
+      <pre><code>// JS：let/const 是块级作用域
+if (true) {
+  let x = 1;
+}
+console.log(x);   // ❌ ReferenceError</code></pre>
+    </div>
+  </div>
+  <p>这对你来说是<b>零成本知识</b>：C 的 <code class="inl">if/for</code> 的 <code class="inl">{}</code> 就是块级作用域，JS 的 let/const 和 C 完全一致。老代码里的 <code class="inl">var</code> 是函数级作用域（近似 Python 的行为），现在写新代码用 let/const，避开 var 的坑。</p>
+
+  <h3>1.3 类型：动态（JS）→ 注解（TS）</h3>
+  <div class="duo">
+    <div class="lang">
+      <div class="lang-head"><span class="dot" style="background:var(--js)"></span>JavaScript（动态）</div>
+      <pre><code>let x = 42;       // 数字
+x = "hello";      // 换成字符串，合法
+                  // 类型是运行时才知道的</code></pre>
+    </div>
+    <div class="eq">→</div>
+    <div class="lang">
+      <div class="lang-head"><span class="dot" style="background:var(--ts)"></span>TypeScript（静态）</div>
+      <pre><code>let x: number = 42;
+x = "hello";
+// ❌ 编译错误：
+// string 不能赋给 number
+// 这就是 C 的体验</code></pre>
+    </div>
+  </div>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>JS/TS 类型</th><th>Python 对应</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr><td><code class="inl">number</code></td><td>int / float</td><td>JS 不分 int/float，全是 64 位浮点</td></tr>
+      <tr><td><code class="inl">string</code></td><td>str</td><td>单引号、双引号、反引号都能写字符串</td></tr>
+      <tr><td><code class="inl">boolean</code></td><td>bool</td><td>true / false（注意小写）</td></tr>
+      <tr><td><code class="inl">null</code> / <code class="inl">undefined</code></td><td>None</td><td>两个「空」：null 是你主动设的空，undefined 是「还没赋值」</td></tr>
+      <tr><td><code class="inl">object</code> / <code class="inl">array</code></td><td>dict / list</td><td>对象字面量 ≈ dict，数组 ≈ list</td></tr>
+      <tr><td><code class="inl">function</code></td><td>函数</td><td>一等公民，可当参数传</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>1.4 函数与箭头函数 ≈ lambda</h3>
+  <div class="duo">
+    <div class="lang">
+      <div class="lang-head"><span class="dot" style="background:var(--py)"></span>Python</div>
+      <pre><code>def double(x):
+    return x * 2
+
+double_l = lambda x: x * 2</code></pre>
+    </div>
+    <div class="eq">→</div>
+    <div class="lang">
+      <div class="lang-head"><span class="dot" style="background:var(--js)"></span>JavaScript</div>
+      <pre><code>function double(x) {
+  return x * 2;
+}
+
+const doubleL = (x) => x * 2;
+// 箭头函数 ≈ lambda</code></pre>
+    </div>
+  </div>
+  <p>函数可以当参数传、可以存进变量 —— 和 Python 一样。这在 JS 里叫<strong>回调</strong>（callback），后面你会天天见到：<code class="inl">arr.map(x =&gt; ...)</code> 里的箭头函数就是回调。</p>
+
+  <h3>1.5 字符串模板 ≈ f-string</h3>
+  <div class="duo">
+    <div class="lang">
+      <div class="lang-head"><span class="dot" style="background:var(--py)"></span>Python</div>
+      <pre><code>name = "Alice"
+print(f"Hello, {name}!")</code></pre>
+    </div>
+    <div class="eq">→</div>
+    <div class="lang">
+      <div class="lang-head"><span class="dot" style="background:var(--js)"></span>JavaScript</div>
+      <pre><code>const name = "Alice";
+console.log(`Hello, ${name}!`);
+// 反引号 + ${} = 模板字符串</code></pre>
+    </div>
+  </div>
+
+  <h3>1.6 对象字面量 ≈ dict</h3>
+  <div class="duo">
+    <div class="lang">
+      <div class="lang-head"><span class="dot" style="background:var(--py)"></span>Python</div>
+      <pre><code>person = {"name": "Alice",
+          "age": 30}
+print(person["name"])   # Alice</code></pre>
+    </div>
+    <div class="eq">→</div>
+    <div class="lang">
+      <div class="lang-head"><span class="dot" style="background:var(--js)"></span>JavaScript</div>
+      <pre><code>const person = {
+  name: "Alice",
+  age: 30,
+};
+console.log(person.name);      // Alice
+console.log(person["name"]);   // 也行</code></pre>
+    </div>
+  </div>
+
+  <h3>1.7 数组方法 ≈ 列表推导</h3>
+  <div class="duo">
+    <div class="lang">
+      <div class="lang-head"><span class="dot" style="background:var(--py)"></span>Python</div>
+      <pre><code>nums = [1, 2, 3, 4]
+doubled = [x * 2 for x in nums]
+evens = [x for x in nums
+         if x % 2 == 0]</code></pre>
+    </div>
+    <div class="eq">→</div>
+    <div class="lang">
+      <div class="lang-head"><span class="dot" style="background:var(--js)"></span>JavaScript</div>
+      <pre><code>const nums = [1, 2, 3, 4];
+const doubled = nums.map(x =&gt; x * 2);
+//            [2, 4, 6, 8]
+const evens = nums.filter(
+  x =&gt; x % 2 === 0);      // [2, 4]</code></pre>
+    </div>
+  </div>
+  <p>对照关系：<code class="inl">map</code> ≈ 推导式主体；<code class="inl">filter</code> ≈ 推导式的 if 条件；<code class="inl">reduce</code> ≈ 累积（Python 的 functools.reduce）。注意 JS 用 <code class="inl">===</code> 严格相等，别用 <code class="inl">==</code>（它做类型转换，是经典坑）。</p>
+
+  <h3>1.8 闭包：和你 Python 里学的一样</h3>
+  <p>JS 的作用域是<strong>词法作用域</strong>（按代码结构决定，不看调用位置）—— 和 C、Python 一致。闭包 = 函数 + 它记住的外层变量：</p>
+  <div class="codeblock">
+    <div class="codehead"><span class="fname">closure.js</span><span class="lbl js">JavaScript</span><button class="copy-btn" data-copy>复制</button></div>
+    <pre><code>function makeCounter() {
+  let n = 0;
+  return () =&gt; { n += 1; return n; };
+  // 内层箭头函数"记住"了外层变量 n
+}
+
+const c = makeCounter();
+c(); c(); c();   // 1, 2, 3 —— n 不会被回收</code></pre>
+  </div>
+  <div class="note warn">
+    <span class="tag">JS 独有的坑：this</span>
+    你懂 C 和 Python，这里只需记住一条：<b>this 的值取决于"函数怎么被调用"</b>，不像 Python 的 self 固定是第一个参数。而<strong>箭头函数没有自己的 this</strong>，它会继承外层作用域的 this。所以写回调时优先用箭头函数，能避开 90% 的 this 坑。第一周记住这一条就够了。
+  </div>
+
+  <div class="summary-card">
+    <span class="tag">本章小结</span>
+    <ul>
+      <li>const 不可重新赋值、let 可变、默认用 const —— 对应 C 的 const 语义</li>
+      <li>let/const 是块级作用域，{} 就是边界 —— 和 C 一样，和 Python 不同</li>
+      <li>箭头函数 <code class="inl">(x) =&gt; x * 2</code> ≈ lambda；模板字符串 <code class="inl">`${x}`</code> ≈ f-string</li>
+      <li>对象字面量 ≈ dict；map/filter ≈ 列表推导；闭包概念和 Python 相同</li>
+      <li>相等判断永远用 <code class="inl">===</code></li>
+    </ul>
+  </div>
+
+  <details class="quiz">
+    <summary>let 和 const 的区别是什么？</summary>
+    <div class="ans">let 声明的变量可以<b>重新赋值</b>；const 声明的名字<b>只能绑定一次</b>（但对象内部内容仍可修改）。两者都是块级作用域。</div>
+  </details>
+</section>
+
+<!-- ================= CH2 ================= -->
+<section class="chapter" id="ch2">
+  <div class="ch-head">
+    <span class="ch-num">第 2 章 · 15 min</span>
+    <h2>模块与导入导出：import / export 全解</h2>
+  </div>
+
+  <p class="lead">这是你问得最具体的地方。好消息：<b>Python 的 import 你早就会了，JS 只是换了个语法</b>。核心就三条映射，记住就通关。</p>
+
+  <h3>2.1 三条最重要的映射</h3>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>Python</th><th>JavaScript / TypeScript（ESM）</th></tr></thead>
+    <tbody>
+      <tr><td><code class="inl">import math</code></td><td><code class="inl">import * as math from 'math'</code>（整体导入）</td></tr>
+      <tr><td><code class="inl">from math import sqrt</code></td><td><code class="inl">import { sqrt } from 'math'</code>（命名导入）</td></tr>
+      <tr><td><code class="inl">from math import sqrt as sq</code></td><td><code class="inl">import { sqrt as sq } from 'math'</code>（别名）</td></tr>
+      <tr><td>—（Python 没有默认导出）</td><td><code class="inl">import main from './main'</code>（默认导入）</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>2.2 命名导出 vs 默认导出</h3>
+  <p>先看「被导入的文件」怎么写导出（export）：</p>
+  <div class="codeblock">
+    <div class="codehead"><span class="fname">mathUtils.ts</span><span class="lbl ts">TypeScript</span><button class="copy-btn" data-copy>复制</button></div>
+    <pre><code>// 命名导出：一个文件可以导出一大堆名字
+export function add(a: number, b: number): number {
+  return a + b;
+}
+export const PI = 3.14159;
+
+// 默认导出：每个文件最多一个"主角"
+export default function main() {
+  // 入口逻辑
+}</code></pre>
+  </div>
+  <p>再看「导入方」怎么用（import）：</p>
+  <div class="codeblock">
+    <div class="codehead"><span class="fname">app.ts</span><span class="lbl ts">TypeScript</span><button class="copy-btn" data-copy>复制</button></div>
+    <pre><code>import { add, PI } from './mathUtils';      // 命名导入：名字必须对上
+import { add as plus } from './mathUtils';  // 起别名：plus === add
+import * as utils from './mathUtils';       // 整体导入：utils.add(...)
+import main from './mathUtils';             // 默认导入：名字随便起
+
+console.log(add(1, 2));        // 3
+console.log(utils.PI);         // 3.14159
+main();</code></pre>
+  </div>
+  <div class="note tip">
+    <span class="tag">直觉</span>
+    默认导出 ≈ 一个模块只有一个「主角」（比如单函数模块）；命名导出 ≈ 模块里每个公开的名字。默认导入时花括号<b>可有可无</b>、名字随便起；命名导入必须有花括号、名字必须和导出时一致。
+  </div>
+  <div class="note info">
+    <span class="tag">路径规则：./ 开头 vs 裸包名</span>
+    <code class="inl">./</code> 或 <code class="inl">../</code> 开头 = <b>相对路径</b>，导入你自己写的文件；<b>裸包名</b>（如 <code class="inl">'@earendil-works/pi-ai'</code>、<code class="inl">'obsidian'</code>）= 去 <code class="inl">node_modules/</code> 里找包。这是新手最容易混的地方：<b>看到 ./ 就是本地文件，没有 ./ 就是第三方包</b>。
+  </div>
+
+  <h3>2.3 CommonJS：Node 的老写法（你也会遇到）</h3>
+  <p>2015 年之前 Node.js 只有 CommonJS 这一种模块系统，语法是 <code class="inl">require</code> / <code class="inl">module.exports</code>。现在的新代码用 ESM（import/export），但你会经常在旧项目、工具脚本里看到 CommonJS，认得就行：</p>
+  <div class="duo">
+    <div class="lang">
+      <div class="lang-head"><span class="dot" style="background:var(--js)"></span>CommonJS（老）</div>
+      <pre><code>// 导入
+const utils = require('./mathUtils');
+const { add, PI } = require('./mathUtils');
+
+// 导出
+module.exports = { add, PI };</code></pre>
+    </div>
+    <div class="eq">↔</div>
+    <div class="lang">
+      <div class="lang-head"><span class="dot" style="background:var(--js)"></span>ESM（新）</div>
+      <pre><code>// 导入
+import * as utils from './mathUtils';
+import { add, PI } from './mathUtils';
+
+// 导出
+export { add, PI };</code></pre>
+    </div>
+  </div>
+  <p>为什么有两种？历史原因：浏览器原生支持 ESM（<code class="inl">&lt;script type="module"&gt;</code>），而 Node 在 2015 年之前只有 CommonJS，后来才逐步支持 ESM。一个 <code class="inl">.js</code> 文件按哪种解析，由 <code class="inl">package.json</code> 里的 <code class="inl">"type": "module"</code> 决定（没有这行就是 CommonJS）。</p>
+  <div class="note ok">
+    <span class="tag">实操建议</span>
+    <b>你写代码时统一用 import/export 就行</b>，转译工具（tsc、esbuild、Vite）会帮你转成目标环境需要的格式。比如你的 Obsidian 插件项目，esbuild 配置里写了 <code class="inl">format: "cjs"</code>，就是把源码里的 import 转成 CommonJS 输出 —— 你不用自己操心。
+  </div>
+
+  <h3>2.4 完整例子：从零写两个文件</h3>
+  <div class="duo">
+    <div class="lang">
+      <div class="lang-head"><span class="dot" style="background:var(--ts)"></span>greetings.ts</div>
+      <pre><code>export function hello(name: string): string {
+  return `Hello, ${name}!`;
+}
+
+export default function hi() {
+  return "Hi!";
+}</code></pre>
+    </div>
+    <div class="eq">→</div>
+    <div class="lang">
+      <div class="lang-head"><span class="dot" style="background:var(--ts)"></span>app.ts</div>
+      <pre><code>import { hello } from './greetings';
+import hi from './greetings';
+
+console.log(hello("Alice"));  // Hello, Alice!
+console.log(hi());            // Hi!</code></pre>
+    </div>
+  </div>
+  <p>运行方式：浏览器里用 <code class="inl">&lt;script type="module" src="app.js"&gt;&lt;/script&gt;</code>；Node 里跑转译后的 .js 文件（比如 <code class="inl">node app.js</code>）；TS 文件则先经工具转译。这一节你只要懂「导出什么、导入什么」，运行细节交给工具。</p>
+
+  <div class="summary-card">
+    <span class="tag">本章小结</span>
+    <ul>
+      <li><code class="inl">from math import sqrt</code> → <code class="inl">import { sqrt } from 'math'</code>；<code class="inl">import math</code> → <code class="inl">import * as math from 'math'</code></li>
+      <li>导出用 export（命名）/ export default（主角）；导入用 import，命名导入要花括号</li>
+      <li><code class="inl">./</code> 开头是本地文件，裸包名是 node_modules 里的包</li>
+      <li>看到 require/module.exports = CommonJS 老写法；import/export = 现代 ESM</li>
+    </ul>
+  </div>
+
+  <details class="quiz">
+    <summary>写出 <code class="inl">from math import sqrt as sq</code> 对应的 TS 写法</summary>
+    <div class="ans"><code class="inl">import { sqrt as sq } from 'math';</code></div>
+  </details>
+  <details class="quiz">
+    <summary><code class="inl">import { add } from './utils'</code> 里的 <code class="inl">./</code> 是什么意思？</summary>
+    <div class="ans">相对路径，表示 <code class="inl">utils</code> 是你<b>自己写的本地文件</b>（同目录下）。不带 <code class="inl">./</code> 的裸包名才是去 node_modules 找第三方包。</div>
+  </details>
+</section>
+
+<!-- ================= CH3 ================= -->
+<section class="chapter" id="ch3">
+  <div class="ch-head">
+    <span class="ch-num">第 3 章 · 15 min</span>
+    <h2>npm：Node 世界的 pip</h2>
+  </div>
+
+  <p class="lead">npm 是你已经会的东西（pip）换了个名字和语法。这一章把每个概念对应起来，再用你的真实项目逐字段解剖 package.json。</p>
+
+  <h3>3.1 概念对照表</h3>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>概念</th><th>Python 世界</th><th>Node 世界</th></tr></thead>
+    <tbody>
+      <tr><td>包仓库</td><td>PyPI（pypi.org）</td><td>npm registry（registry.npmjs.org）</td></tr>
+      <tr><td>安装命令</td><td><code class="inl">pip install xxx</code></td><td><code class="inl">npm install xxx</code>（简写 <code class="inl">npm i xxx</code>）</td></tr>
+      <tr><td>依赖清单</td><td>requirements.txt / pyproject.toml</td><td>package.json 里的 dependencies / devDependencies</td></tr>
+      <tr><td>依赖实体装在哪</td><td>venv 的 site-packages</td><td>项目根目录的 node_modules/（每个项目一份）</td></tr>
+      <tr><td>锁定精确版本</td><td>pip freeze &gt; requirements.txt</td><td>package-lock.json（自动生成，提交 git）</td></tr>
+      <tr><td>项目元数据 + 脚本</td><td>pyproject.toml + Makefile</td><td>package.json 的 name/version + scripts</td></tr>
+      <tr><td>本地开发安装</td><td><code class="inl">pip install -e .</code></td><td><code class="inl">npm link</code> 或 file: 依赖</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>3.2 package.json 解剖（用你的真实项目）</h3>
+  <p>这就是你工作区里 <code class="inl">obsidian-outline-sidebar/package.json</code> 的原样内容：</p>
+  <div class="codeblock">
+    <div class="codehead"><span class="fname">obsidian-outline-sidebar/package.json</span><span class="lbl json">JSON</span><button class="copy-btn" data-copy>复制</button></div>
+    <pre><code>{
+  "name": "obsidian-outline-sidebar",   // 包名（发布到 npm 时用）
+  "version": "1.1.0",                   // 版本：主版本.次版本.补丁
+  "main": "main.js",                    // 入口：别人 import 这个包时加载的文件
+  "scripts": {                          // 自定义命令：npm run 后面跟的名字
+    "dev": "node esbuild.config.mjs",           // 开发：监视 + 自动重新打包
+    "build": "tsc -noEmit -skipLibCheck &amp;&amp; node esbuild.config.mjs production"
+  },                                    // 构建：先类型检查，再打包
+  "devDependencies": {                  // 只在开发/构建时用的依赖
+    "@types/node": "^16.11.6",          // Node API 的类型声明
+    "esbuild": "0.17.3",                // 打包器（把 TS 转成 JS 并合并）
+    "obsidian": "latest",               // Obsidian API 的类型
+    "typescript": "4.7.4"               // TS 编译器
+  }
+}</code></pre>
+  </div>
+  <ul>
+    <li><code class="inl">name</code> / <code class="inl">version</code>：包的身份标识。要发布到 npm 时，别人就用 <code class="inl">npm install obsidian-outline-sidebar</code> 装它。</li>
+    <li><code class="inl">main</code>：入口文件。相当于 Python 包里的 <code class="inl">__init__.py</code> 指向的模块。</li>
+    <li><code class="inl">scripts</code>：≈ Makefile 里的目标。运行 <code class="inl">npm run build</code> 就执行 build 那一行的命令。</li>
+    <li><code class="inl">dependencies</code>：程序<b>运行</b>必需的包；<code class="inl">devDependencies</code>：只有<b>开发/构建</b>时才需要的包（编译器、打包器、类型声明都属于这类）。</li>
+  </ul>
+  <div class="note tip">
+    <span class="tag">怎么区分两类依赖？</span>
+    问自己：这个包是「用户跑我的程序时需要」还是「只有我写代码/构建时需要」？前者进 dependencies（如 Web 框架），后者进 devDependencies（如 typescript、esbuild、测试框架）。装包时用 <code class="inl">npm i xxx</code>（默认进 dependencies）或 <code class="inl">npm i -D xxx</code>（进 devDependencies）。
+  </div>
+
+  <h3>3.3 node_modules 和 package-lock.json</h3>
+  <ul>
+    <li><code class="inl">node_modules/</code>：依赖的实际文件，≈ venv 里的 site-packages。<b>不提交 git</b>（.gitignore 里排除），别人 clone 后执行 <code class="inl">npm install</code> 重新生成。</li>
+    <li><code class="inl">package-lock.json</code>：记录<b>精确</b>的版本树（每个依赖的依赖也锁定），≈ <code class="inl">pip freeze</code> 的完整快照。<b>要提交 git</b>，保证任何人 npm install 得到一模一样的版本。</li>
+  </ul>
+
+  <h3>3.4 @scope/name：作用域包</h3>
+  <p>回到你的问题 —— <code class="inl">@earendil-works/pi-ai</code> 就是一个<b>作用域包</b>：</p>
+  <div class="codeblock">
+    <div class="codehead"><span class="fname">terminal</span><span class="lbl sh">Shell</span><button class="copy-btn" data-copy>复制</button></div>
+    <pre><code># 安装（会写进 package.json 的 dependencies）
+npm install @earendil-works/pi-ai
+
+# 查看包的信息（版本、描述、依赖）
+npm view @earendil-works/pi-ai
+
+# 使用：裸包名导入，不用写 ./ 路径
+import { something } from '@earendil-works/pi-ai';</code></pre>
+  </div>
+  <p>规则：<code class="inl">@</code> 后面的 <code class="inl">earendil-works</code> 是<b>作用域</b>（组织/用户名），<code class="inl">/</code> 后面的 <code class="inl">pi-ai</code> 是<b>包名</b>。作用域的作用是防止重名：全世界的包都叫 <code class="inl">utils</code> 会撞车，但 <code class="inl">@earendil-works/utils</code> 是唯一的。类比：PyPI 的包名是全局唯一的（如 requests），npm 用 <code class="inl">@组织/包名</code> 提供命名空间。安装后它出现在 <code class="inl">node_modules/@earendil-works/pi-ai/</code> 目录下 —— 打开这个目录，读它的 <code class="inl">package.json</code>（exports 字段声明了导出了什么）和 <code class="inl">.d.ts</code> 类型声明，你就能完全搞清楚这个包怎么用。这是「读懂任何陌生包」的通用方法。</p>
+
+  <h3>3.5 版本号：^ 和 ~ 是什么意思</h3>
+  <p>版本号是 <code class="inl">主版本.次版本.补丁</code>（如 1.2.3）。npm 安装时默认给你带 <code class="inl">^</code>：</p>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>写法</th><th>允许的更新范围</th><th>类比</th></tr></thead>
+    <tbody>
+      <tr><td><code class="inl">^1.2.3</code></td><td>≥1.2.3 且 &lt;2.0.0（大版本内随便升）</td><td>npm 默认，最常用</td></tr>
+      <tr><td><code class="inl">~1.2.3</code></td><td>≥1.2.3 且 &lt;1.3.0（只升补丁）</td><td>保守</td></tr>
+      <tr><td><code class="inl">1.2.3</code></td><td>精确锁定</td><td>最严格</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>为什么关心这个？<b>主版本 0（如 0.x）意味着 API 随时可能变</b>；升到 1.0 才承诺向后兼容。看到 <code class="inl">^0.5.0</code> 这种，升级时就要小心 API 变化。</p>
+
+  <h3>3.6 常用命令速查</h3>
+  <div class="codeblock">
+    <div class="codehead"><span class="fname">terminal</span><span class="lbl sh">Shell</span><button class="copy-btn" data-copy>复制</button></div>
+    <pre><code>npm init -y          # 生成一个新的 package.json（≈ 初始化项目）
+npm install          # 按 package.json 装全部依赖（clone 项目后第一步）
+npm install xxx      # 装包 + 写入 dependencies
+npm install -D xxx   # 装包 + 写入 devDependencies
+npm uninstall xxx    # 卸载
+npm run &lt;script&gt;     # 执行 package.json 里 scripts 定义的命令
+npx xxx              # 临时运行某个包的命令，不必先安装（如 npx tsc）
+npm view xxx         # 查看包的信息（不进 node_modules）</code></pre>
+  </div>
+
+  <div class="summary-card">
+    <span class="tag">本章小结</span>
+    <ul>
+      <li>npm = pip；node_modules = site-packages；package.json = 项目身份证；package-lock.json = 精确版本快照</li>
+      <li>dependencies = 运行必需；devDependencies = 开发/构建工具</li>
+      <li><code class="inl">@earendil-works/pi-ai</code> = 作用域包，@后面是组织/命名空间</li>
+      <li><code class="inl">^1.2.3</code> 允许大版本内更新；<code class="inl">npm run build</code> 执行 scripts 里的命令</li>
+    </ul>
+  </div>
+
+  <details class="quiz">
+    <summary>typescript、esbuild 这类工具应该放 dependencies 还是 devDependencies？</summary>
+    <div class="ans"><b>devDependencies</b>。它们是开发/构建时才需要的工具，用户运行你的程序时并不需要。</div>
+  </details>
+</section>
+
+<!-- ================= CH4 ================= -->
+<section class="chapter" id="ch4">
+  <div class="ch-head">
+    <span class="ch-num">第 4 章 · 12 min</span>
+    <h2>TypeScript：像 C 一样在编译期抓错</h2>
+  </div>
+
+  <p class="lead">你已经会 C 的类型声明，TS 就是给 JS 加上同样的东西。这一章很短，因为概念你全懂，只是换语法。</p>
+
+  <h3>4.1 工作流：写 .ts → 编译成 .js</h3>
+  <div class="codeblock">
+    <div class="codehead"><span class="fname">terminal</span><span class="lbl sh">Shell</span><button class="copy-btn" data-copy>复制</button></div>
+    <pre><code>npm install -D typescript   # 装编译器 tsc
+npx tsc --init              # 生成 tsconfig.json（≈ 编译选项配置）
+npx tsc                     # 按 tsconfig.json 编译 .ts → .js</code></pre>
+  </div>
+  <p>对照：tsc ≈ gcc/clang；tsconfig.json ≈ 编译选项（Makefile/CMake 的配置）。实际工程里常不用 tsc 直接编译，而是用 esbuild 等打包器（更快），但类型检查还是 tsc 在做 —— 你的插件项目 build 命令就是 <code class="inl">tsc -noEmit</code>（只查类型不输出）再接 esbuild 打包。</p>
+
+  <h3>4.2 类型注解：和 C 的声明一样</h3>
+  <div class="duo">
+    <div class="lang">
+      <div class="lang-head"><span class="dot" style="background:var(--ts)"></span>TypeScript</div>
+      <pre><code>let age: number = 30;
+const name: string = "Alice";
+let flag: boolean = true;
+let list: number[] = [1, 2, 3];
+let maybe: string | null = null;
+
+function add(a: number, b: number): number {
+  return a + b;
+}</code></pre>
+    </div>
+    <div class="eq">≈</div>
+    <div class="lang">
+      <div class="lang-head"><span class="dot" style="background:var(--py)"></span>C（示意）</div>
+      <pre><code>int age = 30;
+char *name = "Alice";
+int flag = 1;
+int list[3] = {1, 2, 3};
+
+int add(int a, int b) {
+  return a + b;
+}</code></pre>
+    </div>
+  </div>
+  <p>语法不同、精神相同：<b>编译期检查</b>。TS 编译后类型信息会被擦除，运行时就是纯 JS —— 所以类型检查零运行时开销，这和你 Python 里用 mypy 是一个思路。</p>
+
+  <h3>4.3 类型推断：能省则省</h3>
+  <div class="codeblock">
+    <div class="codehead"><span class="fname">inference.ts</span><span class="lbl ts">TypeScript</span><button class="copy-btn" data-copy>复制</button></div>
+    <pre><code>let x = 5;        // TS 自动推断 x 是 number，不用写
+const y = "hi";   // y 推断为 "hi"（字面量类型）
+let z;            // 没赋值也没注解 → 类型是 any（能不开这个口就别开）</code></pre>
+  </div>
+  <p>TS 的推断能力很强，很多地方不用手写类型。打开 <code class="inl">"strict": true</code>（tsconfig 里），它会在编译期拦住一大类 bug（比如对可能是 null 的值做运算）—— 这就是 TS 最大的价值：<b>把 C 编译器能抓的错误，提前到写代码时抓</b>。</p>
+
+  <h3>4.4 interface ≈ struct</h3>
+  <div class="duo">
+    <div class="lang">
+      <div class="lang-head"><span class="dot" style="background:var(--ts)"></span>TypeScript</div>
+      <pre><code>interface Person {
+  name: string;
+  age: number;
+}
+
+const alice: Person = {
+  name: "Alice",
+  age: 30,
+};</code></pre>
+    </div>
+    <div class="eq">≈</div>
+    <div class="lang">
+      <div class="lang-head"><span class="dot" style="background:var(--py)"></span>C</div>
+      <pre><code>typedef struct {
+  const char *name;
+  int age;
+} Person;
+
+Person alice = {"Alice", 30};</code></pre>
+    </div>
+  </div>
+  <p>区别在于 TS 的 interface 是<strong>结构类型</strong>（鸭子类型）：只要形状对就行，不需要显式声明「我实现了 Person」—— 和 Python 的鸭子类型一个味道，只是检查发生在编译期。</p>
+
+  <h3>4.5 泛型 ≈ C++ 模板 / Python 的 TypeVar</h3>
+  <div class="codeblock">
+    <div class="codehead"><span class="fname">generic.ts</span><span class="lbl ts">TypeScript</span><button class="copy-btn" data-copy>复制</button></div>
+    <pre><code>function first&lt;T&gt;(arr: T[]): T {
+  return arr[0];
+}
+
+first([1, 2, 3]);    // 这里 T 自动 = number
+first(["a", "b"]);   // 这里 T 自动 = string</code></pre>
+  </div>
+
+  <h3>4.6 类型从哪来？</h3>
+  <ul>
+    <li><b>你自己写</b>：interface / type 定义。</li>
+    <li><b>包自带</b>：库发布时带上 .d.ts 类型声明（TS 写的库直接就有；JS 写的库可能有社区维护的声明）。</li>
+    <li><b>@types/xxx</b>：社区维护的类型声明包，比如你项目里的 <code class="inl">@types/node</code>（给 Node 内置 API 提供类型）。</li>
+  </ul>
+  <p>对照 Python 生态：.d.ts ≈ .pyi stub 文件，@types ≈ typeshed。</p>
+
+  <div class="summary-card">
+    <span class="tag">本章小结</span>
+    <ul>
+      <li>TS = JS + 编译期类型检查；写 .ts，工具转译成 .js 再运行</li>
+      <li><code class="inl">x: number</code> 注解 ≈ C 的声明；interface ≈ struct（但按形状匹配）</li>
+      <li>联合类型 <code class="inl">string | null</code>、泛型 <code class="inl">&lt;T&gt;</code> ≈ 模板</li>
+      <li>开 strict 模式，让编译器帮你抓错</li>
+    </ul>
+  </div>
+
+  <details class="quiz">
+    <summary>interface 和 C 的 struct 有什么本质区别？</summary>
+    <div class="ans">struct 是<b>名义类型</b>（必须是同一个 struct 类型）；TS 的 interface 是<b>结构类型</b>——只要字段形状匹配就算数，像 Python 的鸭子类型，但检查发生在编译期。</div>
+  </details>
+</section>
+
+<!-- ================= CH5 ================= -->
+<section class="chapter" id="ch5">
+  <div class="ch-head">
+    <span class="ch-num">第 5 章 · 8 min</span>
+    <h2>真实项目解剖：你的 Obsidian 插件</h2>
+  </div>
+
+  <p class="lead">理论讲完，现在解剖你工作区里那个真实项目 <code class="inl">obsidian-outline-sidebar</code> —— 它麻雀虽小、五脏俱全。</p>
+
+  <div class="codeblock">
+    <div class="codehead"><span class="fname">obsidian-outline-sidebar/</span><span class="lbl sh">目录</span><button class="copy-btn" data-copy>复制</button></div>
+    <pre><code>obsidian-outline-sidebar/
+├── package.json        # 项目身份证：名字、版本、依赖、scripts
+├── tsconfig.json       # TS 编译配置（module、target、strict 等）
+├── esbuild.config.mjs  # 构建脚本：esbuild 打包配置（.mjs = ESM 格式的 Node 脚本）
+├── manifest.json       # Obsidian 插件清单（插件 ID、版本、描述）
+├── main.ts             # 源码入口 —— TS 写的，人看的
+├── main.js             # 构建产物 —— JS，Obsidian 实际加载的
+├── styles.css          # 插件样式
+└── node_modules/       # 依赖实体（不提交 git）</code></pre>
+  </div>
+
+  <h3>5.1 一次 build 发生了什么？</h3>
+  <p>在项目里执行 <code class="inl">npm run build</code>，等价于执行 scripts 里定义的那一行：</p>
+  <div class="codeblock">
+    <div class="codehead"><span class="fname">terminal</span><span class="lbl sh">Shell</span><button class="copy-btn" data-copy>复制</button></div>
+    <pre><code>tsc -noEmit -skipLibCheck &amp;&amp; node esbuild.config.mjs production
+# ①  tsc 做类型检查（-noEmit：只检查、不输出文件）
+# ②  通过后 esbuild 把 main.ts 打包成 main.js
+#     （external 的 obsidian/electron 等不打进去，运行时由宿主提供）</code></pre>
+  </div>
+  <p>这就是「TS 最终跑起来是 JS」的完整现场：<b>main.ts 是给人写的，main.js 是给机器跑的</b>。开发时用 <code class="inl">npm run dev</code>，esbuild 会监视文件变化自动重新打包。</p>
+
+  <h3>5.2 为什么 esbuild.config.mjs 里写 format: "cjs"？</h3>
+  <p>因为 Obsidian 的插件加载器用的是 CommonJS 环境。所以 esbuild 把源码里的 <code class="inl">import</code> 转成 <code class="inl">require</code> 输出 —— 这正是第 2 章说的「你写 import，工具帮你转格式」。<code class="inl">external</code> 列表里的包（obsidian、electron、@codemirror/...）不打包进 main.js，运行时由 Obsidian 提供，避免重复打包。</p>
+
+  <h3>5.3 典型 TS 项目的通用结构</h3>
+  <div class="codeblock">
+    <div class="codehead"><span class="fname">一个更典型的项目</span><span class="lbl sh">目录</span><button class="copy-btn" data-copy>复制</button></div>
+    <pre><code>my-app/
+├── src/              # 源码（.ts），大项目习惯都放这里
+│   ├── index.ts      # 入口文件
+│   └── utils.ts
+├── dist/             # 构建产物（.js），永远不要手改
+├── tests/            # 测试
+├── package.json      # 依赖 + scripts
+├── tsconfig.json     # 编译配置
+└── node_modules/     # 依赖（不提交 git）</code></pre>
+  </div>
+  <p>小项目（如你的插件）可以入口直接放根目录；大项目统一 <code class="inl">src/</code> 放源码、<code class="inl">dist/</code> 放产物。无论大小，<b>package.json + tsconfig.json + node_modules</b> 这三件套一定在。</p>
+
+  <div class="note tip">
+    <span class="tag">动手实验（强烈建议）</span>
+    打开 <code class="inl">obsidian-outline-sidebar</code> 项目，执行 <code class="inl">npm install</code>（生成 node_modules），再 <code class="inl">npm run build</code>（先生成 main.js 再重新打包）。然后改一行 main.ts 里的字符串，再 build 一次，看 main.js 里对应位置跟着变 —— 你就亲眼看到了「TS 源码 → JS 产物」的完整链路。
+  </div>
+</section>
+
+<!-- ================= CH6 ================= -->
+<section class="chapter" id="ch6">
+  <div class="ch-head">
+    <span class="ch-num">第 6 章 · 延伸（可选）</span>
+    <h2>异步编程：async / await，和 Python 几乎一样</h2>
+  </div>
+
+  <p class="lead">如果你用过 Python 的 <code class="inl">asyncio</code>，这一章 2 分钟就能看完 —— 概念完全同构。</p>
+
+  <div class="duo">
+    <div class="lang">
+      <div class="lang-head"><span class="dot" style="background:var(--py)"></span>Python</div>
+      <pre><code>import asyncio
+
+async def fetch():
+    await asyncio.sleep(1)
+    return "data"
+
+data = await fetch()</code></pre>
+    </div>
+    <div class="eq">≈</div>
+    <div class="lang">
+      <div class="lang-head"><span class="dot" style="background:var(--ts)"></span>TypeScript</div>
+      <pre><code>async function fetchData(): Promise&lt;string&gt; {
+  await sleep(1000);      // Promise 版的 sleep
+  return "data";
+}
+
+const data = await fetchData();</code></pre>
+    </div>
+  </div>
+  <ul>
+    <li><code class="inl">Promise</code> ≈ Python 的 <code class="inl">Future</code>：一个「将来才有结果」的容器。函数声明 <code class="inl">async</code> 后返回值自动包成 Promise。</li>
+    <li><code class="inl">await</code> 的语义和 Python 一模一样：挂起当前函数，等异步操作完成。</li>
+    <li>JS 是单线程 + 事件循环（≈ Python 的 asyncio 事件循环）。Node 的 IO、浏览器的 <code class="inl">fetch</code>（网络请求）都是异步的，所以你会经常见到 await。</li>
+    <li>遇到 <code class="inl">.then(x =&gt; ...)</code> 老写法别慌，它 ≈ <code class="inl">future.add_done_callback(...)</code>，用 await 更现代。</li>
+  </ul>
+  <div class="note info">
+    <span class="tag">记忆点</span>
+    async 函数里才能用 await；await 后面跟一个 Promise；看到 .then / .catch 就是 Promise 的回调风格写法。
+  </div>
+</section>
+
+<!-- ================= CHEATSHEET ================= -->
+<section class="chapter" id="cheat">
+  <div class="ch-head">
+    <span class="ch-num">附录</span>
+    <h2>速查表：随时回来查</h2>
+  </div>
+
+  <h3>A. Python → JS/TS 快速对照</h3>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>Python</th><th>JavaScript / TypeScript</th></tr></thead>
+    <tbody>
+      <tr><td><code class="inl">x = 1</code></td><td><code class="inl">let x = 1;</code>（可改）/ <code class="inl">const x = 1;</code>（不可改）</td></tr>
+      <tr><td><code class="inl">def f(x): ...</code></td><td><code class="inl">function f(x) { ... }</code> 或 <code class="inl">const f = (x) =&gt; ...</code></td></tr>
+      <tr><td><code class="inl">lambda x: x*2</code></td><td><code class="inl">(x) =&gt; x * 2</code></td></tr>
+      <tr><td><code class="inl">f"Hi {name}"</code></td><td><code class="inl">`Hi ${name}`</code>（反引号）</td></tr>
+      <tr><td><code class="inl">{"a": 1}</code> / <code class="inl">d["a"]</code></td><td><code class="inl">{ a: 1 }</code> / <code class="inl">obj.a</code></td></tr>
+      <tr><td><code class="inl">[x*2 for x in l]</code></td><td><code class="inl">l.map(x =&gt; x * 2)</code></td></tr>
+      <tr><td><code class="inl">[x for x in l if p(x)]</code></td><td><code class="inl">l.filter(x =&gt; p(x))</code></td></tr>
+      <tr><td><code class="inl">None</code></td><td><code class="inl">null</code>（主动空）或 <code class="inl">undefined</code>（未赋值）</td></tr>
+      <tr><td><code class="inl">range(n)</code></td><td><code class="inl">for (let i = 0; i &lt; n; i++)</code> 或 <code class="inl">Array.from({length:n})</code></td></tr>
+      <tr><td><code class="inl">try / except</code></td><td><code class="inl">try / catch (e)</code></td></tr>
+      <tr><td><code class="inl">if __name__ == "__main__":</code></td><td><code class="inl">if (require.main === module)</code> 或入口文件直接执行</td></tr>
+      <tr><td><code class="inl">import math</code></td><td><code class="inl">import * as math from 'math'</code></td></tr>
+      <tr><td><code class="inl">from math import sqrt</code></td><td><code class="inl">import { sqrt } from 'math'</code></td></tr>
+      <tr><td><code class="inl">from math import sqrt as sq</code></td><td><code class="inl">import { sqrt as sq } from 'math'</code></td></tr>
+      <tr><td><code class="inl">async def / await</code></td><td><code class="inl">async function / await</code></td></tr>
+      <tr><td>pip install</td><td><code class="inl">npm install</code></td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>B. 模块语法速查</h3>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>意图</th><th>写法</th></tr></thead>
+    <tbody>
+      <tr><td>命名导出</td><td><code class="inl">export function add(...) { }</code> / <code class="inl">export const PI = 3.14;</code></td></tr>
+      <tr><td>默认导出</td><td><code class="inl">export default function main() { }</code></td></tr>
+      <tr><td>命名导入</td><td><code class="inl">import { add, PI } from './utils';</code></td></tr>
+      <tr><td>别名导入</td><td><code class="inl">import { add as plus } from './utils';</code></td></tr>
+      <tr><td>整体导入</td><td><code class="inl">import * as utils from './utils';</code></td></tr>
+      <tr><td>默认导入</td><td><code class="inl">import main from './utils';</code></td></tr>
+      <tr><td>导入第三方包</td><td><code class="inl">import { x } from '@earendil-works/pi-ai';</code>（裸包名，无 ./）</td></tr>
+      <tr><td>CommonJS（旧）</td><td><code class="inl">const { add } = require('./utils');</code> / <code class="inl">module.exports = {...}</code></td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>C. npm 命令速查</h3>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>命令</th><th>作用</th></tr></thead>
+    <tbody>
+      <tr><td><code class="inl">npm init -y</code></td><td>生成 package.json</td></tr>
+      <tr><td><code class="inl">npm install</code></td><td>按 package.json 装全部依赖</td></tr>
+      <tr><td><code class="inl">npm install xxx</code></td><td>装包 → dependencies</td></tr>
+      <tr><td><code class="inl">npm install -D xxx</code></td><td>装包 → devDependencies</td></tr>
+      <tr><td><code class="inl">npm run build</code></td><td>执行 scripts.build</td></tr>
+      <tr><td><code class="inl">npx tsc</code></td><td>临时运行 tsc（不必先安装）</td></tr>
+      <tr><td><code class="inl">npm view xxx</code></td><td>查看包信息</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>D. tsconfig.json 常用选项</h3>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>选项</th><th>作用</th></tr></thead>
+    <tbody>
+      <tr><td><code class="inl">target</code></td><td>编译成哪个 JS 版本（ES2018 / ES2020 / ESNext）</td></tr>
+      <tr><td><code class="inl">module</code></td><td>模块格式（ESNext / CommonJS）</td></tr>
+      <tr><td><code class="inl">strict</code></td><td>严格模式，强烈建议 true（null 检查等全开）</td></tr>
+      <tr><td><code class="inl">outDir</code></td><td>编译输出目录（如 ./dist）</td></tr>
+      <tr><td><code class="inl">include</code></td><td>编译哪些文件（如 ["src/**/*.ts"]）</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>E. 读懂一个陌生包的三步法</h3>
+  <ol>
+    <li><code class="inl">npm view @earendil-works/pi-ai</code> —— 看版本、描述、依赖。</li>
+    <li>看官方文档 / README —— 找「快速开始」的 import 示例。</li>
+    <li>装到本地后打开 <code class="inl">node_modules/@earendil-works/pi-ai/</code> —— 读 package.json 的 exports 字段（导出了什么入口）+ .d.ts 文件（导出了哪些名字和类型）。看到类型声明的那一刻，这个包对你就是透明的了。</li>
+  </ol>
+</section>
+
+<!-- ================= END ================= -->
+<section class="chapter" id="end">
+  <div class="ch-head">
+    <span class="ch-num">结语</span>
+    <h2>学完了，接下来做什么？</h2>
+  </div>
+
+  <div class="note ok">
+    <span class="tag">三句话带走</span>
+    ① JS 是动态类型、解释执行的语言，像 Python，跑在浏览器和 Node。<br>
+    ② TS = JS + 编译期类型检查，像 C，写 .ts 转译成 .js 运行。<br>
+    ③ npm = pip，package.json = 项目身份证，node_modules = site-packages，@scope/name = 带命名空间的包名。
+  </div>
+
+  <h3>建议的下一步（按顺序）</h3>
+  <ol>
+    <li><b>动手 1</b>：在你的 obsidian-outline-sidebar 里跑 <code class="inl">npm install &amp;&amp; npm run build</code>，改一行 main.ts 再 build，看产物变化。</li>
+    <li><b>动手 2</b>：建一个 3 文件的小练习（一个导出、两个导入），把第 2 章的 import/export 亲手敲一遍 —— 这是这堂课最值得练的部分。</li>
+    <li><b>动手 3</b>：<code class="inl">npm view @earendil-works/pi-ai</code> 看看它的真实信息，再 <code class="inl">npm install</code> 它，用三步法读它的 .d.ts，你就彻底明白它是什么、怎么用了。</li>
+    <li>遇到不懂的语法：回来翻本页速查表，或搜 "MDN + 关键词"（MDN 是 JS 的官方文档站）。</li>
+  </ol>
+
+  <div class="pager">
+    <button id="prevBtn" disabled><span class="dir">← 上一节</span><span id="prevLabel">—</span></button>
+    <button id="nextBtn" class="next"><span class="dir">下一节 →</span><span id="nextLabel">思维映射</span></button>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <span class="mono">JS &amp; TS 一小时入门</span> · 用你已有的 Python/C 知识，快速建立 JS/TS 心智模型<br>
+  速查表在附录，随时回来翻。
+</footer>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ---------- 语法高亮 ---------- */
+  var esc = function (s) {
+    return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  };
+  var KEYWORDS = [
+    "const","let","var","function","return","if","else","for","while","do","switch","case","break",
+    "continue","import","export","from","default","as","new","class","interface","type","extends",
+    "implements","async","await","typeof","instanceof","in","of","null","undefined","true","false",
+    "this","super","require","module","exports","def","lambda","with","elif","None","and","or","not",
+    "is","pass","raise","try","except","finally","yield","number","string","boolean","any","void",
+    "readonly","enum","declare","namespace","public","private","protected","static"
+  ].join("|");
+  var TOKEN_RE = new RegExp(
+    "(\\/\\/[^\\n]*|\\/\\*[\\s\\S]*?\\*\\/|#[^\\n]*)" +   // 1 注释
+    "|(\"(?:[^\"\\\\\\n]|\\\\.)*\"|'(?:[^'\\\\\\n]|\\\\.)*'|`(?:[^`\\\\]|\\\\.)*`)" + // 2 字符串
+    "|\\b(\\d+(?:\\.\\d+)?)\\b" +                          // 3 数字
+    "|\\b(" + KEYWORDS + ")\\b",                            // 4 关键字
+    "g"
+  );
+  function highlightBlock(block) {
+    var raw = block.textContent;
+    var html = esc(raw).replace(TOKEN_RE, function (m, c, s, n, k) {
+      if (c) return '<span class="tok-c">' + c + "</span>";
+      if (s) return '<span class="tok-s">' + s + "</span>";
+      if (n) return '<span class="tok-n">' + n + "</span>";
+      if (k) return '<span class="tok-k">' + k + "</span>";
+      return m;
+    });
+    block.innerHTML = html;
+  }
+  document.querySelectorAll("pre code").forEach(highlightBlock);
+
+  /* ---------- 复制按钮 ---------- */
+  function fallbackCopy(text) {
+    var ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand("copy"); } catch (e) {}
+    document.body.removeChild(ta);
+  }
+  document.querySelectorAll(".copy-btn").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var block = btn.closest(".codeblock");
+      var code = block ? block.querySelector("code") : null;
+      var text = code ? code.innerText : "";
+      var done = function () {
+        var old = btn.textContent;
+        btn.textContent = "已复制 ✓";
+        setTimeout(function () { btn.textContent = old; }, 1400);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(done, function () { fallbackCopy(text); done(); });
+      } else {
+        fallbackCopy(text); done();
+      }
+    });
+  });
+
+  /* ---------- 进度条 ---------- */
+  var progress = document.getElementById("progress");
+  function updateProgress() {
+    var doc = document.documentElement;
+    var max = doc.scrollHeight - doc.clientHeight;
+    var p = max > 0 ? (doc.scrollTop / max) * 100 : 0;
+    progress.style.width = p + "%";
+  }
+  window.addEventListener("scroll", updateProgress, { passive: true });
+  updateProgress();
+
+  /* ---------- 章节导航高亮 ---------- */
+  var sectionIds = ["ch0","ch1","ch2","ch3","ch4","ch5","ch6","cheat","end"];
+  var navLinks = Array.prototype.slice.call(document.querySelectorAll(".nav a"));
+  function setActive(id) {
+    navLinks.forEach(function (a) {
+      a.classList.toggle("active", a.getAttribute("href") === "#" + id);
+    });
+  }
+  if ("IntersectionObserver" in window) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) setActive(e.target.id);
+      });
+    }, { rootMargin: "-15% 0px -75% 0px" });
+    sectionIds.forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) io.observe(el);
+    });
+  }
+
+  /* ---------- 上一节 / 下一节 ---------- */
+  var TITLES = {
+    ch0: "第 0 章 · 先回答你的问题",
+    ch1: "第 1 章 · 思维映射",
+    ch2: "第 2 章 · 导入导出",
+    ch3: "第 3 章 · npm 包管理",
+    ch4: "第 4 章 · TypeScript",
+    ch5: "第 5 章 · 项目解剖",
+    ch6: "第 6 章 · 异步（延伸）",
+    cheat: "附录 · 速查表",
+    end: "结语 · 下一步"
+  };
+  var prevBtn = document.getElementById("prevBtn");
+  var nextBtn = document.getElementById("nextBtn");
+  var prevLabel = document.getElementById("prevLabel");
+  var nextLabel = document.getElementById("nextLabel");
+  var current = 0;
+  function currentIndex() {
+    var idx = 0, best = -1;
+    sectionIds.forEach(function (id, i) {
+      var el = document.getElementById(id);
+      if (!el) return;
+      var r = el.getBoundingClientRect();
+      if (r.top <= window.innerHeight * 0.4 && r.top > best) { best = r.top; idx = i; }
+    });
+    return idx;
+  }
+  function go(i) {
+    if (i < 0 || i >= sectionIds.length) return;
+    current = i;
+    document.getElementById(sectionIds[i]).scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+  function syncPager() {
+    current = currentIndex();
+    var prevOk = current > 0, nextOk = current < sectionIds.length - 1;
+    prevBtn.disabled = !prevOk;
+    nextBtn.disabled = !nextOk;
+    prevLabel.textContent = prevOk ? TITLES[sectionIds[current - 1]] : "—";
+    nextLabel.textContent = nextOk ? TITLES[sectionIds[current + 1]] : "—";
+  }
+  prevBtn.addEventListener("click", function () { go(currentIndex() - 1); });
+  nextBtn.addEventListener("click", function () { go(currentIndex() + 1); });
+  window.addEventListener("scroll", syncPager, { passive: true });
+  syncPager();
+
+  /* ---------- 键盘导航 ---------- */
+  document.addEventListener("keydown", function (e) {
+    if (e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA")) return;
+    if (e.key === "ArrowRight") go(currentIndex() + 1);
+    if (e.key === "ArrowLeft") go(currentIndex() - 1);
+  });
+})();
+</script>
+</body>
+</html>

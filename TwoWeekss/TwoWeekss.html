@@ -1,0 +1,436 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>两周计划表 · 2026.8.11–8.25</title>
+<style>
+:root{
+  --paper:#edf0e9;
+  --card:#fafbf7;
+  --ink:#232b25;
+  --muted:#6d756c;
+  --line:#d9dfd5;
+  --forest:#1d3a2b;
+  --green:#2f6b4f;
+  --green-bg:#e1ebe2;
+  --blue:#35608f;
+  --blue-bg:#e7edf4;
+  --purple:#7a4a8f;
+  --purple-bg:#f0e9f3;
+  --amber:#a96f16;
+  --amber-bg:#f6ecd6;
+  --serif:"Kaiti SC","STKaiti","KaiTi","Songti SC",Georgia,serif;
+  --sans:"PingFang SC","Microsoft YaHei","Hiragino Sans GB",system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--sans);background:var(--paper);color:var(--ink);line-height:1.6;font-size:15px}
+.hero{background:var(--forest);color:#f2ede0;padding:46px 24px 38px;position:relative;overflow:hidden}
+.hero::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent 0 31px,rgba(250,251,247,.06) 31px 32px);pointer-events:none}
+.wrap{max-width:1060px;margin:0 auto;position:relative}
+.kicker{font-size:12px;letter-spacing:.35em;color:#c9d8c9;text-transform:uppercase;margin-bottom:10px}
+h1{font-family:var(--serif);font-size:44px;font-weight:600;letter-spacing:.06em}
+.hero .sub{margin-top:10px;color:#d8dccf;font-size:14px}
+.stats{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}
+.stat{background:rgba(250,251,247,.08);border:1px solid rgba(250,251,247,.22);border-radius:999px;padding:5px 14px;font-size:12.5px;color:#eae4d3}
+.stat b{color:#fff;font-weight:600}
+main{max-width:1060px;margin:0 auto;padding:36px 24px 90px}
+section{margin-bottom:52px}
+h2{font-family:var(--serif);font-size:24px;display:flex;align-items:center;gap:10px;margin-bottom:18px;letter-spacing:.05em}
+h2 .no{font-size:12px;color:var(--green);letter-spacing:.2em;border:1px solid var(--green);border-radius:6px;padding:2px 8px;white-space:nowrap}
+h3{font-size:15px;margin:18px 0 10px;color:var(--forest)}
+.tbl{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;font-size:13.5px}
+.tbl th{background:#e6ead9;color:#3d4438;text-align:left;padding:9px 10px;font-weight:600;font-size:12.5px;letter-spacing:.05em}
+.tbl td{padding:8px 10px;border-top:1px solid var(--line);vertical-align:top}
+tr.weekend td{background:#f1f4ec}
+.tag{display:inline-block;font-size:11px;padding:1px 8px;border-radius:999px;white-space:nowrap}
+.tag.w1{background:var(--green-bg);color:var(--green)}
+.tag.w2{background:var(--blue-bg);color:var(--blue)}
+.tag.fin{background:var(--purple-bg);color:var(--purple)}
+.tag.wk{background:var(--amber-bg);color:var(--amber)}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:16px}
+.day{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px 14px;display:flex;flex-direction:column;gap:10px}
+.day header{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.day .date{font-family:var(--serif);font-size:24px;font-weight:600}
+.day .date small{font-family:var(--sans);font-size:12px;color:var(--muted);font-weight:400;margin-left:2px}
+.day .phase{margin-left:auto;font-size:11.5px;color:var(--muted)}
+.day .health{display:flex;gap:6px;flex-wrap:wrap}
+.day .health span{font-size:11px;color:#5c6b5a;background:#eef2ea;border-radius:999px;padding:1px 9px}
+ul.blocks{list-style:none;display:flex;flex-direction:column;gap:8px}
+ul.blocks li{display:flex;gap:10px;align-items:flex-start;font-size:13.5px}
+.time{flex:0 0 96px;font-size:11.5px;color:#8a7f6a;padding-top:3px;font-variant-numeric:tabular-nums}
+ul.blocks label{display:flex;gap:8px;align-items:flex-start;cursor:pointer;line-height:1.55;flex:1}
+ul.blocks input{accent-color:var(--green);width:15px;height:15px;margin-top:3px;flex:none}
+li.done .t{text-decoration:line-through;color:#a4a898}
+.wk-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(235px,1fr));gap:16px}
+.wk-card{background:#f6f8f1;border:1px solid #d9caa0;border-radius:14px;padding:16px 18px}
+.wk-card .date{font-family:var(--serif);font-size:20px;display:flex;align-items:baseline;gap:8px}
+.wk-card p{font-size:13px;color:#5c5340;margin-top:8px}
+.wk-card label{display:flex;gap:8px;align-items:center;cursor:pointer;font-size:12.5px;color:#5c5340;margin-top:8px}
+.wk-card input{accent-color:var(--amber);width:15px;height:15px}
+.wk-card label.done{text-decoration:line-through;color:#a4a898}
+.habits{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px}
+.progress{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.bar{flex:1;height:8px;background:#e2e7dd;border-radius:99px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--green);border-radius:99px;transition:width .3s}
+@media (prefers-reduced-motion: reduce){.bar i{transition:none}}
+.habit-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:4px 20px}
+.habit-list label{display:flex;gap:9px;align-items:flex-start;padding:7px 4px;cursor:pointer;font-size:13.5px;border-radius:8px}
+.habit-list label:hover{background:#eef2ea}
+.habit-list input{accent-color:var(--green);width:15px;height:15px;margin-top:4px;flex:none}
+.habit-list label.done{color:#a4a898;text-decoration:line-through}
+.sched{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.box{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+.box h3{margin:0 0 10px}
+.sched table{width:100%;border-collapse:collapse;font-size:13px}
+.sched td{padding:5px 8px;border-bottom:1px dashed #e3e7dc;vertical-align:top}
+.sched td:first-child{white-space:nowrap;color:#8a7f6a;font-variant-numeric:tabular-nums}
+.note{font-size:12px;color:var(--muted);text-align:center;margin-top:40px}
+.printbtn{position:fixed;right:22px;bottom:22px;background:var(--forest);color:#f2ede0;border:none;border-radius:999px;padding:12px 22px;font-size:14px;cursor:pointer;box-shadow:0 6px 18px rgba(31,59,44,.35);letter-spacing:.1em}
+.printbtn:hover{background:#2a4d3a}
+@media (max-width:760px){.sched{grid-template-columns:1fr}h1{font-size:32px}.cards{grid-template-columns:1fr}}
+@media print{
+  body{background:#fff}
+  .hero{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .printbtn{display:none}
+  section{break-inside:avoid}
+  .day,.wk-card,.habits,.box{break-inside:avoid}
+  main{padding:20px 12px}
+}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <p class="kicker">2026 · 8.11 — 8.25</p>
+    <h1>两周生活 · 工作计划表</h1>
+    <p class="sub">健康生活 + AI Agent（pi 的 Python 构建与进阶） + Infra（MiniMind 训练与进阶）</p>
+    <div class="stats">
+      <span class="stat">工作日 <b>11</b> 天</span>
+      <span class="stat">周末 <b>4</b> 天（出去玩，不安排任务）</span>
+      <span class="stat">每天步数 <b>7000–13000</b></span>
+      <span class="stat">睡眠 <b>8–9</b> 小时</span>
+      <span class="stat">安排：上午 AI Agent · 下午 Infra · 晚上复盘+休息</span>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <!-- 一、总览 -->
+  <section id="overview">
+    <h2><span class="no">一</span>15 天总览</h2>
+    <table class="tbl">
+      <thead><tr><th>日期</th><th>星期</th><th>阶段</th><th>上午</th><th>下午</th><th>晚间</th></tr></thead>
+      <tbody>
+        <tr><td>8.11</td><td>周二</td><td><span class="tag w1">第一周</span></td><td>pi 调研 + 环境搭建</td><td>MiniMind 预训练</td><td>复盘</td></tr>
+        <tr><td>8.12</td><td>周三</td><td><span class="tag w1">第一周</span></td><td>对话 + 对话管理</td><td>SFT</td><td>复盘</td></tr>
+        <tr><td>8.13</td><td>周四</td><td><span class="tag w1">第一周</span></td><td>记忆 + Skills</td><td>PPO</td><td>复盘</td></tr>
+        <tr><td>8.14</td><td>周五</td><td><span class="tag w1">第一周</span></td><td>MCP + CLI</td><td>DPO + GPO</td><td>第一周复盘</td></tr>
+        <tr class="weekend"><td>8.15</td><td>周六</td><td><span class="tag wk">周末</span></td><td colspan="2">出去玩 · 最多刷视频学习</td><td>20:00 复盘</td></tr>
+        <tr class="weekend"><td>8.16</td><td>周日</td><td><span class="tag wk">周末</span></td><td colspan="2">出去玩 · 最多刷视频学习</td><td>20:00 复盘，准备第二周</td></tr>
+        <tr><td>8.17</td><td>周一</td><td><span class="tag w2">第二周</span></td><td>搜索功能</td><td>LoRA + 收尾</td><td>复盘</td></tr>
+        <tr><td>8.18</td><td>周二</td><td><span class="tag w2">第二周</span></td><td>RAG</td><td>DeepSeek 精读①</td><td>复盘</td></tr>
+        <tr><td>8.19</td><td>周三</td><td><span class="tag w2">第二周</span></td><td>界面实现</td><td>DeepSeek 精读②</td><td>复盘</td></tr>
+        <tr><td>8.20</td><td>周四</td><td><span class="tag w2">第二周</span></td><td>界面完善 + 联调</td><td>KV Cache</td><td>复盘</td></tr>
+        <tr><td>8.21</td><td>周五</td><td><span class="tag w2">第二周</span></td><td>沙盒实现</td><td>vLLM + 总结</td><td>第二周复盘</td></tr>
+        <tr class="weekend"><td>8.22</td><td>周六</td><td><span class="tag wk">周末</span></td><td colspan="2">出去玩 · 最多刷视频学习</td><td>20:00 复盘</td></tr>
+        <tr class="weekend"><td>8.23</td><td>周日</td><td><span class="tag wk">周末</span></td><td colspan="2">出去玩 · 最多刷视频学习</td><td>20:00 复盘，准备收尾</td></tr>
+        <tr><td>8.24</td><td>周一</td><td><span class="tag fin">收尾</span></td><td>全链路联调</td><td>成果整理</td><td>复盘</td></tr>
+        <tr><td>8.25</td><td>周二</td><td><span class="tag fin">收尾</span></td><td>Demo + 总结输出</td><td>9 月计划</td><td>两周复盘</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 二、工作日每日任务 -->
+  <section id="daily">
+    <h2><span class="no">二</span>工作日每日任务（可勾选）</h2>
+    <div class="cards">
+
+      <article class="day">
+        <header>
+          <div class="date">8.11<small>周二</small></div>
+          <div class="phase">第一周 · Day 1</div>
+        </header>
+        <div class="health"><span>步数 ≥7000</span><span>七分饱</span><span>22:30 前睡</span></div>
+        <ul class="blocks">
+          <li><span class="time">08:00–10:00</span><label><input type="checkbox" data-key="d1a1"><span class="t">调研 nanobot 项目，找到 Python 版 pi，搭建开发环境</span></label></li>
+          <li><span class="time">10:00–11:30</span><label><input type="checkbox" data-key="d1a2"><span class="t">梳理 pi 整体架构，跑通最小可运行 Demo</span></label></li>
+          <li><span class="time">14:00–17:30</span><label><input type="checkbox" data-key="d1p"><span class="t">MiniMind 环境搭建 + 预训练代码跑通（数据 → 训练 → loss 曲线）</span></label></li>
+          <li><span class="time">19:00–20:00</span><label><input type="checkbox" data-key="d1n"><span class="t">当日复盘：进展 + 卡点，输出笔记</span></label></li>
+        </ul>
+      </article>
+
+      <article class="day">
+        <header>
+          <div class="date">8.12<small>周三</small></div>
+          <div class="phase">第一周 · Day 2</div>
+        </header>
+        <div class="health"><span>步数 ≥7000</span><span>七分饱</span><span>22:30 前睡</span></div>
+        <ul class="blocks">
+          <li><span class="time">08:00–10:00</span><label><input type="checkbox" data-key="d2a1"><span class="t">基本对话实现（多轮上下文、流式输出）</span></label></li>
+          <li><span class="time">10:00–11:30</span><label><input type="checkbox" data-key="d2a2"><span class="t">对话管理（会话创建 / 切换 / 历史记录）</span></label></li>
+          <li><span class="time">14:00–17:30</span><label><input type="checkbox" data-key="d2p"><span class="t">SFT 代码实现并跑通</span></label></li>
+          <li><span class="time">19:00–20:00</span><label><input type="checkbox" data-key="d2n"><span class="t">当日复盘</span></label></li>
+        </ul>
+      </article>
+
+      <article class="day">
+        <header>
+          <div class="date">8.13<small>周四</small></div>
+          <div class="phase">第一周 · Day 3</div>
+        </header>
+        <div class="health"><span>步数 ≥7000</span><span>七分饱</span><span>22:30 前睡</span></div>
+        <ul class="blocks">
+          <li><span class="time">08:00–10:00</span><label><input type="checkbox" data-key="d3a1"><span class="t">记忆管理（短期记忆 + 长期记忆持久化）</span></label></li>
+          <li><span class="time">10:00–11:30</span><label><input type="checkbox" data-key="d3a2"><span class="t">Skills 机制（技能注册与调用）</span></label></li>
+          <li><span class="time">14:00–17:30</span><label><input type="checkbox" data-key="d3p"><span class="t">PPO 代码实现并跑通</span></label></li>
+          <li><span class="time">19:00–20:00</span><label><input type="checkbox" data-key="d3n"><span class="t">当日复盘</span></label></li>
+        </ul>
+      </article>
+
+      <article class="day">
+        <header>
+          <div class="date">8.14<small>周五</small></div>
+          <div class="phase">第一周 · Day 4</div>
+        </header>
+        <div class="health"><span>步数 ≥7000</span><span>七分饱</span><span>22:30 前睡</span></div>
+        <ul class="blocks">
+          <li><span class="time">08:00–10:00</span><label><input type="checkbox" data-key="d4a1"><span class="t">MCP 实现（工具协议接入）</span></label></li>
+          <li><span class="time">10:00–11:30</span><label><input type="checkbox" data-key="d4a2"><span class="t">CLI 实现（命令行交互完整可用）</span></label></li>
+          <li><span class="time">14:00–17:30</span><label><input type="checkbox" data-key="d4p"><span class="t">DPO + GPO 实现（第一周收尾）</span></label></li>
+          <li><span class="time">19:00–20:00</span><label><input type="checkbox" data-key="d4n"><span class="t">第一周复盘：成果 + 问题清单</span></label></li>
+        </ul>
+      </article>
+
+      <article class="day">
+        <header>
+          <div class="date">8.17<small>周一</small></div>
+          <div class="phase">第二周 · Day 5</div>
+        </header>
+        <div class="health"><span>步数 ≥7000</span><span>七分饱</span><span>22:30 前睡</span></div>
+        <ul class="blocks">
+          <li><span class="time">08:00–10:00</span><label><input type="checkbox" data-key="d5a1"><span class="t">搜索功能实现（接入搜索 / 本地检索）</span></label></li>
+          <li><span class="time">10:00–11:30</span><label><input type="checkbox" data-key="d5a2"><span class="t">搜索结果整合进对话流程</span></label></li>
+          <li><span class="time">14:00–17:30</span><label><input type="checkbox" data-key="d5p"><span class="t">LoRA 实现 + MiniMind 第一周全链路收尾</span></label></li>
+          <li><span class="time">19:00–20:00</span><label><input type="checkbox" data-key="d5n"><span class="t">当日复盘</span></label></li>
+        </ul>
+      </article>
+
+      <article class="day">
+        <header>
+          <div class="date">8.18<small>周二</small></div>
+          <div class="phase">第二周 · Day 6</div>
+        </header>
+        <div class="health"><span>步数 ≥7000</span><span>七分饱</span><span>22:30 前睡</span></div>
+        <ul class="blocks">
+          <li><span class="time">08:00–10:00</span><label><input type="checkbox" data-key="d6a1"><span class="t">RAG 实现（向量库 + 文档切分 + 召回）</span></label></li>
+          <li><span class="time">10:00–11:30</span><label><input type="checkbox" data-key="d6a2"><span class="t">RAG 与对话流程打通，效果测试</span></label></li>
+          <li><span class="time">14:00–17:30</span><label><input type="checkbox" data-key="d6p"><span class="t">DeepSeek 优化文章精读①（如 MLA / DeepSeek-V2），输出笔记</span></label></li>
+          <li><span class="time">19:00–20:00</span><label><input type="checkbox" data-key="d6n"><span class="t">当日复盘</span></label></li>
+        </ul>
+      </article>
+
+      <article class="day">
+        <header>
+          <div class="date">8.19<small>周三</small></div>
+          <div class="phase">第二周 · Day 7</div>
+        </header>
+        <div class="health"><span>步数 ≥7000</span><span>七分饱</span><span>22:30 前睡</span></div>
+        <ul class="blocks">
+          <li><span class="time">08:00–10:00</span><label><input type="checkbox" data-key="d7a1"><span class="t">界面实现：框架选型 + 整体布局（对话页）</span></label></li>
+          <li><span class="time">10:00–11:30</span><label><input type="checkbox" data-key="d7a2"><span class="t">界面实现：消息流、输入框、设置入口</span></label></li>
+          <li><span class="time">14:00–17:30</span><label><input type="checkbox" data-key="d7p"><span class="t">DeepSeek 优化文章精读②（如 DeepSeek-V3 等），输出笔记</span></label></li>
+          <li><span class="time">19:00–20:00</span><label><input type="checkbox" data-key="d7n"><span class="t">当日复盘</span></label></li>
+        </ul>
+      </article>
+
+      <article class="day">
+        <header>
+          <div class="date">8.20<small>周四</small></div>
+          <div class="phase">第二周 · Day 8</div>
+        </header>
+        <div class="health"><span>步数 ≥7000</span><span>七分饱</span><span>22:30 前睡</span></div>
+        <ul class="blocks">
+          <li><span class="time">08:00–10:00</span><label><input type="checkbox" data-key="d8a1"><span class="t">界面完善：记忆 / Skills / MCP 可视化接入、样式打磨</span></label></li>
+          <li><span class="time">10:00–11:30</span><label><input type="checkbox" data-key="d8a2"><span class="t">前后端联调</span></label></li>
+          <li><span class="time">14:00–17:30</span><label><input type="checkbox" data-key="d8p"><span class="t">KV Cache 原理学习 + 手写实现</span></label></li>
+          <li><span class="time">19:00–20:00</span><label><input type="checkbox" data-key="d8n"><span class="t">当日复盘</span></label></li>
+        </ul>
+      </article>
+
+      <article class="day">
+        <header>
+          <div class="date">8.21<small>周五</small></div>
+          <div class="phase">第二周 · Day 9</div>
+        </header>
+        <div class="health"><span>步数 ≥7000</span><span>七分饱</span><span>22:30 前睡</span></div>
+        <ul class="blocks">
+          <li><span class="time">08:00–10:00</span><label><input type="checkbox" data-key="d9a1"><span class="t">沙盒实现：安全执行环境（代码运行 + 资源限制）</span></label></li>
+          <li><span class="time">10:00–11:30</span><label><input type="checkbox" data-key="d9a2"><span class="t">沙盒接入 Agent 调用</span></label></li>
+          <li><span class="time">14:00–17:30</span><label><input type="checkbox" data-key="d9p"><span class="t">vLLM 部署 + 推理加速实验（对比测速）+ 第二周总结</span></label></li>
+          <li><span class="time">19:00–20:00</span><label><input type="checkbox" data-key="d9n"><span class="t">第二周复盘</span></label></li>
+        </ul>
+      </article>
+
+      <article class="day">
+        <header>
+          <div class="date">8.24<small>周一</small></div>
+          <div class="phase">收尾 · Day 10</div>
+        </header>
+        <div class="health"><span>步数 ≥7000</span><span>七分饱</span><span>22:30 前睡</span></div>
+        <ul class="blocks">
+          <li><span class="time">08:00–10:00</span><label><input type="checkbox" data-key="d10a1"><span class="t">全链路联调：对话 + 记忆 + Skills + MCP + 界面 + 沙盒，修复问题</span></label></li>
+          <li><span class="time">10:00–11:30</span><label><input type="checkbox" data-key="d10a2"><span class="t">整理 README / 使用文档</span></label></li>
+          <li><span class="time">14:00–17:30</span><label><input type="checkbox" data-key="d10p"><span class="t">Infra 成果整理：训练代码库归档 + 进阶笔记整理成文</span></label></li>
+          <li><span class="time">19:00–20:00</span><label><input type="checkbox" data-key="d10n"><span class="t">当日复盘</span></label></li>
+        </ul>
+      </article>
+
+      <article class="day">
+        <header>
+          <div class="date">8.25<small>周二</small></div>
+          <div class="phase">收尾 · Day 11</div>
+        </header>
+        <div class="health"><span>步数 ≥7000</span><span>七分饱</span><span>22:30 前睡</span></div>
+        <ul class="blocks">
+          <li><span class="time">08:00–10:00</span><label><input type="checkbox" data-key="d11a1"><span class="t">两周成果 Demo 演示（跑通全流程）</span></label></li>
+          <li><span class="time">10:00–11:30</span><label><input type="checkbox" data-key="d11a2"><span class="t">输出总结文章 / 复盘笔记</span></label></li>
+          <li><span class="time">14:00–17:30</span><label><input type="checkbox" data-key="d11p"><span class="t">补充项选学（量化、投机采样等）+ 制定 9 月计划</span></label></li>
+          <li><span class="time">19:00–20:00</span><label><input type="checkbox" data-key="d11n"><span class="t">两周总结复盘：目标完成度 + 经验教训</span></label></li>
+        </ul>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- 三、周末安排 -->
+  <section id="weekend">
+    <h2><span class="no">三</span>周末安排（休息 · 不安排任务）</h2>
+    <div class="wk-grid">
+      <div class="wk-card">
+        <div class="date">8.15 周六</div>
+        <p>出去玩，好好休息；最多刷视频学习（DeepSeek / LLM 相关）。</p>
+        <label><input type="checkbox" data-key="w1">20:00 回家复盘，22:30 睡觉</label>
+      </div>
+      <div class="wk-card">
+        <div class="date">8.16 周日</div>
+        <p>出去玩；最多刷视频学习。晚上回顾第一周，为第二周做准备。</p>
+        <label><input type="checkbox" data-key="w2">20:00 回家复盘，22:30 睡觉</label>
+      </div>
+      <div class="wk-card">
+        <div class="date">8.22 周六</div>
+        <p>出去玩，好好休息；最多刷视频学习。</p>
+        <label><input type="checkbox" data-key="w3">20:00 回家复盘，22:30 睡觉</label>
+      </div>
+      <div class="wk-card">
+        <div class="date">8.23 周日</div>
+        <p>出去玩。晚上回顾第二周，为最后两天收尾做准备。</p>
+        <label><input type="checkbox" data-key="w4">20:00 回家复盘，22:30 睡觉</label>
+      </div>
+    </div>
+  </section>
+
+  <!-- 四、习惯打卡 -->
+  <section id="habits">
+    <h2><span class="no">四</span>每日习惯打卡</h2>
+    <div class="habits">
+      <div class="progress">
+        <span style="font-size:13px;color:var(--muted);white-space:nowrap">今日完成</span>
+        <div class="bar"><i id="bar"></i></div>
+        <span id="pct" style="font-size:13px;color:var(--forest);white-space:nowrap;font-variant-numeric:tabular-nums">0 / 12（0%）</span>
+      </div>
+      <div class="habit-list">
+        <label><input type="checkbox" data-key="h1">睡眠 8–9 小时，22:30 前睡觉</label>
+        <label><input type="checkbox" data-key="h2">步数 ≥7000（目标 10000，不超 13000）</label>
+        <label><input type="checkbox" data-key="h3">每顿饭后散步 15 分钟</label>
+        <label><input type="checkbox" data-key="h4">每坐 30 分钟起身活动 5 分钟</label>
+        <label><input type="checkbox" data-key="h5">饮食七分饱，晚上少吃（浪费不可耻）</label>
+        <label><input type="checkbox" data-key="h6">每顿吃点有营养的，不强迫吃</label>
+        <label><input type="checkbox" data-key="h7">同一时间只专注一件事</label>
+        <label><input type="checkbox" data-key="h8">10 分钟内能做完的事，立刻去做</label>
+        <label><input type="checkbox" data-key="h9">任务未完成 → 调整任务，不拖延、不否定自己</label>
+        <label><input type="checkbox" data-key="h10">20:00 前回家，22:00 开始准备休息</label>
+        <label><input type="checkbox" data-key="h11">100 元以下不纠结</label>
+        <label><input type="checkbox" data-key="h12">不舒服或不想做 → 马上换环境，深呼吸放松</label>
+      </div>
+    </div>
+  </section>
+
+  <!-- 五、时间表 -->
+  <section id="schedule">
+    <h2><span class="no">五</span>每日时间表</h2>
+    <div class="sched">
+      <div class="box">
+        <h3>工作日模板</h3>
+        <table>
+          <tr><td>07:00–08:00</td><td>起床、早饭 + 制定当日规划</td></tr>
+          <tr><td>08:00–10:00</td><td>任务①：AI Agent</td></tr>
+          <tr><td>10:00–11:30</td><td>任务②：AI Agent</td></tr>
+          <tr><td>11:30–12:40</td><td>午饭 + 散步 15 分钟</td></tr>
+          <tr><td>12:40–13:30</td><td>午休</td></tr>
+          <tr><td>13:30–14:00</td><td>下午活动（散步 / 拉伸）</td></tr>
+          <tr><td>14:00–17:30</td><td>下午工作：Infra</td></tr>
+          <tr><td>17:30–19:00</td><td>晚饭 + 散步（与人沟通）</td></tr>
+          <tr><td>19:00–20:00</td><td>总结 + 输出（复盘）</td></tr>
+          <tr><td>20:00–21:30</td><td>休闲娱乐</td></tr>
+          <tr><td>21:30–22:00</td><td>洗漱、准备休息</td></tr>
+          <tr><td>22:30</td><td>睡觉（保证 8–9 小时）</td></tr>
+        </table>
+      </div>
+      <div class="box">
+        <h3>周末模板</h3>
+        <table>
+          <tr><td>08:00</td><td>起床、洗漱</td></tr>
+          <tr><td>08:30</td><td>出门出发</td></tr>
+          <tr><td>—</td><td>出去玩，不安排任务；最多刷视频学习</td></tr>
+          <tr><td>20:00</td><td>回家复盘</td></tr>
+          <tr><td>22:30</td><td>睡觉</td></tr>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <p class="note">勾选状态自动保存在本地浏览器 · 打印时可选「打印 → 另存为 PDF」</p>
+</main>
+
+<button class="printbtn" id="printbtn" type="button">打 印</button>
+
+<script>
+(function(){
+  var KEY='plan-20260811-25';
+  var state={};
+  try{state=JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){}
+  var boxes=document.querySelectorAll('input[type=checkbox]');
+  boxes.forEach(function(cb){
+    var k=cb.getAttribute('data-key');
+    if(!k)return;
+    if(state[k])cb.checked=true;
+    var row=cb.closest('li,label');
+    if(row&&cb.checked)row.classList.add('done');
+    cb.addEventListener('change',function(){
+      state[k]=cb.checked;
+      try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}
+      if(row)row.classList.toggle('done',cb.checked);
+      updateProgress();
+    });
+  });
+  function updateProgress(){
+    var habits=document.querySelectorAll('.habit-list input');
+    var done=0;
+    habits.forEach(function(cb){if(cb.checked)done++});
+    var total=habits.length;
+    var pct=total?Math.round(done/total*100):0;
+    var bar=document.getElementById('bar');
+    var txt=document.getElementById('pct');
+    if(bar)bar.style.width=pct+'%';
+    if(txt)txt.textContent=done+' / '+total+'（'+pct+'%）';
+  }
+  updateProgress();
+  var pb=document.getElementById('printbtn');
+  if(pb)pb.addEventListener('click',function(){window.print()});
+})();
+</script>
+</body>
+</html>
