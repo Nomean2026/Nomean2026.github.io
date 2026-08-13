@@ -15,7 +15,7 @@
     "description": "",
     "language": "HTML",
     "stargazers_count": 0,
-    "updated_at": "2026-08-13T03:46:58Z",
+    "updated_at": "2026-08-13T04:17:28Z",
     "repo": "https://github.com/Nomean2026/Nomean2026.github.io",
     "pages": "https://nomean2026.github.io/Nomean2026.github.io/",
     "project_json": "https://nomean2026.github.io/Nomean2026.github.io/project.json",
@@ -35,13 +35,13 @@
   {
     "name": "TwoWeekss",
     "description": "",
-    "language": "",
+    "language": "HTML",
     "stargazers_count": 0,
-    "updated_at": "",
-    "repo": "https://github.com/Nomean2026/Nomean2026.github.io/tree/main/TwoWeekss",
+    "updated_at": "2026-08-13T04:16:36Z",
+    "repo": "https://github.com/Nomean2026/TwoWeekss",
     "pages": "https://nomean2026.github.io/TwoWeekss/",
-    "project_json": "",
-    "source": "subfolder"
+    "project_json": "https://nomean2026.github.io/TwoWeekss/project.json",
+    "source": "repo"
   },
   {
     "name": "minimindTutorials",
@@ -119,5 +119,16 @@
     "pages": "https://nomean2026.github.io/xaingqi/",
     "project_json": "https://nomean2026.github.io/xaingqi/project.json",
     "source": "subfolder"
+  },
+  {
+    "name": "xiangqi",
+    "description": "",
+    "language": "HTML",
+    "stargazers_count": 0,
+    "updated_at": "2026-08-13T04:14:34Z",
+    "repo": "https://github.com/Nomean2026/xiangqi",
+    "pages": "https://nomean2026.github.io/xiangqi/",
+    "project_json": "https://nomean2026.github.io/xiangqi/project.json",
+    "source": "repo"
   }
 ]
