@@ -15,7 +15,7 @@
     "description": "",
     "language": "HTML",
     "stargazers_count": 0,
-    "updated_at": "2026-08-12T14:15:55Z",
+    "updated_at": "2026-08-13T03:46:58Z",
     "repo": "https://github.com/Nomean2026/Nomean2026.github.io",
     "pages": "https://nomean2026.github.io/Nomean2026.github.io/",
     "project_json": "https://nomean2026.github.io/Nomean2026.github.io/project.json",
@@ -108,5 +108,16 @@
     "pages": "https://nomean2026.github.io/test/",
     "project_json": "https://nomean2026.github.io/test/project.json",
     "source": "repo"
+  },
+  {
+    "name": "xaingqi",
+    "description": "",
+    "language": "",
+    "stargazers_count": 0,
+    "updated_at": "",
+    "repo": "https://github.com/Nomean2026/Nomean2026.github.io/tree/main/xaingqi",
+    "pages": "https://nomean2026.github.io/xaingqi/",
+    "project_json": "https://nomean2026.github.io/xaingqi/project.json",
+    "source": "subfolder"
   }
 ]
