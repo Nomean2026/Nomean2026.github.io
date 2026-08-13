@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loading...</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+            background: #f5f1eb;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* ─── iframe 全屏加载区 ─── */
+        #content-frame {
+            width: 100%;
+            height: 100vh;
+            border: none;
+        }
+
+        /* ─── 加载提示 ─── */
+        #loading {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: #f5f1eb;
+            z-index: 1;
+            color: #999;
+            font-size: 15px;
+        }
+        #loading .spinner {
+            display: inline-block;
+            width: 28px; height: 28px;
+            border: 3px solid #e0d8d0;
+            border-top-color: #888;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: 12px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        #loading .err { color: #c44; font-weight: 600; }
+
+        /* ─── 右下悬浮按钮组 ─── */
+        .float-group {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 10px;
+            z-index: 99;
+        }
+
+        .float-btn {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background: #2c2c2c;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            font-size: 22px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+            transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
+            position: relative;
+        }
+        .float-btn:hover {
+            transform: scale(1.08);
+            box-shadow: 0 6px 24px rgba(0,0,0,0.25);
+            background: #111;
+        }
+
+        .float-btn .tooltip {
+            position: absolute;
+            right: 62px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #2c2c2c;
+            color: #fff;
+            font-size: 13px;
+            padding: 6px 14px;
+            border-radius: 8px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+        }
+        .float-btn:hover .tooltip {
+            opacity: 1;
+        }
+
+        .float-btn.code-icon svg {
+            width: 22px;
+            height: 22px;
+        }
+
+        /* ─── 左上角导航按钮 ─── */
+        .nav-btn {
+            position: fixed;
+            top: 30px;
+            left: 30px;
+            z-index: 99;
+            background: #2c2c2c;
+        }
+        .nav-btn:hover { background: #111; }
+        .nav-btn svg { width: 22px; height: 22px; }
+        .nav-btn .tooltip { right: auto; left: 62px; }
+
+        /* ─── 目录抽屉 ─── */
+        #nav-mask {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.35);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s;
+            z-index: 101;
+        }
+        #nav-mask.show { opacity: 1; pointer-events: auto; }
+
+        #nav-panel {
+            position: fixed;
+            top: 0; left: 0; bottom: 0;
+            width: min(340px, 86vw);
+            background: #fffdf8;
+            box-shadow: 4px 0 24px rgba(0,0,0,0.18);
+            transform: translateX(-105%);
+            transition: transform 0.28s cubic-bezier(0.22, 0.61, 0.36, 1);
+            z-index: 102;
+            display: flex;
+            flex-direction: column;
+        }
+        #nav-panel.open { transform: translateX(0); }
+
+        .nav-panel-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 18px 16px 14px;
+            border-bottom: 1px solid #eee5d9;
+            flex-shrink: 0;
+        }
+        .nav-panel-title { font-size: 16px; font-weight: 700; color: #2c2c2c; white-space: nowrap; }
+        .nav-panel-sub {
+            font-size: 12px; color: #a0907f;
+            background: #f3ece1;
+            padding: 3px 10px;
+            border-radius: 20px;
+            max-width: 150px;
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .nav-close {
+            margin-left: auto;
+            width: 30px; height: 30px;
+            flex-shrink: 0;
+            border: none; border-radius: 50%;
+            background: #f0e8dd; color: #7a6a58;
+            font-size: 14px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: background 0.2s, color 0.2s;
+        }
+        .nav-close:hover { background: #2c2c2c; color: #fff; }
+
+        .nav-tree {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px 10px 20px;
+            font-size: 14px;
+        }
+        .nav-tree .tree-note { color: #a0907f; padding: 8px 6px; font-size: 13px; line-height: 1.7; }
+        .nav-tree ul { list-style: none; padding-left: 16px; }
+        .tree-item { margin: 1px 0; }
+
+        .tree-dir-label {
+            display: flex; align-items: center; gap: 6px;
+            padding: 5px 8px; border-radius: 8px;
+            cursor: pointer; user-select: none;
+            color: #4a3f33; font-weight: 600;
+            min-width: 0;
+        }
+        .tree-dir-label:hover { background: #f3ece1; }
+        .tree-dir-label .caret {
+            display: inline-block; width: 10px; text-align: center;
+            font-size: 11px; color: #b0a090;
+            transition: transform 0.2s; flex-shrink: 0;
+        }
+        .tree-dir-label .fname {
+            flex: 1; min-width: 0;
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .tree-item.open > .tree-dir-label .caret { transform: rotate(90deg); }
+        .tree-children { display: none; }
+        .tree-item.open > .tree-children { display: block; }
+
+        .tree-file {
+            display: flex; align-items: center; gap: 6px;
+            padding: 5px 8px; border-radius: 8px;
+            color: #6a5d4d; text-decoration: none;
+            min-width: 0;
+        }
+        .tree-file .fname {
+            flex: 1; min-width: 0;
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .tree-file.html { color: #2c2c2c; cursor: pointer; }
+        .tree-file.html:hover { background: #f3ece1; color: #111; }
+        .tree-file.plain { opacity: 0.55; cursor: default; }
+
+        .tree-retry {
+            margin: 10px 6px; padding: 6px 16px;
+            border: 1px solid #d8ccbb; border-radius: 8px;
+            background: #fff; color: #4a3f33;
+            cursor: pointer; font-size: 13px;
+        }
+        .tree-retry:hover { background: #2c2c2c; color: #fff; border-color: #2c2c2c; }
+
+        @media (max-width: 600px) {
+            .nav-btn { top: 20px; left: 20px; }
+            .nav-btn .tooltip { left: 54px; }
+        }
+
+        @media (max-width: 600px) {
+            .float-group {
+                bottom: 20px;
+                right: 20px;
+                gap: 8px;
+            }
+            .float-btn {
+                width: 44px;
+                height: 44px;
+                font-size: 18px;
+            }
+            .float-btn .tooltip {
+                font-size: 12px;
+                padding: 4px 10px;
+                right: 54px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ═══ 加载提示 ─── -->
+<div id="loading">
+    <div class="spinner"></div>
+    <div>正在加载…</div>
+</div>
+
+<!-- ═══ 左上角导航按钮 ─── -->
+<a id="nav-btn" href="javascript:void(0)" class="float-btn nav-btn" title="文件目录" aria-label="文件目录">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+        <path d="M4 6h16M4 12h16M4 18h10"/>
+    </svg>
+    <span class="tooltip">文件目录</span>
+</a>
+
+<!-- ═══ 内容 iframe（全屏显示同名 HTML） ─── -->
+<iframe id="content-frame" src="" sandbox="allow-scripts allow-same-origin" loading="lazy"></iframe>
+
+<!-- ═══ 右下悬浮按钮组 ─── -->
+<div class="float-group">
+    <!-- GitHub 仓库 -->
+    <a id="github-btn" href="#" class="float-btn code-icon" target="_blank" rel="noopener">
+        <svg viewBox="0 0 16 16" fill="currentColor">
+            <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+        </svg>
+        <span class="tooltip" id="github-tooltip">GitHub 仓库</span>
+    </a>
+
+    <!-- 返回当前主页 -->
+    <a id="current-home-btn" href="javascript:void(0)" class="float-btn" title="返回当前主页">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 11.5 12 4l9 7.5"/>
+            <path d="M5.5 10.2V19h13v-8.8"/>
+            <path d="M10 19v-4.8h4V19"/>
+        </svg>
+        <span class="tooltip" id="current-home-tooltip">当前主页</span>
+    </a>
+
+    <!-- 返回首页 -->
+    <a id="home-btn" href="https://nomean2026.github.io/" class="float-btn" target="_blank" rel="noopener">
+        🏠
+        <span class="tooltip" id="home-tooltip">返回 nomean2026.github.io</span>
+    </a>
+</div>
+
+<!-- ═══ 文件目录抽屉 ─── -->
+<div id="nav-mask"></div>
+<aside id="nav-panel" aria-label="文件目录">
+    <div class="nav-panel-header">
+        <span class="nav-panel-title">📂 文件目录</span>
+        <span class="nav-panel-sub" id="nav-panel-sub">…</span>
+        <button id="nav-close" class="nav-close" title="关闭" aria-label="关闭">✕</button>
+    </div>
+    <div id="nav-tree" class="nav-tree"></div>
+</aside>
+
+<script>
+(function () {
+
+    // ─── 1. 从 URL 解析仓库名 ───
+    const path = window.location.pathname.replace(/\/+$/, '');
+    const repoName = path.split('/').filter(Boolean).pop() || '';
+
+    // ─── 2. 推断 GitHub 用户和仓库地址 ───
+    const hostParts = window.location.hostname.split('.');
+    const ghUser = hostParts[0];
+    const repoUrl = repoName ? `https://github.com/${ghUser}/${repoName}` : `https://github.com/${ghUser}`;
+
+    // ─── 3. GitHub 按钮：project.json 仓库地址 → 同名仓库 → 主页仓库 ───
+    const ghBtn = document.getElementById('github-btn');
+    const ghTooltip = document.getElementById('github-tooltip');
+    ghBtn.href = repoUrl;
+    ghTooltip.textContent = repoName ? `${ghUser}/${repoName}` : ghUser;
+
+    // 导航到仓库的地址规则：
+    //   ① project.json 的 repo 字段（ps1 部署时写入，最准确）
+    //   ② 没有 project.json → 默认同名仓库 https://github.com/<user>/<repoName>
+    //   ③ 同名仓库 404（不存在）→ 主页仓库 https://github.com/<user>/<user>.github.io
+    async function resolveGithubUrl() {
+        try {
+            const pj = await fetch('project.json', { signal: AbortSignal.timeout(6000) });
+            if (pj.ok) {
+                const data = await pj.json().catch(() => null);
+                if (data && typeof data.repo === 'string' && data.repo.trim()) {
+                    return { url: data.repo.trim(), via: 'project.json' };
+                }
+            }
+        } catch (e) { /* 没有 project.json → 走默认规则 */ }
+        if (!repoName) return { url: `https://github.com/${ghUser}/${ghUser}.github.io`, via: 'home' };
+        const candidate = `https://github.com/${ghUser}/${repoName}`;
+        try {
+            const r = await fetch(`https://api.github.com/repos/${ghUser}/${repoName}`);
+            if (r.ok) return { url: candidate, via: 'repo' };
+        } catch (e) { /* API 异常时保守返回默认仓库 */ }
+        return { url: `https://github.com/${ghUser}/${ghUser}.github.io`, via: 'home' };
+    }
+
+    async function setupGithubBtn() {
+        const { url, via } = await resolveGithubUrl();
+        ghBtn.href = url;
+        const pretty = url.replace(/^https?:\/\/github\.com\//, '');
+        ghTooltip.textContent = (via === 'project.json' ? `${pretty} · project.json` : pretty) || 'GitHub 仓库';
+    }
+    setupGithubBtn();
+
+    // ─── 仓库来源（文件树 API 用）：模式1 = 同名公开仓库（默认）；模式2 = 主页仓库下同名文件夹 ───
+    let source = { mode: 1, repo: repoName, branch: 'main', basePath: '' };
+    let sourcePromise = null;
+
+    async function resolveSource() {
+        if (!repoName) return source;
+        if (sourcePromise) return sourcePromise;
+        sourcePromise = (async () => {
+            try {
+                const r1 = await fetch(`https://api.github.com/repos/${ghUser}/${repoName}`);
+                if (r1.ok) {
+                    const info = await r1.json();
+                    source = { mode: 1, repo: repoName, branch: info.default_branch || 'main', basePath: '' };
+                } else {
+                    // 模式1不存在 → 尝试主页仓库下同名文件夹
+                    const pagesRepo = `${ghUser}.github.io`;
+                    const r2 = await fetch(`https://api.github.com/repos/${ghUser}/${pagesRepo}`);
+                    if (r2.ok) {
+                        const info = await r2.json();
+                        source = { mode: 2, repo: pagesRepo, branch: info.default_branch || 'main', basePath: repoName };
+                    }
+                }
+            } catch (e) { /* 网络异常时保持默认模式1 */ }
+            return source;
+        })();
+        return sourcePromise;
+    }
+
+    resolveSource(); // 异步探测仓库来源并更新 GitHub 按钮
+
+    // ─── 4. 更新首页按钮 tooltip ───
+    document.getElementById('home-tooltip').textContent = `返回 ${ghUser}.github.io`;
+
+    // ─── 5. 加载与仓库同名的 HTML ───
+    const loadingEl = document.getElementById('loading');
+    const frame = document.getElementById('content-frame');
+
+    if (!repoName) {
+        loadingEl.innerHTML = '<div class="err">⚠️ 无法识别仓库名称</div><div style="margin-top:8px;color:#999;font-size:13px;">请在 GitHub Pages 仓库路径下访问此页面。</div>';
+        return;
+    }
+
+    const targetUrl = `./${repoName}.html`;
+
+    fetch(targetUrl, { method: 'HEAD' })
+        .then(res => {
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            loadingEl.style.display = 'none';
+            frame.src = targetUrl;
+        })
+        .catch(() => {
+            loadingEl.innerHTML = `
+                <div class="err">📄 ${repoName}.html 未找到</div>
+                <div style="margin-top:8px;color:#999;font-size:13px;">
+                    请确保仓库中存在与仓库同名的 HTML 文件作为首页内容。
+                </div>
+                <div style="margin-top:6px;color:#bbb;font-size:12px;">
+                    当前仓库: ${repoUrl}
+                </div>
+            `;
+        });
+
+    frame.addEventListener('load', () => {
+        loadingEl.style.display = 'none';
+    });
+
+    // 当前页所在目录（仓库根目录），用于构造仓库内页面的路径
+    const pageBase = window.location.href.replace(/[^/]*$/, '');
+
+    // ─── 6. 返回当前主页按钮（右下角） ───
+    const currentHomeBtn = document.getElementById('current-home-btn');
+    const currentHomeTip = document.getElementById('current-home-tooltip');
+
+    function showLoading() { loadingEl.style.display = 'flex'; }
+
+    if (repoName) {
+        currentHomeTip.textContent = `返回 ${repoName} 主页`;
+        currentHomeBtn.addEventListener('click', (ev) => {
+            ev.preventDefault();
+            // 整页跳转到本项目的根地址（即本加载器 index 页面）
+            window.location.href = pageBase;
+        });
+    } else {
+        currentHomeBtn.style.display = 'none';
+    }
+
+    // ─── 7. 左上角文件目录导航 ───
+    const navBtn = document.getElementById('nav-btn');
+    const navPanel = document.getElementById('nav-panel');
+    const navMask = document.getElementById('nav-mask');
+    const navClose = document.getElementById('nav-close');
+    const navTree = document.getElementById('nav-tree');
+    const navSub = document.getElementById('nav-panel-sub');
+
+    let treeLoaded = false;
+    let treeLoading = false;
+
+    function openNav() {
+        navPanel.classList.add('open');
+        navMask.classList.add('show');
+        if (!repoName) {
+            navTree.innerHTML = '<div class="tree-note">⚠️ 无法识别仓库名称，无法加载目录。</div>';
+            return;
+        }
+        openNavAsync();
+    }
+
+    async function openNavAsync() {
+        const src = await resolveSource();
+        navSub.textContent = src.mode === 1
+            ? `${ghUser}/${repoName}`
+            : `${ghUser}/${src.repo}/${src.basePath}`;
+        if (!treeLoaded && !treeLoading) loadTree();
+    }
+
+    function closeNav() {
+        navPanel.classList.remove('open');
+        navMask.classList.remove('show');
+    }
+
+    navBtn.addEventListener('click', openNav);
+    navClose.addEventListener('click', closeNav);
+    navMask.addEventListener('click', closeNav);
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeNav();
+    });
+
+    async function loadTree() {
+        treeLoading = true;
+        navTree.innerHTML = '<div class="tree-note">⏳ 正在加载目录…</div>';
+        try {
+            // ── 渠道 ①：project.json（deploy_all.ps1 部署时自动生成，位于项目根目录）──
+            try {
+                const pj = await fetch('project.json', { signal: AbortSignal.timeout(6000) });
+                if (pj.ok) {
+                    const data = await pj.json().catch(() => null);
+                    if (data && Array.isArray(data.tree) && data.tree.length) {
+                        // project.json 的 type 是 dir/file，映射为 buildTree 期望的 tree/blob
+                        const entries = data.tree
+                            .filter(e => e && e.path)
+                            .map(e => ({ type: e.type === 'dir' ? 'tree' : 'blob', path: e.path }));
+                        if (entries.length) {
+                            navTree.innerHTML = '';
+                            const rootLi = renderNode(buildTree(entries));
+                            rootLi.classList.add('open');
+                            navTree.appendChild(rootLi);
+                            treeLoaded = true;
+                            const when = data.generated_at ? ' · ' + new Date(data.generated_at).toLocaleDateString('zh-CN') : '';
+                            navSub.textContent = (navSub.textContent || repoName) + ` · project.json${when}`;
+                            return;
+                        }
+                    }
+                }
+            } catch (e) { /* 没有 project.json → 回退 GitHub API */ }
+
+            // ── 渠道 ②：GitHub API ──
+            const src = await resolveSource();
+            const res = await fetch(
+                `https://api.github.com/repos/${ghUser}/${src.repo}/git/trees/${src.branch}?recursive=1`
+            );
+            const body = await res.json().catch(() => ({}));
+            if (!res.ok) throw new Error(body.message || `HTTP ${res.status}`);
+
+            let entries = (body.tree || [])
+                .filter(e => e.type === 'blob' || e.type === 'tree')
+                .filter(e => e.path !== '.git' && !e.path.startsWith('.git/'));
+
+            // 模式2：只保留主页仓库中该文件夹下的内容
+            if (src.mode === 2 && src.basePath) {
+                const hasDir = (body.tree || []).some(e => e.path === src.basePath);
+                if (!hasDir) throw new Error(`主页仓库中未找到文件夹 ${repoName}`);
+                const prefix = src.basePath + '/';
+                entries = entries
+                    .filter(e => e.path === src.basePath || e.path.startsWith(prefix))
+                    .map(e => ({ ...e, path: e.path === src.basePath ? '' : e.path.slice(prefix.length) }))
+                    .filter(e => e.path !== '');
+            }
+
+            if (!entries.length) {
+                navTree.innerHTML = '<div class="tree-note">📂 仓库中没有文件</div>';
+                treeLoaded = true;
+                return;
+            }
+
+            navTree.innerHTML = '';
+            const rootLi = renderNode(buildTree(entries));
+            rootLi.classList.add('open');
+            navTree.appendChild(rootLi);
+            treeLoaded = true;
+        } catch (err) {
+            navTree.innerHTML = `
+                <div class="tree-note">⚠️ 目录加载失败</div>
+                <div class="tree-note" style="color:#c44">${err.message}</div>
+                <div class="tree-note">已尝试：project.json、同名仓库 ${ghUser}/${repoName} 与主页仓库 ${ghUser}.github.io/${repoName}。请确认项目已部署（生成 project.json）或仓库为公开，或稍后重试（GitHub API 有访问频率限制）。</div>
+                <button id="tree-retry" class="tree-retry">重试</button>`;
+            const retry = document.getElementById('tree-retry');
+            if (retry) retry.addEventListener('click', () => loadTree());
+        } finally {
+            treeLoading = false;
+        }
+    }
+
+    // 根据 GitHub API 的扁平文件列表构建层级目录树
+    function buildTree(entries) {
+        const root = { type: 'dir', name: repoName, path: '', children: [] };
+        const dirMap = { '': root };
+        const sorted = [...entries].sort((a, b) => {
+            const ad = a.type === 'tree' ? 0 : 1;
+            const bd = b.type === 'tree' ? 0 : 1;
+            if (ad !== bd) return ad - bd;
+            return a.path.localeCompare(b.path, 'zh-CN', { numeric: true, sensitivity: 'base' });
+        });
+        sorted.forEach((e) => {
+            const parts = e.path.split('/');
+            const name = parts.pop();
+            const parentPath = parts.join('/');
+            const parent = dirMap[parentPath] || root;
+            const node = {
+                type: e.type === 'tree' ? 'dir' : 'file',
+                name: name || e.path,
+                path: e.path,
+                children: [],
+            };
+            parent.children.push(node);
+            if (node.type === 'dir') dirMap[e.path] = node;
+        });
+        return root;
+    }
+
+    function encodePath(path) {
+        return path.split('/').map(encodeURIComponent).join('/');
+    }
+
+    function renderNode(node) {
+        const li = document.createElement('li');
+        li.className = 'tree-item';
+
+        if (node.type === 'dir') {
+            const label = document.createElement('div');
+            label.className = 'tree-dir-label';
+            const caret = document.createElement('span');
+            caret.className = 'caret';
+            caret.textContent = '▸';
+            const fname = document.createElement('span');
+            fname.className = 'fname';
+            fname.textContent = '📁 ' + node.name;
+            label.append(caret, fname);
+            label.title = node.name;
+            label.addEventListener('click', () => li.classList.toggle('open'));
+
+            const ul = document.createElement('ul');
+            ul.className = 'tree-children';
+            node.children.forEach((c) => ul.appendChild(renderNode(c)));
+            li.append(label, ul);
+        } else {
+            const isHtml = /\.html?$/i.test(node.name);
+            const a = document.createElement('a');
+            a.className = 'tree-file' + (isHtml ? ' html' : ' plain');
+            if (isHtml) {
+                a.href = pageBase + encodePath(node.path);
+                a.title = '打开 ' + node.path;
+                a.addEventListener('click', (ev) => {
+                    ev.preventDefault();
+                    if (node.path === 'index.html') {
+                        // 根 index.html 是本加载器，整页跳转到项目根地址
+                        window.location.href = pageBase;
+                        return;
+                    }
+                    openPage(node.path);
+                });
+            }
+            const fname = document.createElement('span');
+            fname.className = 'fname';
+            fname.textContent = (isHtml ? '📄 ' : '📎 ') + node.name;
+            a.appendChild(fname);
+            li.appendChild(a);
+        }
+        return li;
+    }
+
+    function openPage(path) {
+        showLoading();
+        frame.src = pageBase + encodePath(path);
+        closeNav();
+    }
+
+    console.log(`%c📂 ${repoName} · 导航已就绪`, 'font-size:16px;font-weight:bold;color:#5a4a3a;');
+    console.log(`%c  GitHub: ${repoUrl}`, 'color:#888;');
+
+})();
+</script>
+
+</body>
+</html>

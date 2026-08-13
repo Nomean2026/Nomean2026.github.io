@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>中国象棋</title>
+    <style>
+        :root {
+            --cell-size: 60px;
+            --board-color: #f0d5b0;
+            --line-color: #5c3a21;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #333;
+            color: white;
+            font-family: "Microsoft YaHei", sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+
+        #status {
+            font-size: 24px;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            border-radius: 5px;
+            background-color: #b33939;
+            transition: background-color 0.3s;
+        }
+
+        #status.black-turn {
+            background-color: #2c2c2c;
+            border: 1px solid #fff;
+        }
+
+        /* 棋盘容器 */
+        #board {
+            position: relative;
+            width: calc(8 * var(--cell-size));
+            height: calc(9 * var(--cell-size));
+            background-color: var(--board-color);
+            padding: 30px; /* 边缘留白 */
+            border: 5px solid #8b5a2b;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+            cursor: pointer;
+        }
+
+        /* 画棋盘的线 (使用SVG作为背景图) */
+        #board-lines {
+            position: absolute;
+            top: 30px;
+            left: 30px;
+            width: calc(8 * var(--cell-size));
+            height: calc(9 * var(--cell-size));
+            pointer-events: none;
+        }
+
+        /* 楚河汉界文字 */
+        .river-text {
+            position: absolute;
+            top: calc(4 * var(--cell-size));
+            left: 0;
+            width: 100%;
+            height: var(--cell-size);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            font-size: 30px;
+            font-family: "KaiTi", serif;
+            color: var(--line-color);
+            pointer-events: none;
+            font-weight: bold;
+        }
+
+        /* 棋子样式 */
+        .piece {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #e8c99b;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.4), inset 0 0 10px rgba(139,90,43,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 28px;
+            font-family: "KaiTi", serif;
+            font-weight: bold;
+            transform: translate(-50%, -50%); /* 使坐标对应圆心 */
+            transition: top 0.2s, left 0.2s;
+            z-index: 10;
+        }
+
+        /* 棋子颜色 */
+        .piece.red {
+            color: #d63031;
+            border: 2px solid #d63031;
+        }
+
+        .piece.black {
+            color: #2d3436;
+            border: 2px solid #2d3436;
+        }
+
+        /* 选中状态 */
+        .piece.selected {
+            box-shadow: 0 0 15px 5px #00b894;
+            z-index: 20;
+        }
+
+        /* 提示点 */
+        .highlight {
+            position: absolute;
+            width: 15px;
+            height: 15px;
+            background-color: rgba(0, 184, 148, 0.6);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="status">红方下</div>
+    
+    <div id="board">
+        <!-- 动态生成SVG棋盘线条 -->
+        <svg id="board-lines"></svg>
+        <div class="river-text">
+            <span>楚 河</span>
+            <span>汉 界</span>
+        </div>
+        <!-- 棋子将被JS注入到这里 -->
+    </div>
+
+<script>
+    const CELL_SIZE = 60;
+    const PADDING = 30; // 对应CSS中的padding
+
+    // 棋局状态
+    let currentTurn = 'red'; // 'red' 或 'black'
+    let selectedPiece = null;
+    let pieces = []; // 存储所有棋子对象的数组
+
+    // 初始棋盘布置 (x: 0-8, y: 0-9)
+    const initialSetup = [
+        // 黑方 (上)
+        { id: 'b_c1', type: '车', color: 'black', x: 0, y: 0 },
+        { id: 'b_m1', type: '马', color: 'black', x: 1, y: 0 },
+        { id: 'b_x1', type: '象', color: 'black', x: 2, y: 0 },
+        { id: 'b_s1', type: '士', color: 'black', x: 3, y: 0 },
+        { id: 'b_j',  type: '将', color: 'black', x: 4, y: 0 },
+        { id: 'b_s2', type: '士', color: 'black', x: 5, y: 0 },
+        { id: 'b_x2', type: '象', color: 'black', x: 6, y: 0 },
+        { id: 'b_m2', type: '马', color: 'black', x: 7, y: 0 },
+        { id: 'b_c2', type: '车', color: 'black', x: 8, y: 0 },
+        { id: 'b_p1', type: '炮', color: 'black', x: 1, y: 2 },
+        { id: 'b_p2', type: '炮', color: 'black', x: 7, y: 2 },
+        { id: 'b_z1', type: '卒', color: 'black', x: 0, y: 3 },
+        { id: 'b_z2', type: '卒', color: 'black', x: 2, y: 3 },
+        { id: 'b_z3', type: '卒', color: 'black', x: 4, y: 3 },
+        { id: 'b_z4', type: '卒', color: 'black', x: 6, y: 3 },
+        { id: 'b_z5', type: '卒', color: 'black', x: 8, y: 3 },
+
+        // 红方 (下)
+        { id: 'r_z1', type: '兵', color: 'red', x: 0, y: 6 },
+        { id: 'r_z2', type: '兵', color: 'red', x: 2, y: 6 },
+        { id: 'r_z3', type: '兵', color: 'red', x: 4, y: 6 },
+        { id: 'r_z4', type: '兵', color: 'red', x: 6, y: 6 },
+        { id: 'r_z5', type: '兵', color: 'red', x: 8, y: 6 },
+        { id: 'r_p1', type: '炮', color: 'red', x: 1, y: 7 },
+        { id: 'r_p2', type: '炮', color: 'red', x: 7, y: 7 },
+        { id: 'r_c1', type: '车', color: 'red', x: 0, y: 9 },
+        { id: 'r_m1', type: '马', color: 'red', x: 1, y: 9 },
+        { id: 'r_x1', type: '相', color: 'red', x: 2, y: 9 },
+        { id: 'r_s1', type: '仕', color: 'red', x: 3, y: 9 },
+        { id: 'r_j',  type: '帅', color: 'red', x: 4, y: 9 },
+        { id: 'r_s2', type: '仕', color: 'red', x: 5, y: 9 },
+        { id: 'r_x2', type: '相', color: 'red', x: 6, y: 9 },
+        { id: 'r_m2', type: '马', color: 'red', x: 7, y: 9 },
+        { id: 'r_c2', type: '车', color: 'red', x: 8, y: 9 }
+    ];
+
+    const boardEl = document.getElementById('board');
+    const svgEl = document.getElementById('board-lines');
+    const statusEl = document.getElementById('status');
+
+    // 绘制棋盘线条 (使用SVG)
+    function drawBoardLines() {
+        const lineStyle = "stroke:#5c3a21; stroke-width:2;";
+        let svgContent = '';
+
+        // 横线 (10条)
+        for (let i = 0; i <= 9; i++) {
+            svgContent += `<line x1="0" y1="${i * CELL_SIZE}" x2="${8 * CELL_SIZE}" y2="${i * CELL_SIZE}" style="${lineStyle}" />`;
+        }
+
+        // 竖线 (9条，中间被楚河断开)
+        for (let i = 0; i <= 8; i++) {
+            if (i === 0 || i === 8) {
+                // 两边竖线连通
+                svgContent += `<line x1="${i * CELL_SIZE}" y1="0" x2="${i * CELL_SIZE}" y2="${9 * CELL_SIZE}" style="${lineStyle}" />`;
+            } else {
+                // 中间竖线断开
+                svgContent += `<line x1="${i * CELL_SIZE}" y1="0" x2="${i * CELL_SIZE}" y2="${4 * CELL_SIZE}" style="${lineStyle}" />`;
+                svgContent += `<line x1="${i * CELL_SIZE}" y1="${5 * CELL_SIZE}" x2="${i * CELL_SIZE}" y2="${9 * CELL_SIZE}" style="${lineStyle}" />`;
+            }
+        }
+
+        // 九宫格斜线 (黑方)
+        svgContent += `<line x1="${3 * CELL_SIZE}" y1="0" x2="${5 * CELL_SIZE}" y2="${2 * CELL_SIZE}" style="${lineStyle}" />`;
+        svgContent += `<line x1="${5 * CELL_SIZE}" y1="0" x2="${3 * CELL_SIZE}" y2="${2 * CELL_SIZE}" style="${lineStyle}" />`;
+
+        // 九宫格斜线 (红方)
+        svgContent += `<line x1="${3 * CELL_SIZE}" y1="${7 * CELL_SIZE}" x2="${5 * CELL_SIZE}" y2="${9 * CELL_SIZE}" style="${lineStyle}" />`;
+        svgContent += `<line x1="${5 * CELL_SIZE}" y1="${7 * CELL_SIZE}" x2="${3 * CELL_SIZE}" y2="${9 * CELL_SIZE}" style="${lineStyle}" />`;
+
+        svgEl.innerHTML = svgContent;
+    }
+
+    // 初始化棋子DOM
+    function initPieces() {
+        pieces = JSON.parse(JSON.stringify(initialSetup)); // 深拷贝
+        pieces.forEach(p => {
+            const el = document.createElement('div');
+            el.className = `piece ${p.color}`;
+            el.id = p.id;
+            el.innerText = p.type;
+            boardEl.appendChild(el);
+            updatePiecePosition(p);
+        });
+    }
+
+    // 更新单个棋子的位置
+    function updatePiecePosition(piece) {
+        const el = document.getElementById(piece.id);
+        if (el) {
+            el.style.left = (piece.x * CELL_SIZE + PADDING) + 'px';
+            el.style.top = (piece.y * CELL_SIZE + PADDING) + 'px';
+        }
+    }
+
+    // 切换回合
+    function toggleTurn() {
+        currentTurn = currentTurn === 'red' ? 'black' : 'red';
+        if (currentTurn === 'red') {
+            statusEl.innerText = "红方下";
+            statusEl.className = "";
+        } else {
+            statusEl.innerText = "黑方下";
+            statusEl.className = "black-turn";
+        }
+    }
+
+    // 获取坐标上的棋子
+    function getPieceAt(x, y) {
+        return pieces.find(p => p.x === x && p.y === y);
+    }
+
+    // 棋盘点击事件
+    boardEl.addEventListener('click', function(e) {
+        // 计算点击的网格坐标
+        const rect = boardEl.getBoundingClientRect();
+        const clickX = e.clientX - rect.left - PADDING;
+        const clickY = e.clientY - rect.top - PADDING;
+
+        // 容错范围，使得点击交叉点附近就能触发
+        const x = Math.round(clickX / CELL_SIZE);
+        const y = Math.round(clickY / CELL_SIZE);
+
+        // 确保点击在有效范围内
+        if (x < 0 || x > 8 || y < 0 || y > 9) return;
+
+        const clickedPiece = getPieceAt(x, y);
+
+        if (selectedPiece) {
+            // 如果已经选中了棋子
+            if (clickedPiece) {
+                if (clickedPiece.color === selectedPiece.color) {
+                    // 点击了自己的其他棋子，切换选中
+                    document.getElementById(selectedPiece.id).classList.remove('selected');
+                    selectedPiece = clickedPiece;
+                    document.getElementById(selectedPiece.id).classList.add('selected');
+                } else {
+                    // 点击了敌方棋子，吃子！(沙盒模式：不校验规则)
+                    const enemyEl = document.getElementById(clickedPiece.id);
+                    enemyEl.remove(); // 移除DOM
+                    pieces = pieces.filter(p => p.id !== clickedPiece.id); // 从数组移除
+                    
+                    // 移动选中棋子
+                    selectedPiece.x = x;
+                    selectedPiece.y = y;
+                    updatePiecePosition(selectedPiece);
+                    document.getElementById(selectedPiece.id).classList.remove('selected');
+                    selectedPiece = null;
+                    toggleTurn();
+                }
+            } else {
+                // 点击了空地，移动！(沙盒模式：不校验规则)
+                selectedPiece.x = x;
+                selectedPiece.y = y;
+                updatePiecePosition(selectedPiece);
+                document.getElementById(selectedPiece.id).classList.remove('selected');
+                selectedPiece = null;
+                toggleTurn();
+            }
+        } else {
+            // 如果没有选中棋子
+            if (clickedPiece && clickedPiece.color === currentTurn) {
+                // 只能选中当前回合颜色的棋子
+                selectedPiece = clickedPiece;
+                document.getElementById(selectedPiece.id).classList.add('selected');
+            }
+        }
+    });
+
+    // 初始化游戏
+    drawBoardLines();
+    initPieces();
+
+</script>
+</body>
+</html>

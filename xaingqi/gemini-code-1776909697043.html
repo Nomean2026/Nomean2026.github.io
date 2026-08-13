@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>中国象棋 HTML5</title>
+<style>
+    body {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        background-color: #f4f4f4;
+        margin: 0;
+        font-family: "KaiTi", "楷体", serif;
+    }
+    h2 { margin-bottom: 10px; color: #333; }
+    
+    /* 棋盘容器 */
+    #board {
+        width: 450px;
+        height: 500px;
+        background-color: #eeb482; /* 木纹底色 */
+        position: relative;
+        border: 3px solid #5a3c18;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        cursor: crosshair;
+    }
+
+    /* 棋盘线条 (通过SVG绘制) */
+    svg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1;
+        pointer-events: none; /* 让SVG不阻挡点击事件 */
+    }
+
+    /* 棋子样式 */
+    .piece {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-color: #ffeedd;
+        border: 2px solid #5a3c18;
+        position: absolute;
+        z-index: 2;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 24px;
+        font-weight: bold;
+        cursor: pointer;
+        user-select: none;
+        box-shadow: 2px 2px 4px rgba(0,0,0,0.4);
+        /* 使棋子中心对齐到交叉点 */
+        transform: translate(-50%, -50%);
+        transition: top 0.2s, left 0.2s;
+    }
+
+    .piece.red {
+        color: #d32f2f;
+        border-color: #d32f2f;
+    }
+
+    .piece.black {
+        color: #111;
+        border-color: #111;
+    }
+
+    .piece.selected {
+        box-shadow: 0 0 10px 3px #1976d2, inset 0 0 5px rgba(0,0,0,0.2);
+        transform: translate(-50%, -50%) scale(1.1);
+        z-index: 3;
+    }
+</style>
+</head>
+<body>
+
+<h2>中国象棋</h2>
+<div id="board" onclick="boardClick(event)">
+    <svg id="lines"></svg>
+    </div>
+
+<script>
+    // 棋盘配置参数
+    const boardWidth = 450;
+    const boardHeight = 500;
+    const cols = 9;
+    const rows = 10;
+    const cellW = boardWidth / cols;
+    const cellH = boardHeight / rows;
+    const paddingX = cellW / 2;
+    const paddingY = cellH / 2;
+
+    // 1. 绘制棋盘线条 (SVG)
+    const svg = document.getElementById('lines');
+    let linesHTML = '';
+    
+    // 竖线
+    for (let i = 0; i < cols; i++) {
+        let x = paddingX + i * cellW;
+        linesHTML += `<line x1="${x}" y1="${paddingY}" x2="${x}" y2="${paddingY + 4 * cellH}" stroke="#5a3c18" stroke-width="1.5" />`;
+        linesHTML += `<line x1="${x}" y1="${paddingY + 5 * cellH}" x2="${x}" y2="${paddingY + 9 * cellH}" stroke="#5a3c18" stroke-width="1.5" />`;
+    }
+    // 边框相连 (跨越楚河汉界的左右两根竖线)
+    linesHTML += `<line x1="${paddingX}" y1="${paddingY + 4 * cellH}" x2="${paddingX}" y2="${paddingY + 5 * cellH}" stroke="#5a3c18" stroke-width="1.5" />`;
+    linesHTML += `<line x1="${paddingX + 8 * cellW}" y1="${paddingY + 4 * cellH}" x2="${paddingX + 8 * cellW}" y2="${paddingY + 5 * cellH}" stroke="#5a3c18" stroke-width="1.5" />`;
+
+    // 横线
+    for (let i = 0; i < rows; i++) {
+        let y = paddingY + i * cellH;
+        linesHTML += `<line x1="${paddingX}" y1="${y}" x2="${paddingX + 8 * cellW}" y2="${y}" stroke="#5a3c18" stroke-width="1.5" />`;
+    }
+
+    // 九宫格交叉线 (黑方)
+    linesHTML += `<line x1="${paddingX + 3 * cellW}" y1="${paddingY}" x2="${paddingX + 5 * cellW}" y2="${paddingY + 2 * cellH}" stroke="#5a3c18" stroke-width="1.5" />`;
+    linesHTML += `<line x1="${paddingX + 5 * cellW}" y1="${paddingY}" x2="${paddingX + 3 * cellW}" y2="${paddingY + 2 * cellH}" stroke="#5a3c18" stroke-width="1.5" />`;
+    
+    // 九宫格交叉线 (红方)
+    linesHTML += `<line x1="${paddingX + 3 * cellW}" y1="${paddingY + 7 * cellH}" x2="${paddingX + 5 * cellW}" y2="${paddingY + 9 * cellH}" stroke="#5a3c18" stroke-width="1.5" />`;
+    linesHTML += `<line x1="${paddingX + 5 * cellW}" y1="${paddingY + 7 * cellH}" x2="${paddingX + 3 * cellW}" y2="${paddingY + 9 * cellH}" stroke="#5a3c18" stroke-width="1.5" />`;
+
+    // 楚河汉界文字
+    linesHTML += `<text x="${paddingX + 1.2 * cellW}" y="${paddingY + 4.75 * cellH}" font-size="28" fill="#5a3c18" font-family="KaiTi">楚 河</text>`;
+    linesHTML += `<text x="${paddingX + 5.2 * cellW}" y="${paddingY + 4.75 * cellH}" font-size="28" fill="#5a3c18" font-family="KaiTi">汉 界</text>`;
+
+    svg.innerHTML = linesHTML;
+
+    // 2. 初始化棋子数据
+    const initialPieces = [
+        // 黑方
+        { color: 'black', label: '車', x: 0, y: 0 }, { color: 'black', label: '馬', x: 1, y: 0 },
+        { color: 'black', label: '象', x: 2, y: 0 }, { color: 'black', label: '士', x: 3, y: 0 },
+        { color: 'black', label: '將', x: 4, y: 0 }, { color: 'black', label: '士', x: 5, y: 0 },
+        { color: 'black', label: '象', x: 6, y: 0 }, { color: 'black', label: '馬', x: 7, y: 0 },
+        { color: 'black', label: '車', x: 8, y: 0 },
+        { color: 'black', label: '砲', x: 1, y: 2 }, { color: 'black', label: '砲', x: 7, y: 2 },
+        { color: 'black', label: '卒', x: 0, y: 3 }, { color: 'black', label: '卒', x: 2, y: 3 },
+        { color: 'black', label: '卒', x: 4, y: 3 }, { color: 'black', label: '卒', x: 6, y: 3 },
+        { color: 'black', label: '卒', x: 8, y: 3 },
+
+        // 红方
+        { color: 'red', label: '車', x: 0, y: 9 }, { color: 'red', label: '馬', x: 1, y: 9 },
+        { color: 'red', label: '相', x: 2, y: 9 }, { color: 'red', label: '仕', x: 3, y: 9 },
+        { color: 'red', label: '帥', x: 4, y: 9 }, { color: 'red', label: '仕', x: 5, y: 9 },
+        { color: 'red', label: '相', x: 6, y: 9 }, { color: 'red', label: '馬', x: 7, y: 9 },
+        { color: 'red', label: '車', x: 8, y: 9 },
+        { color: 'red', label: '炮', x: 1, y: 7 }, { color: 'red', label: '炮', x: 7, y: 7 },
+        { color: 'red', label: '兵', x: 0, y: 6 }, { color: 'red', label: '兵', x: 2, y: 6 },
+        { color: 'red', label: '兵', x: 4, y: 6 }, { color: 'red', label: '兵', x: 6, y: 6 },
+        { color: 'red', label: '兵', x: 8, y: 6 }
+    ];
+
+    const board = document.getElementById('board');
+    let pieces = [...initialPieces];
+    let selectedPiece = null;
+
+    // 3. 渲染棋盘上的棋子
+    function render() {
+        // 清除旧棋子DOM
+        document.querySelectorAll('.piece').forEach(p => p.remove());
+        
+        pieces.forEach(p => {
+            const div = document.createElement('div');
+            div.className = `piece ${p.color} ${selectedPiece === p ? 'selected' : ''}`;
+            div.innerText = p.label;
+            // 计算在棋盘上的绝对像素位置
+            div.style.left = (paddingX + p.x * cellW) + 'px';
+            div.style.top = (paddingY + p.y * cellH) + 'px';
+            
+            // 棋子点击事件
+            div.onclick = (e) => {
+                e.stopPropagation(); // 阻止事件冒泡到棋盘
+                
+                if (selectedPiece && selectedPiece.color !== p.color) {
+                    // 吃子逻辑 (未校验规则，直接吃)
+                    pieces = pieces.filter(piece => piece !== p);
+                    selectedPiece.x = p.x;
+                    selectedPiece.y = p.y;
+                    selectedPiece = null;
+                } else if (selectedPiece === p) {
+                    // 取消选中
+                    selectedPiece = null;
+                } else {
+                    // 选中该棋子
+                    selectedPiece = p;
+                }
+                render();
+            };
+            board.appendChild(div);
+        });
+    }
+
+    // 4. 棋盘点击事件 (用于移动棋子到空地)
+    function boardClick(e) {
+        if (!selectedPiece) return;
+        
+        const rect = board.getBoundingClientRect();
+        const clickX = e.clientX - rect.left;
+        const clickY = e.clientY - rect.top;
+        
+        // 寻找最近的网格交点
+        const gridX = Math.round((clickX - paddingX) / cellW);
+        const gridY = Math.round((clickY - paddingY) / cellH);
+
+        // 边界检查并移动
+        if (gridX >= 0 && gridX < cols && gridY >= 0 && gridY < rows) {
+            // 检查该位置是否已有同色棋子 (如果有，则忽略)
+            const targetPiece = pieces.find(p => p.x === gridX && p.y === gridY);
+            if (!targetPiece || targetPiece.color !== selectedPiece.color) {
+                selectedPiece.x = gridX;
+                selectedPiece.y = gridY;
+                selectedPiece = null;
+                render();
+            }
+        }
+    }
+
+    // 初次渲染
+    render();
+</script>
+</body>
+</html>

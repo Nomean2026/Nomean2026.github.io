@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>中国象棋</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700;900&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --bg: #12100e;
+            --fg: #e8dcc8;
+            --muted: #8a7e6b;
+            --accent: #c0392b;
+            --card: #1e1b17;
+            --border: #3a352c;
+            --gold: #d4a017;
+            --board-bg: #dcb36c;
+            --board-line: #6b3a1f;
+            --piece-bg: #f0dcc0;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Noto Serif SC', serif;
+            background: var(--bg);
+            color: var(--fg);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(ellipse at 20% 50%, rgba(192,57,43,0.06) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 20%, rgba(212,160,23,0.05) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 80%, rgba(107,58,31,0.08) 0%, transparent 50%);
+            pointer-events: none;
+        }
+        .game-container {
+            position: relative;
+            z-index: 1;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .title {
+            text-align: center;
+            font-size: 2.2rem;
+            font-weight: 900;
+            letter-spacing: 0.3em;
+            margin-bottom: 6px;
+            background: linear-gradient(90deg, var(--fg) 0%, var(--gold) 40%, var(--fg) 60%, var(--gold) 100%);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: shimmer 4s linear infinite;
+        }
+        @keyframes shimmer {
+            0% { background-position: 0% center; }
+            100% { background-position: 200% center; }
+        }
+        .subtitle {
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--muted);
+            margin-bottom: 12px;
+            letter-spacing: 0.15em;
+        }
+        .status-bar {
+            text-align: center;
+            font-size: 1.1rem;
+            margin-bottom: 14px;
+            height: 36px;
+            line-height: 36px;
+        }
+        .red-turn { color: var(--accent); font-weight: 700; }
+        .black-turn { color: #ccc; font-weight: 700; }
+        .check-warn {
+            color: #e74c3c;
+            font-weight: 700;
+            animation: pulse .6s ease-in-out infinite alternate;
+        }
+        @keyframes pulse { from { opacity: .7; } to { opacity: 1; } }
+        .main-area {
+            display: flex;
+            gap: 24px;
+            justify-content: center;
+            align-items: flex-start;
+        }
+        .board-section { flex-shrink: 0; }
+        .canvas-wrap {
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow:
+                0 0 0 3px var(--border),
+                0 0 0 7px rgba(107,58,31,0.25),
+                0 20px 60px rgba(0,0,0,0.5);
+        }
+        #board {
+            display: block;
+            max-width: 100%;
+            height: auto;
+            cursor: pointer;
+            touch-action: manipulation;
+        }
+        .captured-area {
+            display: flex;
+            align-items: center;
+            min-height: 38px;
+            padding: 4px 8px;
+            font-size: 0.82rem;
+            color: var(--muted);
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+        .cap-piece {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px; height: 28px;
+            border-radius: 50%;
+            font-size: 0.72rem;
+            font-weight: 700;
+            border: 1.5px solid;
+            background: var(--piece-bg);
+            opacity: 0.85;
+        }
+        .cap-piece.red { color: var(--accent); border-color: var(--accent); }
+        .cap-piece.black { color: #1a1a1a; border-color: #555; }
+        .side-panel {
+            width: 240px;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .controls { display: flex; gap: 10px; }
+        .btn {
+            flex: 1;
+            padding: 10px 14px;
+            border: 1.5px solid var(--border);
+            border-radius: 6px;
+            background: var(--card);
+            color: var(--fg);
+            font-family: 'Noto Serif SC', serif;
+            font-size: 0.88rem;
+            cursor: pointer;
+            transition: all .2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .btn:hover { border-color: var(--gold); background: rgba(212,160,23,0.1); color: var(--gold); }
+        .btn:active { transform: scale(0.97); }
+        .btn:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+        .move-log {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 12px;
+            max-height: 420px;
+            overflow-y: auto;
+            flex: 1;
+        }
+        .move-log::-webkit-scrollbar { width: 4px; }
+        .move-log::-webkit-scrollbar-track { background: transparent; }
+        .move-log::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+        .log-title {
+            font-size: 0.82rem;
+            color: var(--muted);
+            margin-bottom: 8px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid var(--border);
+        }
+        .move-item {
+            font-size: 0.78rem;
+            padding: 3px 0;
+            display: flex;
+            gap: 8px;
+        }
+        .move-item .num { color: var(--muted); min-width: 26px; }
+        .move-item .red-m { color: var(--accent); }
+        .move-item .black-m { color: #bbb; }
+        .toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            padding: 12px 28px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 700;
+            z-index: 1000;
+            transition: transform .3s ease;
+            pointer-events: none;
+        }
+        .toast.show { transform: translateX(-50%) translateY(0); }
+        .toast.info { background: rgba(30,27,23,0.95); border: 1px solid var(--border); color: var(--fg); }
+        .toast.check { background: rgba(192,57,43,0.95); border: 1px solid #e74c3c; color: #fff; }
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .3s;
+        }
+        .modal-overlay.show { opacity: 1; pointer-events: all; }
+        .modal-box {
+            background: var(--card);
+            border: 2px solid var(--gold);
+            border-radius: 12px;
+            padding: 36px 44px;
+            text-align: center;
+            transform: scale(0.9);
+            transition: transform .3s;
+        }
+        .modal-overlay.show .modal-box { transform: scale(1); }
+        .modal-title { font-size: 1.6rem; font-weight: 900; color: var(--gold); margin-bottom: 8px; }
+        .modal-msg { font-size: 0.95rem; color: var(--muted); margin-bottom: 24px; }
+        .modal-btn {
+            padding: 10px 32px;
+            border: 1.5px solid var(--gold);
+            border-radius: 6px;
+            background: rgba(212,160,23,0.15);
+            color: var(--gold);
+            font-family: 'Noto Serif SC', serif;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all .2s;
+        }
+        .modal-btn:hover { background: rgba(212,160,23,0.3); }
+        .modal-btn:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+        .help-text {
+            text-align: center;
+            font-size: 0.75rem;
+            color: var(--muted);
+            margin-top: 14px;
+            letter-spacing: 0.05em;
+        }
+        @media (max-width: 820px) {
+            .main-area { flex-direction: column; align-items: center; }
+            .side-panel { width: 100%; max-width: 570px; }
+            .move-log { max-height: 180px; }
+            .title { font-size: 1.5rem; }
+        }
+        @media (max-width: 420px) {
+            .game-container { padding: 10px; }
+            .title { font-size: 1.3rem; letter-spacing: 0.15em; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1 class="title">中国象棋</h1>
+        <p class="subtitle">双人对弈 · 红方先行</p>
+        <div class="status-bar" id="statusBar">
+            <span class="red-turn">红方走棋</span>
+        </div>
+        <div class="main-area">
+            <section class="board-section" aria-label="棋盘区域">
+                <div class="captured-area" id="capBlack">
+                    <span style="margin-right:4px">黑方损失：</span>
+                </div>
+                <div class="canvas-wrap">
+                    <canvas id="board" aria-label="中国象棋棋盘"></canvas>
+                </div>
+                <div class="captured-area" id="capRed">
+                    <span style="margin-right:4px">红方损失：</span>
+                </div>
+            </section>
+            <aside class="side-panel">
+                <div class="controls">
+                    <button class="btn" id="undoBtn" aria-label="悔棋">
+                        <i class="fas fa-undo"></i> 悔棋
+                    </button>
+                    <button class="btn" id="resetBtn" aria-label="重新开始">
+                        <i class="fas fa-redo"></i> 重来
+                    </button>
+                </div>
+                <div class="move-log" id="moveLog" role="log" aria-label="走棋记录">
+                    <div class="log-title"><i class="fas fa-scroll" style="margin-right:4px"></i>走棋记录</div>
+                </div>
+            </aside>
+        </div>
+        <p class="help-text">点击己方棋子选中，再点击绿色标记处移动 · 红色圆环表示可吃子</p>
+    </div>
+
+    <div class="toast" id="toast" role="alert"></div>
+
+    <div class="modal-overlay" id="modal" role="dialog" aria-modal="true">
+        <div class="modal-box">
+            <div class="modal-title" id="modalTitle"></div>
+            <div class="modal-msg" id="modalMsg"></div>
+            <button class="modal-btn" id="modalBtn">再来一局</button>
+        </div>
+    </div>
+
+    <script>
+    /* ==================== 常量 ==================== */
+    const CELL = 60;
+    const PAD  = 45;
+    const R    = 26;   // 棋子半径
+    const W    = 8 * CELL + 2 * PAD;
+    const H    = 9 * CELL + 2 * PAD;
+
+    // 棋子显示名称
+    const N = {
+        red:   { king:'帅', advisor:'仕', elephant:'相', horse:'馬', chariot:'車', cannon:'炮', soldier:'兵' },
+        black: { king:'将', advisor:'士', elephant:'象', horse:'馬', chariot:'車', cannon:'砲', soldier:'卒' }
+    };
+
+    /* ==================== 状态 ==================== */
+    let board, curPlayer, selPos, vMoves, history, capR, capB, over, inChk;
+
+    /* ==================== Canvas ==================== */
+    const cvs = document.getElementById('board');
+    const ctx = cvs.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    cvs.width  = W * dpr;
+    cvs.height = H * dpr;
+    cvs.style.width  = W + 'px';
+    cvs.style.height = H + 'px';
+    ctx.scale(dpr, dpr);
+
+    /* ==================== 初始化 ==================== */
+    function init() {
+        board = Array.from({length:10}, () => Array(9).fill(null));
+        const row0 = ['chariot','horse','elephant','advisor','king','advisor','elephant','horse','chariot'];
+        for (let c = 0; c < 9; c++) {
+            board[0][c] = {type: row0[c], color: 'black'};
+            board[9][c] = {type: row0[c], color: 'red'};
+        }
+        board[2][1] = {type:'cannon', color:'black'};
+        board[2][7] = {type:'cannon', color:'black'};
+        board[7][1] = {type:'cannon', color:'red'};
+        board[7][7] = {type:'cannon', color:'red'};
+        for (let c = 0; c < 9; c += 2) {
+            board[3][c] = {type:'soldier', color:'black'};
+            board[6][c] = {type:'soldier', color:'red'};
+        }
+        curPlayer = 'red';
+        selPos = null;
+        vMoves = [];
+        history = [];
+        capR = [];
+        capB = [];
+        over = false;
+        inChk = false;
+    }
+
+    /* ==================== 坐标转换 ==================== */
+    function toXY(r, c) { return [PAD + c * CELL, PAD + r * CELL]; }
+
+    function toRC(px, py) {
+        const c = Math.round((px - PAD) / CELL);
+        const r = Math.round((py - PAD) / CELL);
+        if (r < 0 || r > 9 || c < 0 || c > 8) return null;
+        const [cx, cy] = toXY(r, c);
+        if (Math.hypot(px - cx, py - cy) > CELL * 0.58) return null;
+        return [r, c];
+    }
+
+    /* ==================== 绘制 ==================== */
+    function draw() {
+        ctx.clearRect(0, 0, W, H);
+        drawBoard();
+        drawLastMove();
+        drawPieces();
+        drawSel();
+        drawHints();
+    }
+
+    function drawBoard() {
+        // 底色
+        const g = ctx.createLinearGradient(0, 0, W, H);
+        g.addColorStop(0, '#dcb36c');
+        g.addColorStop(0.35, '#d4a85e');
+        g.addColorStop(0.65, '#dbb56e');
+        g.addColorStop(1, '#c9a055');
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, W, H);
+
+        // 木纹
+        ctx.save();
+        ctx.globalAlpha = 0.07;
+        for (let i = 0; i < 50; i++) {
+            const y = i * (H / 50);
+            ctx.beginPath();
+            ctx.moveTo(0, y + Math.sin(i * 0.3) * 3);
+            ctx.bezierCurveTo(W * .3, y + Math.sin(i * .5) * 5, W * .7, y - Math.sin(i * .4) * 4, W, y + Math.sin(i * .6) * 3);
+            ctx.strokeStyle = '#5c3317';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+        }
+        ctx.restore();
+
+        // 棋盘线
+        ctx.strokeStyle = '#6b3a1f';
+        ctx.lineWidth = 1.2;
+
+        // 横线
+        for (let r = 0; r < 10; r++) {
+            const [x1, y1] = toXY(r, 0);
+            const [x2, y2] = toXY(r, 8);
+            ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+        }
+
+        // 竖线
+        for (let c = 0; c < 9; c++) {
+            if (c === 0 || c === 8) {
+                const [x1, y1] = toXY(0, c);
+                const [x2, y2] = toXY(9, c);
+                ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+            } else {
+                let [x1, y1] = toXY(0, c); let [x2, y2] = toXY(4, c);
+                ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+                [x1, y1] = toXY(5, c); [x2, y2] = toXY(9, c);
+                ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+            }
+        }
+
+        // 九宫斜线
+        ctx.lineWidth = 1;
+        const palaces = [[0,3,2,5],[0,5,2,3],[7,3,9,5],[7,5,9,3]];
+        palaces.forEach(([r1,c1,r2,c2]) => {
+            const [x1,y1] = toXY(r1,c1); const [x2,y2] = toXY(r2,c2);
+            ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+        });
+
+        // 楚河汉界
+        ctx.save();
+        ctx.font = '900 26px "Noto Serif SC", serif';
+        ctx.fillStyle = '#6b3a1f';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        const ry = (toXY(4,0)[1] + toXY(5,0)[1]) / 2;
+        ctx.fillText('楚 河', PAD + 1.5 * CELL, ry);
+        ctx.fillText('汉 界', PAD + 6.5 * CELL, ry);
+        ctx.restore();
+
+        // 十字花标记
+        [[2,1],[2,7],[3,0],[3,2],[3,4],[3,6],[3,8],[6,0],[6,2],[6,4],[6,6],[6,8],[7,1],[7,7]]
+            .forEach(([r,c]) => drawCross(r, c));
+
+        // 外框
+        ctx.strokeStyle = '#6b3a1f';
+        ctx.lineWidth = 2.5;
+        const [ox,oy] = toXY(0,0); const [ex,ey] = toXY(9,8);
+        ctx.strokeRect(ox - 3, oy - 3, ex - ox + 6, ey - oy + 6);
+    }
+
+    function drawCross(row, col) {
+        const [cx, cy] = toXY(row, col);
+        const len = 8, gap = 4;
+        ctx.strokeStyle = '#6b3a1f';
+        ctx.lineWidth = 1;
+        const dirs = [];
+        if (col > 0) { dirs.push([-1,-1]); dirs.push([-1,1]); }
+        if (col < 8) { dirs.push([1,-1]); dirs.push([1,1]); }
+        dirs.forEach(([dx,dy]) => {
+            ctx.beginPath(); ctx.moveTo(cx+dx*gap, cy+dy*gap); ctx.lineTo(cx+dx*(gap+len), cy+dy*gap); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(cx+dx*gap, cy+dy*gap); ctx.lineTo(cx+dx*gap, cy+dy*(gap+len)); ctx.stroke();
+        });
+    }
+
+    function drawLastMove() {
+        if (!history.length) return;
+        const last = history[history.length - 1];
+        [[last.from, 0.18], [last.to, 0.28]].forEach(([[r,c], a]) => {
+            const [x,y] = toXY(r,c);
+            ctx.save();
+            ctx.globalAlpha = a;
+            ctx.fillStyle = '#ffd700';
+            const s = CELL / 2 - 3;
+            ctx.beginPath();
+            ctx.roundRect(x - s, y - s, s * 2, s * 2, 4);
+            ctx.fill();
+            ctx.restore();
+        });
+    }
+
+    function drawPieces() {
+        for (let r = 0; r < 10; r++)
+            for (let c = 0; c < 9; c++)
+                if (board[r][c]) drawPiece(r, c, board[r][c]);
+    }
+
+    function drawPiece(row, col, p) {
+        const [cx, cy] = toXY(row, col);
+        const name = N[p.color][p.type];
+        const isR = p.color === 'red';
+
+        // 阴影
+        ctx.save();
+        ctx.beginPath(); ctx.arc(cx+2, cy+3, R, 0, Math.PI*2);
+        ctx.fillStyle = 'rgba(0,0,0,0.22)'; ctx.fill();
+        ctx.restore();
+
+        // 底色渐变
+        const g = ctx.createRadialGradient(cx-5, cy-6, 2, cx, cy, R);
+        g.addColorStop(0, '#faf0dc');
+        g.addColorStop(0.7, '#ecdcb8');
+        g.addColorStop(1, '#d4c49a');
+        ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI*2);
+        ctx.fillStyle = g; ctx.fill();
+
+        // 外圈
+        ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI*2);
+        ctx.strokeStyle = isR ? '#a02020' : '#333';
+        ctx.lineWidth = 2.2; ctx.stroke();
+
+        // 内圈
+        ctx.beginPath(); ctx.arc(cx, cy, R - 4.5, 0, Math.PI*2);
+        ctx.strokeStyle = isR ? '#c0392b' : '#444';
+        ctx.lineWidth = 1; ctx.stroke();
+
+        // 文字
+        ctx.font = '700 21px "Noto Serif SC", serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = isR ? '#c0392b' : '#1a1a1a';
+        ctx.fillText(name, cx, cy + 1);
+    }
+
+    function drawSel() {
+        if (!selPos) return;
+        const [cx, cy] = toXY(selPos[0], selPos[1]);
+        ctx.save();
+        ctx.beginPath(); ctx.arc(cx, cy, R + 4, 0, Math.PI*2);
+        ctx.strokeStyle = '#ffd700';
+        ctx.lineWidth = 3;
+        ctx.shadowColor = '#ffd700';
+        ctx.shadowBlur = 16;
+        ctx.stroke();
+        ctx.restore();
+    }
+
+    function drawHints() {
+        vMoves.forEach(([r,c]) => {
+            const [cx, cy] = toXY(r, c);
+            if (board[r][c]) {
+                ctx.beginPath(); ctx.arc(cx, cy, R + 3, 0, Math.PI*2);
+                ctx.strokeStyle = 'rgba(231,76,60,0.7)';
+                ctx.lineWidth = 3; ctx.stroke();
+            } else {
+                ctx.beginPath(); ctx.arc(cx, cy, 7, 0, Math.PI*2);
+                ctx.fillStyle = 'rgba(76,175,80,0.55)'; ctx.fill();
+            }
+        });
+    }
+
+    /* ==================== 走法规则 ==================== */
+    function rawMoves(p, r, c, b) {
+        const m = [], {type, color} = p;
+        const ok = (nr, nc) => nr >= 0 && nr <= 9 && nc >= 0 && nc <= 8 && (!b[nr][nc] || b[nr][nc].color !== color);
+
+        switch (type) {
+            case 'king': {
+                const [mn, mx] = color === 'red' ? [7,9] : [0,2];
+                [[-1,0],[1,0],[0,-1],[0,1]].forEach(([dr,dc]) => {
+                    const nr = r+dr, nc = c+dc;
+                    if (nr >= mn && nr <= mx && nc >= 3 && nc <= 5 && ok(nr, nc)) m.push([nr,nc]);
+                });
+                break;
+            }
+            case 'advisor': {
+                const [mn, mx] = color === 'red' ? [7,9] : [0,2];
+                [[-1,-1],[-1,1],[1,-1],[1,1]].forEach(([dr,dc]) => {
+                    const nr = r+dr, nc = c+dc;
+                    if (nr >= mn && nr <= mx && nc >= 3 && nc <= 5 && ok(nr, nc)) m.push([nr,nc]);
+                });
+                break;
+            }
+            case 'elephant': {
+                const [mn, mx] = color === 'red' ? [5,9] : [0,4];
+                [[-2,-2,-1,-1],[-2,2,-1,1],[2,-2,1,-1],[2,2,1,1]].forEach(([dr,dc,er,ec]) => {
+                    const nr = r+dr, nc = c+dc;
+                    if (nr >= mn && nr <= mx && nc >= 0 && nc <= 8 && !b[r+er][c+ec] && ok(nr, nc))
+                        m.push([nr,nc]);
+                });
+                break;
+            }
+            case 'horse': {
+                [[-2,-1,-1,0],[-2,1,-1,0],[2,-1,1,0],[2,1,1,0],
+                 [-1,-2,0,-1],[-1,2,0,1],[1,-2,0,-1],[1,2,0,1]].forEach(([dr,dc,lr,lc]) => {
+                    const nr = r+dr, nc = c+dc;
+                    if (nr >= 0 && nr <= 9 && nc >= 0 && nc <= 8 && !b[r+lr][c+lc] && ok(nr, nc))
+                        m.push([nr,nc]);
+                });
+                break;
+            }
+            case 'chariot': {
+                [[-1,0],[1,0],[0,-1],[0,1]].forEach(([dr,dc]) => {
+                    let nr = r+dr, nc = c+dc;
+                    while (nr >= 0 && nr <= 9 && nc >= 0 && nc <= 8) {
+                        if (!b[nr][nc]) { m.push([nr,nc]); }
+                        else { if (b[nr][nc].color !== color) m.push([nr,nc]); break; }
+                        nr += dr; nc += dc;
+                    }
+                });
+                break;
+            }
+            case 'cannon': {
+                [[-1,0],[1,0],[0,-1],[0,1]].forEach(([dr,dc]) => {
+                    let nr = r+dr, nc = c+dc, jumped = false;
+                    while (nr >= 0 && nr <= 9 && nc >= 0 && nc <= 8) {
+                        if (!jumped) {
+                            if (!b[nr][nc]) m.push([nr,nc]);
+                            else jumped = true;
+                        } else {
+                            if (b[nr][nc]) { if (b[nr][nc].color !== color) m.push([nr,nc]); break; }
+                        }
+                        nr += dr; nc += dc;
+                    }
+                });
+                break;
+            }
+            case 'soldier': {
+                const fwd = color === 'red' ? -1 : 1;
+                const crossed = color === 'red' ? r <= 4 : r >= 5;
+                const nr = r + fwd;
+                if (nr >= 0 && nr <= 9 && ok(nr, c)) m.push([nr, c]);
+                if (crossed) {
+                    if (c - 1 >= 0 && ok(r, c - 1)) m.push([r, c - 1]);
+                    if (c + 1 <= 8 && ok(r, c + 1)) m.push([r, c + 1]);
+                }
+                break;
+            }
+        }
+        return m;
+    }
+
+    function cloneB(b) { return b.map(row => row.map(cell => cell ? {...cell} : null)); }
+
+    function kingsFace(b) {
+        let rk = null, bk = null;
+        for (let r = 0; r <= 9; r++)
+            for (let c = 0; c <= 8; c++)
+                if (b[r][c] && b[r][c].type === 'king')
+                    b[r][c].color === 'red' ? (rk = [r,c]) : (bk = [r,c]);
+        if (!rk || !bk || rk[1] !== bk[1]) return false;
+        for (let r = Math.min(rk[0],bk[0]) + 1; r < Math.max(rk[0],bk[0]); r++)
+            if (b[r][rk[1]]) return false;
+        return true;
+    }
+
+    function inCheck(color, b) {
+        let kp = null;
+        for (let r = 0; r <= 9; r++)
+            for (let c = 0; c <= 8; c++)
+                if (b[r][c] && b[r][c].color === color && b[r][c].type === 'king') { kp = [r,c]; break; }
+        if (!kp) return true;
+        const op = color === 'red' ? 'black' : 'red';
+        for (let r = 0; r <= 9; r++)
+            for (let c = 0; c <= 8; c++) {
+                const p = b[r][c];
+                if (p && p.color === op && p.type !== 'king')
+                    if (rawMoves(p, r, c, b).some(([mr,mc]) => mr === kp[0] && mc === kp[1])) return true;
+            }
+        return kingsFace(b);
+    }
+
+    function legalMoves(p, r, c, b) {
+        return rawMoves(p, r, c, b).filter(([nr, nc]) => {
+            const nb = cloneB(b);
+            nb[nr][nc] = nb[r][c]; nb[r][c] = null;
+            return !inCheck(p.color, nb);
+        });
+    }
+
+    function noMoves(color, b) {
+        for (let r = 0; r <= 9; r++)
+            for (let c = 0; c <= 8; c++) {
+                const p = b[r][c];
+                if (p && p.color === color && legalMoves(p, r, c, b).length > 0) return false;
+            }
+        return true;
+    }
+
+    /* ==================== 操作 ==================== */
+    function doMove(fr, fc, tr, tc) {
+        const piece = board[fr][fc];
+        const cap = board[tr][tc];
+        history.push({ from:[fr,fc], to:[tr,tc], piece:{...piece}, captured: cap ? {...cap} : null });
+
+        if (cap) { (cap.color === 'red' ? capR : capB).push(cap); updateCap(); }
+
+        board[tr][tc] = piece;
+        board[fr][fc] = null;
+        curPlayer = curPlayer === 'red' ? 'black' : 'red';
+        selPos = null; vMoves = [];
+
+        inChk = inCheck(curPlayer, board);
+        addLog(piece, fr, fc, tr, tc, cap);
+        updateStatus();
+
+        if (noMoves(curPlayer, board)) {
+            over = true;
+            const w = curPlayer === 'red' ? '黑方' : '红方';
+            setTimeout(() => showModal(w + '获胜', inChk ? '绝杀！' + w + '取得胜利！' : '困毙！' + w + '取得胜利！'), 350);
+        } else if (inChk) {
+            showToast('将军！', 'check');
+        }
+        draw();
+    }
+
+    function undo() {
+        if (!history.length || over) return;
+        const h = history.pop();
+        board[h.from[0]][h.from[1]] = h.piece;
+        board[h.to[0]][h.to[1]] = h.captured;
+        if (h.captured) { (h.captured.color === 'red' ? capR : capB).pop(); updateCap(); }
+        curPlayer = curPlayer === 'red' ? 'black' : 'red';
+        selPos = null; vMoves = [];
+        inChk = inCheck(curPlayer, board);
+        const items = document.getElementById('moveLog').querySelectorAll('.move-item');
+        if (items.length) items[items.length - 1].remove();
+        updateStatus(); draw();
+    }
+
+    function reset() {
+        init(); updateCap(); updateStatus();
+        document.getElementById('moveLog').innerHTML = '<div class="log-title"><i class="fas fa-scroll" style="margin-right:4px"></i>走棋记录</div>';
+        document.getElementById('modal').classList.remove('show');
+        draw();
+    }
+
+    /* ==================== UI ==================== */
+    function updateStatus() {
+        const bar = document.getElementById('statusBar');
+        if (over) { bar.innerHTML = '<span style="color:var(--gold);font-weight:700">游戏结束</span>'; return; }
+        if (inChk) { bar.innerHTML = '<span class="check-warn">' + (curPlayer==='red'?'红方':'黑方') + '被将军！请应将</span>'; return; }
+        bar.innerHTML = '<span class="' + (curPlayer==='red'?'red-turn':'black-turn') + '">' + (curPlayer==='red'?'红方':'黑方') + '走棋</span>';
+    }
+
+    function updateCap() {
+        const rEl = document.getElementById('capRed');
+        const bEl = document.getElementById('capBlack');
+        rEl.innerHTML = '<span style="margin-right:4px">红方损失：</span>' +
+            capR.map(p => '<span class="cap-piece red">' + N.red[p.type] + '</span>').join('');
+        bEl.innerHTML = '<span style="margin-right:4px">黑方损失：</span>' +
+            capB.map(p => '<span class="cap-piece black">' + N.black[p.type] + '</span>').join('');
+    }
+
+    function addLog(p, fr, fc, tr, tc, cap) {
+        const log = document.getElementById('moveLog');
+        const n = history.length;
+        const nm = N[p.color][p.type];
+        const cls = p.color === 'red' ? 'red-m' : 'black-m';
+        const eat = cap ? ' 吃' + N[cap.color][cap.type] : '';
+        const d = document.createElement('div');
+        d.className = 'move-item';
+        d.innerHTML = '<span class="num">' + n + '.</span><span class="' + cls + '">' + nm +
+            ' ' + (fc+1) + ',' + (fr+1) + ' → ' + (tc+1) + ',' + (tr+1) + eat + '</span>';
+        log.appendChild(d);
+        log.scrollTop = log.scrollHeight;
+    }
+
+    function showToast(msg, type) {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.className = 'toast show ' + type;
+        setTimeout(() => t.className = 'toast', 2200);
+    }
+
+    function showModal(title, msg) {
+        document.getElementById('modalTitle').textContent = title;
+        document.getElementById('modalMsg').textContent = msg;
+        document.getElementById('modal').classList.add('show');
+    }
+
+    /* ==================== 事件 ==================== */
+    cvs.addEventListener('click', function(e) {
+        if (over) return;
+        const rect = cvs.getBoundingClientRect();
+        const px = (e.clientX - rect.left) * (W / rect.width);
+        const py = (e.clientY - rect.top) * (H / rect.height);
+        const pos = toRC(px, py);
+        if (!pos) return;
+        const [r, c] = pos;
+
+        if (selPos) {
+            if (vMoves.some(([vr,vc]) => vr === r && vc === c)) { doMove(selPos[0], selPos[1], r, c); return; }
+            if (board[r][c] && board[r][c].color === curPlayer) {
+                selPos = [r, c];
+                vMoves = legalMoves(board[r][c], r, c, board);
+                draw(); return;
+            }
+            selPos = null; vMoves = []; draw();
+        } else {
+            if (board[r][c] && board[r][c].color === curPlayer) {
+                selPos = [r, c];
+                vMoves = legalMoves(board[r][c], r, c, board);
+                draw();
+            }
+        }
+    });
+
+    cvs.addEventListener('mousemove', function(e) {
+        if (over) { cvs.style.cursor = 'default'; return; }
+        const rect = cvs.getBoundingClientRect();
+        const px = (e.clientX - rect.left) * (W / rect.width);
+        const py = (e.clientY - rect.top) * (H / rect.height);
+        const pos = toRC(px, py);
+        if (!pos) { cvs.style.cursor = 'default'; return; }
+        const [r, c] = pos;
+        if (selPos && vMoves.some(([vr,vc]) => vr === r && vc === c)) { cvs.style.cursor = 'pointer'; return; }
+        if (board[r][c] && board[r][c].color === curPlayer) { cvs.style.cursor = 'pointer'; return; }
+        cvs.style.cursor = 'default';
+    });
+
+    document.getElementById('undoBtn').addEventListener('click', undo);
+    document.getElementById('resetBtn').addEventListener('click', reset);
+    document.getElementById('modalBtn').addEventListener('click', reset);
+
+    // 点击模态框外部关闭
+    document.getElementById('modal').addEventListener('click', function(e) {
+        if (e.target === this) this.classList.remove('show');
+    });
+
+    // 键盘支持
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'z' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); undo(); }
+        if (e.key === 'Escape') { selPos = null; vMoves = []; draw(); document.getElementById('modal').classList.remove('show'); }
+    });
+
+    /* ==================== 启动 ==================== */
+    init();
+    draw();
+    updateStatus();
+    </script>
+</body>
+</html>

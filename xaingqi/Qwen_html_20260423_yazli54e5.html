@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>中国象棋</title>
+  <style>
+    :root {
+      --bg-color: #e8d5a3;
+      --board-color: #deb887;
+      --line-color: #5c3a21;
+      --piece-size: 38px;
+      --spacing: 50px;
+      --offset: 25px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+    body {
+      display: flex; justify-content: center; align-items: center;
+      min-height: 100vh; background: #f5ebe0; font-family: "KaiTi", "STKaiti", "Microsoft YaHei", serif;
+    }
+    #board-container {
+      position: relative; width: 450px; height: 500px;
+      background: var(--board-color); border: 6px solid #8b5a2b;
+      border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+    }
+    .line-h { position: absolute; height: 2px; background: var(--line-color); }
+    .line-v { position: absolute; width: 2px; background: var(--line-color); }
+    .river {
+      position: absolute; top: 225px; left: 0; width: 100%; height: 50px;
+      background: var(--board-color); z-index: 1; display: flex;
+      justify-content: center; align-items: center;
+      font-size: 22px; color: #8b5a2b; letter-spacing: 12px; pointer-events: none;
+    }
+    .palace-line {
+      position: absolute; width: 2px; background: var(--line-color);
+      transform-origin: top left; z-index: 0;
+    }
+    .piece {
+      position: absolute; width: var(--piece-size); height: var(--piece-size);
+      border-radius: 50%; background: radial-gradient(circle at 30% 30%, #fff, #f0e6d2);
+      border: 2px solid #8b5a2b; display: flex; justify-content: center; align-items: center;
+      font-size: 19px; font-weight: bold; cursor: pointer; z-index: 10;
+      box-shadow: 1px 3px 6px rgba(0,0,0,0.25); transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .piece:hover { transform: scale(1.12); box-shadow: 0 6px 12px rgba(0,0,0,0.3); z-index: 11; }
+    .piece.red { color: #c00; border-color: #c00; }
+    .piece.black { color: #111; border-color: #111; }
+    .title { text-align: center; margin-top: 15px; font-size: 14px; color: #8b5a2b; }
+  </style>
+</head>
+<body>
+  <div>
+    <div id="board-container"></div>
+    <div class="title">纯 HTML/CSS/JS 中国象棋棋盘 · 右键/拖拽未启用，仅作静态展示与交互基础</div>
+  </div>
+
+  <script>
+    const board = document.getElementById('board-container');
+    const offset = 25;
+    const spacing = 50;
+
+    // 绘制水平线 (10条)
+    for (let i = 0; i < 10; i++) {
+      const line = document.createElement('div');
+      line.className = 'line-h';
+      line.style.top = (offset + i * spacing) + 'px';
+      line.style.left = offset + 'px';
+      line.style.width = (spacing * 8) + 'px';
+      board.appendChild(line);
+    }
+
+    // 绘制垂直线 (9条，分为上下两段，中间留楚河汉界)
+    for (let i = 0; i < 9; i++) {
+      const topLine = document.createElement('div');
+      topLine.className = 'line-v';
+      topLine.style.left = (offset + i * spacing) + 'px';
+      topLine.style.top = offset + 'px';
+      topLine.style.height = '200px';
+      board.appendChild(topLine);
+
+      const bottomLine = document.createElement('div');
+      bottomLine.className = 'line-v';
+      bottomLine.style.left = (offset + i * spacing) + 'px';
+      bottomLine.style.top = (offset + 250) + 'px'; // 225(第4行) + 50(河宽) - 25(偏移补偿) = 250
+      bottomLine.style.height = '200px';
+      board.appendChild(bottomLine);
+    }
+
+    // 九宫格斜线
+    const palaceDiagonals = [
+      { x: 175, y: 25, rot: 45 },  { x: 275, y: 25, rot: -45 },  // 上方九宫
+      { x: 175, y: 375, rot: 45 }, { x: 275, y: 375, rot: -45 } // 下方九宫
+    ];
+    palaceDiagonals.forEach(d => {
+      const line = document.createElement('div');
+      line.className = 'palace-line';
+      line.style.left = d.x + 'px';
+      line.style.top = d.y + 'px';
+      line.style.height = '141px'; // √(100²+100²) ≈ 141.4
+      line.style.transform = `rotate(${d.rot}deg)`;
+      board.appendChild(line);
+    });
+
+    // 楚河汉界文字
+    const river = document.createElement('div');
+    river.className = 'river';
+    river.textContent = '楚 河 汉 界';
+    board.appendChild(river);
+
+    // 初始棋子布局
+    const setup = [
+      {r:0, c:0, t:'車', color:'black'}, {r:0, c:1, t:'馬', color:'black'}, {r:0, c:2, t:'象', color:'black'}, {r:0, c:3, t:'士', color:'black'}, {r:0, c:4, t:'將', color:'black'}, {r:0, c:5, t:'士', color:'black'}, {r:0, c:6, t:'象', color:'black'}, {r:0, c:7, t:'馬', color:'black'}, {r:0, c:8, t:'車', color:'black'},
+      {r:2, c:1, t:'砲', color:'black'}, {r:2, c:7, t:'砲', color:'black'},
+      {r:3, c:0, t:'卒', color:'black'}, {r:3, c:2, t:'卒', color:'black'}, {r:3, c:4, t:'卒', color:'black'}, {r:3, c:6, t:'卒', color:'black'}, {r:3, c:8, t:'卒', color:'black'},
+      {r:6, c:0, t:'兵', color:'red'}, {r:6, c:2, t:'兵', color:'red'}, {r:6, c:4, t:'兵', color:'red'}, {r:6, c:6, t:'兵', color:'red'}, {r:6, c:8, t:'兵', color:'red'},
+      {r:7, c:1, t:'炮', color:'red'}, {r:7, c:7, t:'炮', color:'red'},
+      {r:9, c:0, t:'俥', color:'red'}, {r:9, c:1, t:'傌', color:'red'}, {r:9, c:2, t:'相', color:'red'}, {r:9, c:3, t:'仕', color:'red'}, {r:9, c:4, t:'帥', color:'red'}, {r:9, c:5, t:'仕', color:'red'}, {r:9, c:6, t:'相', color:'red'}, {r:9, c:7, t:'傌', color:'red'}, {r:9, c:8, t:'俥', color:'red'}
+    ];
+
+    setup.forEach(p => {
+      const el = document.createElement('div');
+      el.className = `piece ${p.color}`;
+      el.textContent = p.t;
+      // 定位到交叉点中心
+      el.style.left = (offset + p.c * spacing - 19) + 'px';
+      el.style.top = (offset + p.r * spacing - 19) + 'px';
+      board.appendChild(el);
+    });
+  </script>
+</body>
+</html>
