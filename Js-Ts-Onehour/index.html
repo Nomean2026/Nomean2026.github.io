@@ -23,6 +23,91 @@
             border: none;
         }
 
+        /* ─── 文件预览容器（文本/代码/Markdown 渲染） ─── */
+        #preview {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: #fdf9f3;
+            overflow: auto;
+            z-index: 2;
+        }
+        .preview-bar {
+            position: sticky; top: 0;
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 18px;
+            background: rgba(253, 249, 243, 0.96);
+            border-bottom: 1px solid #e6dccb;
+            z-index: 3;
+        }
+        .preview-bar .pname {
+            flex: 1; min-width: 0;
+            font-weight: 600; font-size: 14px; color: #4a3f33;
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .preview-bar .pbtn {
+            flex-shrink: 0; text-decoration: none;
+            font-size: 12px; color: #8a7a66;
+            border: 1px solid #d8ccbb; border-radius: 6px;
+            padding: 3px 12px; background: #fff;
+        }
+        .preview-bar .pbtn:hover { background: #efe6d8; color: #4a3f33; }
+
+        /* 代码高亮 token 颜色 */
+        .code-block {
+            padding: 18px 22px; margin: 0;
+            overflow-x: auto; font-size: 13px; line-height: 1.65;
+            color: #38342f;
+        }
+        .code-block code, .code-block {
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+        }
+        .tk-c { color: #98a0a8; font-style: italic; }   /* 注释 */
+        .tk-s { color: #a31515; }                        /* 字符串 */
+        .tk-n { color: #098658; }                        /* 数字 */
+        .tk-k { color: #1f5fd0; font-weight: 600; }      /* 关键字 */
+        .tk-f { color: #795e26; }                        /* 函数 */
+        .tk-t { color: #e45649; }                        /* HTML 标签 */
+        .tk-a { color: #986801; }                        /* HTML 属性 */
+
+        /* Markdown 渲染正文 */
+        .md-body {
+            max-width: 880px; margin: 0 auto;
+            padding: 26px 24px 90px;
+            font-size: 15px; line-height: 1.75; color: #3a322a;
+        }
+        .md-body h1, .md-body h2, .md-body h3, .md-body h4, .md-body h5, .md-body h6 {
+            margin: 1.4em 0 0.6em; line-height: 1.35; color: #2c2c2c;
+        }
+        .md-body h1 { font-size: 1.7em; border-bottom: 1px solid #ece2d2; padding-bottom: 0.3em; }
+        .md-body h2 { font-size: 1.35em; border-bottom: 1px solid #ece2d2; padding-bottom: 0.25em; }
+        .md-body h3 { font-size: 1.15em; }
+        .md-body p { margin: 0.7em 0; }
+        .md-body ul, .md-body ol { margin: 0.7em 0; padding-left: 1.7em; }
+        .md-body li { margin: 0.25em 0; }
+        .md-body blockquote {
+            margin: 0.8em 0; padding: 0.4em 1em;
+            border-left: 3px solid #d8ccbb; color: #6a5d4d;
+            background: #f7f2ea; border-radius: 0 6px 6px 0;
+        }
+        .md-body code {
+            font-family: "SFMono-Regular", Consolas, Menlo, monospace;
+            font-size: 0.9em; background: #efe8dc;
+            padding: 0.15em 0.4em; border-radius: 4px; color: #5a4a3a;
+        }
+        .md-body pre {
+            background: #f6f1e9; border: 1px solid #ece2d2; border-radius: 8px;
+            padding: 14px 16px; overflow-x: auto; margin: 0.9em 0;
+        }
+        .md-body pre code { background: none; padding: 0; font-size: 13px; line-height: 1.6; }
+        .md-body table { border-collapse: collapse; margin: 0.9em 0; width: 100%; }
+        .md-body th, .md-body td { border: 1px solid #e0d5c2; padding: 6px 12px; }
+        .md-body th { background: #f3ece1; font-weight: 600; }
+        .md-body a { color: #1a6bb8; text-decoration: none; }
+        .md-body a:hover { text-decoration: underline; }
+        .md-body img { max-width: 100%; border-radius: 8px; }
+        .md-body hr { border: none; border-top: 2px solid #ece2d2; margin: 1.5em 0; }
+        .md-body del { color: #9a8c7a; }
+
         /* ─── 加载提示 ─── */
         #loading {
             position: fixed;
@@ -214,8 +299,16 @@
             overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
         }
         .tree-file.html { color: #2c2c2c; cursor: pointer; }
-        .tree-file.html:hover { background: #f3ece1; color: #111; }
-        .tree-file.plain { opacity: 0.55; cursor: default; }
+        .tree-file.file { cursor: pointer; }
+        .tree-file.html:hover, .tree-file.file:hover { background: #f3ece1; color: #111; }
+        .tree-item.file-item { display: flex; align-items: center; }
+        .tree-item.file-item > .tree-file { flex: 1; }
+        .tree-download {
+            flex-shrink: 0; margin-right: 6px; padding: 2px 6px;
+            font-size: 12px; text-decoration: none; border-radius: 6px;
+            color: #b0a090; opacity: 0.55; cursor: pointer; user-select: none;
+        }
+        .tree-download:hover { opacity: 1; background: #efe6d8; color: #5a4a3a; }
 
         .tree-retry {
             margin: 10px 6px; padding: 6px 16px;
@@ -268,6 +361,15 @@
 <!-- ═══ 内容 iframe（全屏显示同名 HTML） ─── -->
 <iframe id="content-frame" src="" sandbox="allow-scripts allow-same-origin" loading="lazy"></iframe>
 
+<!-- ═══ 文件预览容器（文本/代码/Markdown 渲染，替代 iframe 显示） ─── -->
+<div id="preview" hidden>
+    <div class="preview-bar">
+        <span class="pname" id="preview-name"></span>
+        <a class="pbtn" id="preview-dl" href="#" download>下载</a>
+    </div>
+    <div id="preview-body"></div>
+</div>
+
 <!-- ═══ 右下悬浮按钮组 ─── -->
 <div class="float-group">
     <!-- GitHub 仓库 -->
@@ -309,35 +411,57 @@
 <script>
 (function () {
 
-    // ─── 1. 从 URL 解析仓库名 ───
+    // ─── 1. 从 URL 解析仓库名（兼容 /repo/ 与 /repo/index.html 两种访问形式）───
     const path = window.location.pathname.replace(/\/+$/, '');
-    const repoName = path.split('/').filter(Boolean).pop() || '';
+    const pathParts = path.split('/').filter(Boolean);
+    const lastPart = pathParts.pop() || '';
+    const repoName = /\.html?$/i.test(lastPart) ? (pathParts.pop() || '') : lastPart;
 
     // ─── 2. 推断 GitHub 用户和仓库地址 ───
     const hostParts = window.location.hostname.split('.');
     const ghUser = hostParts[0];
     const repoUrl = repoName ? `https://github.com/${ghUser}/${repoName}` : `https://github.com/${ghUser}`;
 
-    // ─── 3. 更新 GitHub 按钮 ───
+    // ─── 3. GitHub 按钮：project.json 仓库地址 → 同名仓库 → 主页仓库 ───
     const ghBtn = document.getElementById('github-btn');
     const ghTooltip = document.getElementById('github-tooltip');
     ghBtn.href = repoUrl;
     ghTooltip.textContent = repoName ? `${ghUser}/${repoName}` : ghUser;
 
-    // ─── 仓库来源：模式1 = 同名公开仓库（默认）；模式2 = 主页仓库下同名文件夹 ───
+    // 导航到仓库的地址规则：
+    //   ① project.json 的 repo 字段（ps1 部署时写入，最准确）
+    //   ② 没有 project.json → 默认同名仓库 https://github.com/<user>/<repoName>
+    //   ③ 同名仓库 404（不存在）→ 主页仓库 https://github.com/<user>/<user>.github.io
+    async function resolveGithubUrl() {
+        try {
+            const pj = await fetch('project.json', { signal: AbortSignal.timeout(6000) });
+            if (pj.ok) {
+                const data = await pj.json().catch(() => null);
+                if (data && typeof data.repo === 'string' && data.repo.trim()) {
+                    return { url: data.repo.trim(), via: 'project.json' };
+                }
+            }
+        } catch (e) { /* 没有 project.json → 走默认规则 */ }
+        if (!repoName) return { url: `https://github.com/${ghUser}/${ghUser}.github.io`, via: 'home' };
+        const candidate = `https://github.com/${ghUser}/${repoName}`;
+        try {
+            const r = await fetch(`https://api.github.com/repos/${ghUser}/${repoName}`);
+            if (r.ok) return { url: candidate, via: 'repo' };
+        } catch (e) { /* API 异常时保守返回默认仓库 */ }
+        return { url: `https://github.com/${ghUser}/${ghUser}.github.io`, via: 'home' };
+    }
+
+    async function setupGithubBtn() {
+        const { url, via } = await resolveGithubUrl();
+        ghBtn.href = url;
+        const pretty = url.replace(/^https?:\/\/github\.com\//, '');
+        ghTooltip.textContent = (via === 'project.json' ? `${pretty} · project.json` : pretty) || 'GitHub 仓库';
+    }
+    setupGithubBtn();
+
+    // ─── 仓库来源（文件树 API 用）：模式1 = 同名公开仓库（默认）；模式2 = 主页仓库下同名文件夹 ───
     let source = { mode: 1, repo: repoName, branch: 'main', basePath: '' };
     let sourcePromise = null;
-
-    function updateGithubBtn() {
-        if (!repoName) return;
-        if (source.mode === 1) {
-            ghBtn.href = `https://github.com/${ghUser}/${repoName}`;
-            ghTooltip.textContent = `${ghUser}/${repoName}`;
-        } else {
-            ghBtn.href = `https://github.com/${ghUser}/${source.repo}/tree/${source.branch}/${source.basePath}`;
-            ghTooltip.textContent = `${ghUser}/${source.repo}/${source.basePath}`;
-        }
-    }
 
     async function resolveSource() {
         if (!repoName) return source;
@@ -358,7 +482,6 @@
                     }
                 }
             } catch (e) { /* 网络异常时保持默认模式1 */ }
-            updateGithubBtn();
             return source;
         })();
         return sourcePromise;
@@ -399,7 +522,7 @@
         });
 
     frame.addEventListener('load', () => {
-        loadingEl.style.display = 'none';
+        hideLoading();
     });
 
     // 当前页所在目录（仓库根目录），用于构造仓库内页面的路径
@@ -415,8 +538,8 @@
         currentHomeTip.textContent = `返回 ${repoName} 主页`;
         currentHomeBtn.addEventListener('click', (ev) => {
             ev.preventDefault();
-            showLoading();
-            frame.src = pageBase + repoName + '.html';
+            // 整页跳转到本项目的根地址（即本加载器 index 页面）
+            window.location.href = pageBase;
         });
     } else {
         currentHomeBtn.style.display = 'none';
@@ -463,35 +586,104 @@
         if (e.key === 'Escape') closeNav();
     });
 
+    // project.json 缓存：API 查询结果保存到缓存（localStorage），
+    // 下次优先用缓存（本地毫秒级），再回退请求远端 project.json，最后才调 GitHub API（限流 60 次/时）。
+    const CACHE_KEY = 'treeCache.' + ghUser + '/' + repoName;
+
+    function loadProjectJsonCache() {
+        try {
+            const raw = localStorage.getItem(CACHE_KEY);
+            if (!raw) return null;
+            const data = JSON.parse(raw);
+            if (!data || !data.tree || !data.tree.length) return null;
+            const now = Date.now();
+            const when = now - data.generated_at_ts;
+            if (when < 0 || when > 7 * 24 * 3600 * 1000) { // 过期：7 天
+                localStorage.removeItem(CACHE_KEY);
+                return null;
+            }
+            return data;
+        } catch (e) { return null; }
+    }
+
+    // 把 API 查询结果保存为 project.json 同构结构，写入 localStorage 缓存（顺带更新远端 project.json）
+    async function saveProjectJsonCache(data) {
+        try {
+            const cache = {
+                name: data.name || repoName,
+                repo: data.repo || '',
+                description: data.description || '',
+                generated_at: data.generated_at || new Date().toISOString(),
+                generated_at_ts: Date.now(),
+                count: (data.tree || []).length,
+                tree: (data.tree || []).map(t => ({ path: t.path, type: t.type, size: t.size || 0 })),
+            };
+            localStorage.setItem(CACHE_KEY, JSON.stringify(cache));
+            // 尽量把缓存同步成远端 project.json（GitHub 未认证写入可能失败，静默忽略）
+            try {
+                const pj = await fetch('project.json', { signal: AbortSignal.timeout(3000) });
+                if (pj.ok) {
+                    const cur = await pj.json().catch(() => null);
+                    if (!cur || !Array.isArray(cur.tree) || !cur.tree.length) return; // 远端已有数据则不覆盖
+                }
+            } catch (e) { /* 无远端 project.json 或网络失败，仅用本地缓存 */ }
+            try {
+                await fetch('project.json', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(cache, null, 2),
+                });
+            } catch (e) { /* 写入失败不影响本次浏览 */ }
+        } catch (e) { /* 缓存失败不影响主流程 */ }
+    }
+
+    // 把扁平目录（buildTree 输入）转换为 project.json 同构结构（文件在树里只记一次）
+    function treeEntriesToProjectJson(entries, src) {
+        const flat = [];
+        const seen = new Set();
+        entries.forEach((e) => {
+            if (!e.path || seen.has(e.path)) return;
+            seen.add(e.path);
+            flat.push({ path: e.path, type: e.type === 'tree' ? 'dir' : 'file', size: e.size || 0 });
+        });
+        const repoUrl = src.mode === 1
+            ? `https://github.com/${ghUser}/${src.repo}`
+            : `https://github.com/${ghUser}/${src.repo}/tree/${src.branch}/${src.basePath}`;
+        return {
+            name: src.mode === 1 ? src.repo : src.basePath,
+            repo: repoUrl,
+            description: '',
+            generated_at: new Date().toISOString(),
+            count: flat.length,
+            tree: flat,
+        };
+    }
+
     async function loadTree() {
         treeLoading = true;
         navTree.innerHTML = '<div class="tree-note">⏳ 正在加载目录…</div>';
         try {
-            // ── 渠道 ①：project.json（deploy_all.ps1 部署时自动生成，位于项目根目录）──
-            try {
-                const pj = await fetch('project.json', { signal: AbortSignal.timeout(6000) });
-                if (pj.ok) {
-                    const data = await pj.json().catch(() => null);
-                    if (data && Array.isArray(data.tree) && data.tree.length) {
-                        // project.json 的 type 是 dir/file，映射为 buildTree 期望的 tree/blob
-                        const entries = data.tree
-                            .filter(e => e && e.path)
-                            .map(e => ({ type: e.type === 'dir' ? 'tree' : 'blob', path: e.path }));
-                        if (entries.length) {
-                            navTree.innerHTML = '';
-                            const rootLi = renderNode(buildTree(entries));
-                            rootLi.classList.add('open');
-                            navTree.appendChild(rootLi);
-                            treeLoaded = true;
-                            const when = data.generated_at ? ' · ' + new Date(data.generated_at).toLocaleDateString('zh-CN') : '';
-                            navSub.textContent = (navSub.textContent || repoName) + ` · project.json${when}`;
-                            return;
-                        }
-                    }
-                }
-            } catch (e) { /* 没有 project.json → 回退 GitHub API */ }
+            // ── 渠道 ①：缓存（上次 API 查询结果，7 天有效）──
+            const cached = loadProjectJsonCache();
+            if (cached) {
+                const entries = cached.tree
+                    .filter(e => e && e.path)
+                    .map(e => ({ type: e.type === 'dir' ? 'tree' : 'blob', path: e.path }));
+                navTree.innerHTML = '';
+                const rootLi = renderNode(buildTree(entries));
+                rootLi.classList.add('open');
+                navTree.appendChild(rootLi);
+                treeLoaded = true;
+                const when = cached.generated_at ? ' · ' + new Date(cached.generated_at).toLocaleDateString('zh-CN') : '';
+                navSub.textContent = (navSub.textContent || repoName) + ` · 缓存${when}`;
+                // 有缓存时后台刷新：优先远端的 project.json
+                refreshTreeCache();
+                return;
+            }
+            // ── 渠道 ②：project.json（ps1 部署时自动生成，位于项目根目录）──
+            if (await tryLoadProjectJson()) return;
 
-            // ── 渠道 ②：GitHub API ──
+            // ── 渠道 ③：GitHub API（结果保存到缓存/远端 project.json，下次直接复用）──
             const src = await resolveSource();
             const res = await fetch(
                 `https://api.github.com/repos/${ghUser}/${src.repo}/git/trees/${src.branch}?recursive=1`
@@ -501,7 +693,7 @@
 
             let entries = (body.tree || [])
                 .filter(e => e.type === 'blob' || e.type === 'tree')
-                .filter(e => e.path !== '.git' && !e.path.startsWith('.git/'));
+                .filter(e => !e.path.split('/').some(seg => seg.startsWith('.')));
 
             // 模式2：只保留主页仓库中该文件夹下的内容
             if (src.mode === 2 && src.basePath) {
@@ -525,17 +717,83 @@
             rootLi.classList.add('open');
             navTree.appendChild(rootLi);
             treeLoaded = true;
+            // 保存查询结果到缓存（localStorage + 尝试写入远端 project.json），下次无需再调 API
+            saveProjectJsonCache(treeEntriesToProjectJson(entries, src));
         } catch (err) {
+            const isFileProtocol = window.location.protocol === 'file:';
             navTree.innerHTML = `
                 <div class="tree-note">⚠️ 目录加载失败</div>
                 <div class="tree-note" style="color:#c44">${err.message}</div>
-                <div class="tree-note">已尝试：project.json、同名仓库 ${ghUser}/${repoName} 与主页仓库 ${ghUser}.github.io/${repoName}。请确认项目已部署（生成 project.json）或仓库为公开，或稍后重试（GitHub API 有访问频率限制）。</div>
+                ${isFileProtocol
+                    ? '<div class="tree-note">本地模式：浏览器不允许直接读取本地文件目录。请用本地服务器打开（进入本目录后运行 <b>python -m http.server</b>，再访问 http://localhost:8000/），或部署到 GitHub Pages 后查看。<b>文件预览与下载功能不受影响</b>。</div>'
+                    : `<div class="tree-note">已尝试：project.json、同名仓库 ${ghUser}/${repoName} 与主页仓库 ${ghUser}.github.io/${repoName}。请确认项目已部署（生成 project.json）或仓库为公开，或稍后重试（GitHub API 有访问频率限制）。</div>`}
                 <button id="tree-retry" class="tree-retry">重试</button>`;
             const retry = document.getElementById('tree-retry');
             if (retry) retry.addEventListener('click', () => loadTree());
         } finally {
             treeLoading = false;
         }
+    }
+
+    // 渠道 ② 实现：加载远端 project.json（ps1 部署生成），成功则渲染并写入缓存
+    async function tryLoadProjectJson() {
+        try {
+            const pj = await fetch('project.json', { signal: AbortSignal.timeout(6000) });
+            if (!pj.ok) return false;
+            const data = await pj.json().catch(() => null);
+            if (data && Array.isArray(data.tree) && data.tree.length) {
+                // project.json 的 type 是 dir/file，映射为 buildTree 期望的 tree/blob
+                const entries = data.tree
+                    .filter(e => e && e.path)
+                    .map(e => ({ type: e.type === 'dir' ? 'tree' : 'blob', path: e.path }));
+                if (entries.length) {
+                    navTree.innerHTML = '';
+                    const rootLi = renderNode(buildTree(entries));
+                    rootLi.classList.add('open');
+                    navTree.appendChild(rootLi);
+                    treeLoaded = true;
+                    const when = data.generated_at ? ' · ' + new Date(data.generated_at).toLocaleDateString('zh-CN') : '';
+                    navSub.textContent = (navSub.textContent || repoName) + ` · project.json${when}`;
+                    // 更新本地缓存（远端 project.json 为准，比 API 结果更准）
+                    const cache = {
+                        name: data.name || repoName,
+                        repo: data.repo || '',
+                        description: data.description || '',
+                        generated_at: data.generated_at || new Date().toISOString(),
+                        generated_at_ts: Date.now(),
+                        count: (data.tree || []).length,
+                        tree: (data.tree || []).map(t => ({ path: t.path, type: t.type, size: t.size || 0 })),
+                    };
+                    try { localStorage.setItem(CACHE_KEY, JSON.stringify(cache)); } catch (e) { /* 忽略 */ }
+                    return true;
+                }
+            }
+        } catch (e) { /* 没有 project.json → 回退 GitHub API */ }
+        return false;
+    }
+
+    // 有缓存时后台静默刷新：远端 project.json 优先，其次 GitHub API（结果再写缓存）
+    async function refreshTreeCache() {
+        try {
+            if (await tryLoadProjectJson()) return;
+            const src = await resolveSource();
+            const res = await fetch(
+                `https://api.github.com/repos/${ghUser}/${src.repo}/git/trees/${src.branch}?recursive=1`
+            );
+            if (!res.ok) return;
+            const body = await res.json().catch(() => ({}));
+            let entries = (body.tree || [])
+                .filter(e => e.type === 'blob' || e.type === 'tree')
+                .filter(e => !e.path.split('/').some(seg => seg.startsWith('.')));
+            if (src.mode === 2 && src.basePath) {
+                const prefix = src.basePath + '/';
+                entries = entries
+                    .filter(e => e.path === src.basePath || e.path.startsWith(prefix))
+                    .map(e => ({ ...e, path: e.path === src.basePath ? '' : e.path.slice(prefix.length) }))
+                    .filter(e => e.path !== '');
+            }
+            if (entries.length) saveProjectJsonCache(treeEntriesToProjectJson(entries, src));
+        } catch (e) { /* 后台刷新失败忽略 */ }
     }
 
     // 根据 GitHub API 的扁平文件列表构建层级目录树
@@ -593,32 +851,311 @@
         } else {
             const isHtml = /\.html?$/i.test(node.name);
             const a = document.createElement('a');
-            a.className = 'tree-file' + (isHtml ? ' html' : ' plain');
-            if (isHtml) {
-                a.href = pageBase + encodePath(node.path);
-                a.title = '打开 ' + node.path;
-                a.addEventListener('click', (ev) => {
-                    ev.preventDefault();
-                    if (node.path === 'index.html') {
-                        // 根 index.html 是本加载器，放进 iframe 会嵌套，改为新标签打开
-                        window.open(pageBase + 'index.html', '_blank');
-                        return;
-                    }
-                    openPage(node.path);
-                });
-            }
+            a.className = 'tree-file' + (isHtml ? ' html' : ' file');
+            a.href = pageBase + encodePath(node.path);
+            a.title = '预览 ' + node.path;
+            a.addEventListener('click', (ev) => {
+                ev.preventDefault();
+                if (node.path === 'index.html') {
+                    // 根 index.html 是本加载器，整页跳转到项目根地址
+                    window.location.href = pageBase;
+                    return;
+                }
+                openPage(node.path); // HTML 与文本/图片/PDF 等均在右侧内容区预览
+            });
             const fname = document.createElement('span');
             fname.className = 'fname';
             fname.textContent = (isHtml ? '📄 ' : '📎 ') + node.name;
             a.appendChild(fname);
             li.appendChild(a);
+            li.classList.add('file-item');
+            // 下载按钮：部署到 GitHub Pages 与本地 (file://) 下均可用
+            const dl = document.createElement('a');
+            dl.className = 'tree-download';
+            dl.href = pageBase + encodePath(node.path);
+            dl.download = node.name;
+            dl.title = '下载 ' + node.path;
+            dl.textContent = '⤓';
+            li.appendChild(dl);
         }
         return li;
     }
 
+    // ═══ 文件预览渲染引擎（零依赖：文本高亮 + Markdown 渲染） ═══
+
+    function escapeHtml(s) {
+        return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    // 文件类型 → 预览方式: native(iframe 原生) / markdown / 代码语言名 / text
+    const BINARY_EXT = ['png','jpg','jpeg','gif','webp','svg','ico','bmp','avif','pdf','mp3','wav','ogg','m4a','aac','flac','mp4','webm','mov','avi','mkv','zip','gz','7z','rar','tar','woff','woff2','ttf','otf','eot','exe','dll','wasm'];
+    const TEXT_LANG = {
+        js: 'js', mjs: 'js', cjs: 'js', jsx: 'js', ts: 'js', tsx: 'js',
+        json: 'json', jsonc: 'json',
+        py: 'python', sh: 'bash', bash: 'bash', zsh: 'bash',
+        css: 'css', scss: 'css', less: 'css',
+        html: 'html', htm: 'html', xml: 'xml', svg: 'xml',
+        yml: 'yaml', yaml: 'yaml', sql: 'sql',
+        ini: 'ini', toml: 'ini', conf: 'ini', cfg: 'ini', env: 'ini',
+        txt: 'text', log: 'text', csv: 'text',
+        md: 'markdown', markdown: 'markdown',
+        java: 'generic', c: 'generic', h: 'generic', cpp: 'generic', hpp: 'generic', cc: 'generic', cxx: 'generic',
+        cs: 'generic', go: 'generic', rs: 'generic', php: 'generic', rb: 'generic', kt: 'generic',
+        swift: 'generic', dart: 'generic', lua: 'generic', r: 'generic', ps1: 'generic', bat: 'generic', cmd: 'generic',
+    };
+    function getPreviewType(name) {
+        const ext = (name.split('.').pop() || '').toLowerCase();
+        if (BINARY_EXT.includes(ext)) return 'native';
+        return TEXT_LANG[ext] || 'text';
+    }
+
+    // 各语言 token 正则（顺序: 注释|字符串|数字|关键字|标签|属性|函数）
+    const LANG = {
+        js: {
+            comment: /\/\/[^\n]*|\/\*[\s\S]*?\*\//,
+            str: /'(?:\\.|[^'\\\n])*'|"(?:\\.|[^"\\\n])*"|`(?:\\.|[^`\\])*`/,
+            num: /\b\d[\d_]*(?:\.\d+)?\b/,
+            kw: /\b(?:const|let|var|function|return|if|else|for|while|do|switch|case|break|continue|new|class|extends|super|this|typeof|instanceof|in|of|async|await|yield|try|catch|finally|throw|import|export|from|default|delete|void|null|true|false|undefined|NaN)\b/,
+            func: /[A-Za-z_$][\w$]*(?=\s*\()/,
+        },
+        json: {
+            comment: /(?!)/,
+            str: /"(?:\\.|[^"\\\n])*"/,
+            num: /-?\b\d+(?:\.\d+)?(?:[eE][+-]?\d+)?\b/,
+            kw: /\b(?:true|false|null)\b/,
+        },
+        python: {
+            comment: /#[^\n]*/,
+            str: /'''[\s\S]*?'''|"""[\s\S]*?"""|'(?:\\.|[^'\\\n])*'|"(?:\\.|[^"\\\n])*"/,
+            num: /\b\d[\d_]*(?:\.\d+)?\b/,
+            kw: /\b(?:def|return|if|elif|else|for|while|import|from|as|class|try|except|finally|raise|with|lambda|pass|break|continue|global|nonlocal|yield|assert|del|in|is|not|and|or|None|True|False)\b/,
+            func: /[A-Za-z_][\w]*(?=\s*\()/,
+        },
+        bash: {
+            comment: /#[^\n]*/,
+            str: /"(?:\\.|[^"\\\n])*"|'[^'\n]*'|`[^`\n]*`/,
+            num: /\b\d+\b/,
+            kw: /\b(?:if|then|else|elif|fi|for|while|do|done|case|esac|function|return|local|export|echo|exit|read|cd|source|sudo|which)\b/,
+        },
+        css: {
+            comment: /\/\*[\s\S]*?\*\//,
+            str: /"(?:\\.|[^"\\\n])*"|'(?:\\.|[^'\\\n])*'/,
+            num: /-?\b\d+(?:\.\d+)?(?:px|em|rem|%|vh|vw|vmin|vmax|s|ms|deg|fr|ch|ex)?\b/,
+            kw: /\b(?:none|solid|dashed|dotted|block|inline|flex|grid|absolute|relative|fixed|sticky|auto|inherit|important)\b/,
+        },
+        html: {
+            comment: /<!--[\s\S]*?-->/,
+            str: /"[^"\n]*"|'[^'\n]*'/,
+            tag: /<\/?[A-Za-z][\w-]*/,
+            attr: /\b[\w-]+(?==)/,
+        },
+        xml: {
+            comment: /<!--[\s\S]*?-->/,
+            str: /"[^"\n]*"|'[^'\n]*'/,
+            tag: /<\/?[A-Za-z_][\w:.-]*/,
+            attr: /\b[\w:.-]+(?==)/,
+        },
+        yaml: {
+            comment: /#[^\n]*/,
+            str: /"[^"\n]*"|'[^'\n]*'/,
+            num: /-?\b\d+(?:\.\d+)?\b/,
+            kw: /\b(?:true|false|null|yes|no|on|off)\b/,
+        },
+        sql: {
+            comment: /--[^\n]*|\/\*[\s\S]*?\*\//,
+            str: /'(?:''|[^'\n])*'|"(?:\\.|[^"\\\n])*"/,
+            num: /\b\d+(?:\.\d+)?\b/,
+            kw: /\b(?:SELECT|FROM|WHERE|INSERT|INTO|UPDATE|DELETE|CREATE|TABLE|DROP|ALTER|JOIN|LEFT|RIGHT|INNER|OUTER|ON|AS|AND|OR|NOT|NULL|GROUP|BY|ORDER|HAVING|LIMIT|OFFSET|DISTINCT|PRIMARY|KEY|FOREIGN|REFERENCES|VALUES|SET|INDEX|UNIQUE|DEFAULT|CASE|WHEN|THEN|ELSE|END|BEGIN|COMMIT|ROLLBACK)\b/i,
+        },
+        ini: {
+            comment: /[#;][^\n]*/,
+            str: /"[^"\n]*"|'[^'\n]*'/,
+            num: /\b\d+(?:\.\d+)?\b/,
+            kw: /\b(?:true|false|yes|no|on|off)\b/,
+        },
+        generic: {
+            comment: /\/\/[^\n]*|\/\*[\s\S]*?\*\/|#[^\n]*/,
+            str: /"(?:\\.|[^"\\\n])*"|'(?:\\.|[^'\\\n])*'|`[^`\n]*`/,
+            num: /\b\d[\d_]*(?:\.\d+)?\b/,
+            kw: /\b(?:if|else|for|while|return|function|func|def|class|new|import|from|export|try|catch|throw|void|int|float|string|bool|true|false|null|nil|None|self|this|public|private|static|const|let|var|break|continue|switch|case|default)\b/,
+            func: /[A-Za-z_][\w]*(?=\s*\()/,
+        },
+    };
+
+    // 语法高亮（单遍 token 扫描，输出已转义的安全 HTML）
+    function highlightCode(code, lang) {
+        const c = LANG[lang] || LANG.generic;
+        const parts = [c.comment, c.str];
+        const cls = ['tk-c', 'tk-s'];
+        if (c.num) { parts.push(c.num); cls.push('tk-n'); }
+        if (c.kw) { parts.push(c.kw); cls.push('tk-k'); }
+        if (c.tag) { parts.push(c.tag); cls.push('tk-t'); }
+        if (c.attr) { parts.push(c.attr); cls.push('tk-a'); }
+        if (c.func) { parts.push(c.func); cls.push('tk-f'); }
+        const re = new RegExp('(' + parts.map(p => p.source).join(')|(') + ')', 'g');
+        let html = '', last = 0, m;
+        while ((m = re.exec(code)) !== null) {
+            html += escapeHtml(code.slice(last, m.index));
+            for (let i = 0; i < cls.length; i++) {
+                if (m[i + 1] !== undefined) { html += '<span class="' + cls[i] + '">' + escapeHtml(m[0]) + '</span>'; break; }
+            }
+            last = re.lastIndex;
+        }
+        html += escapeHtml(code.slice(last));
+        return '<pre class="code-block"><code>' + html + '</code></pre>';
+    }
+
+    // URL 白名单：仅 http/https/mailto/#/相对路径，防 javascript: 等注入
+    function safeUrl(u) {
+        u = String(u).trim();
+        if (/^(https?:|mailto:|#|\/|\.\.?\/)/i.test(u)) return true;
+        if (/^[^:\s]+$/i.test(u)) return true; // 无协议视为相对路径/文件名
+        return false;
+    }
+
+    // Markdown 行内元素（在转义后的文本上处理）
+    function mdInline(s) {
+        let esc = escapeHtml(s);
+        esc = esc.replace(/`([^`\n]+)`/g, (m, code) => '<code>' + code + '</code>');
+        esc = esc.replace(/\*\*([^*\n]+)\*\*/g, (m, x) => '<strong>' + x + '</strong>');
+        esc = esc.replace(/~~([^~\n]+)~~/g, (m, x) => '<del>' + x + '</del>');
+        esc = esc.replace(/(^|[^*])\*([^*\n]+)\*/g, (m, pre, x) => pre + '<em>' + x + '</em>');
+        esc = esc.replace(/!\[([^\]]*)\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g,
+            (m, alt, url) => safeUrl(url) ? '<img src="' + escapeHtml(url) + '" alt="' + escapeHtml(alt) + '">' : m);
+        esc = esc.replace(/\[([^\]]+)\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g,
+            (m, txt, url) => safeUrl(url) ? '<a href="' + escapeHtml(url) + '" target="_blank" rel="noopener">' + txt + '</a>' : m);
+        return esc;
+    }
+
+    // Markdown 渲染（支持标题/列表/引用/表格/代码块/行内样式）
+    function renderMarkdown(md) {
+        const lines = String(md).replace(/\r\n?/g, '\n').split('\n');
+        const out = [];
+        let inCode = false, codeLang = '', codeLines = [];
+        let tableBuf = null;
+
+        const flushTable = () => {
+            if (!tableBuf) return;
+            if (tableBuf.length) {
+                const head = tableBuf[0];
+                const rows = tableBuf.slice(1).filter(r => !/^:?-+:?$/.test(r.join('')));
+                let h = '<table><thead><tr>' + head.map(c => '<th>' + mdInline(c) + '</th>').join('') + '</tr></thead>';
+                let b = rows.map(r => '<tr>' + r.map(c => '<td>' + mdInline(c) + '</td>').join('') + '</tr>').join('');
+                out.push(h + '<tbody>' + b + '</tbody></table>');
+            }
+            tableBuf = null;
+        };
+        const flushCode = () => {
+            if (!codeLines.length) return;
+            const body = codeLines.join('\n');
+            out.push(codeLang && LANG[codeLang] ? highlightCode(body, codeLang) : '<pre><code>' + escapeHtml(body) + '</code></pre>');
+            codeLines = [];
+        };
+
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
+            const fm = line.match(/^```([\w+-]*)\s*$/);
+            if (fm) {
+                if (inCode) { inCode = false; flushCode(); }
+                else { flushTable(); inCode = true; codeLang = fm[1].toLowerCase(); }
+                continue;
+            }
+            if (inCode) { codeLines.push(line); continue; }
+
+            // 表格（| a | b |）
+            if (/^\s*\|/.test(line)) {
+                const pushCells = (l) => l.trim().replace(/^\||\|$/g, '').split('|').map(c => c.trim());
+                if (!tableBuf) tableBuf = [];
+                tableBuf.push(pushCells(line));
+                while (i + 1 < lines.length && /^\s*\|/.test(lines[i + 1])) { i++; tableBuf.push(pushCells(lines[i])); }
+                continue;
+            }
+            flushTable();
+
+            const hm = line.match(/^(#{1,6})\s+(.*)$/);
+            if (hm) { out.push('<h' + hm[1].length + '>' + mdInline(hm[2]) + '</h' + hm[1].length + '>'); continue; }
+
+            if (/^\s*(-{3,}|\*{3,}|_{3,})\s*$/.test(line)) { out.push('<hr>'); continue; }
+
+            if (/^\s*>\s?/.test(line)) {
+                const q = [line.replace(/^\s*>\s?/, '')];
+                while (i + 1 < lines.length && /^\s*>\s?/.test(lines[i + 1])) { i++; q.push(lines[i].replace(/^\s*>\s?/, '')); }
+                out.push('<blockquote>' + q.map(x => mdInline(x)).join('<br>') + '</blockquote>');
+                continue;
+            }
+
+            const ulm = line.match(/^\s*[-*+]\s+(.*)$/);
+            if (ulm) {
+                const items = [ulm[1]];
+                while (i + 1 < lines.length && /^\s*[-*+]\s+(.*)$/.test(lines[i + 1])) { i++; items.push(lines[i].replace(/^\s*[-*+]\s+/, '')); }
+                out.push('<ul>' + items.map(x => '<li>' + mdInline(x) + '</li>').join('') + '</ul>');
+                continue;
+            }
+
+            const olm = line.match(/^\s*\d+[.)]\s+(.*)$/);
+            if (olm) {
+                const items = [olm[1]];
+                while (i + 1 < lines.length && /^\s*\d+[.)]\s+(.*)$/.test(lines[i + 1])) { i++; items.push(lines[i].replace(/^\s*\d+[.)]\s+/, '')); }
+                out.push('<ol>' + items.map(x => '<li>' + mdInline(x) + '</li>').join('') + '</ol>');
+                continue;
+            }
+
+            if (/^\s*$/.test(line)) continue;
+
+            // 段落（合并连续普通行）
+            const para = [line];
+            while (i + 1 < lines.length && lines[i + 1].trim()
+                && !/^(#{1,6}\s|```|\s*>\s?|\s*[-*+]\s+|\s*\d+[.)]\s+|\s*\|)/.test(lines[i + 1])) { i++; para.push(lines[i]); }
+            out.push('<p>' + para.map(x => mdInline(x)).join('<br>') + '</p>');
+        }
+        flushTable();
+        flushCode();
+        return out.join('\n');
+    }
+
+    function hideLoading() { loadingEl.style.display = 'none'; }
+    function showFrame() { frame.style.display = ''; document.getElementById('preview').hidden = true; }
+
+    // 在预览容器中渲染文件内容（Markdown 渲染 / 代码高亮 / 纯文本）
+    function renderPreview(text, name, ptype, url) {
+        const body = document.getElementById('preview-body');
+        document.getElementById('preview-name').textContent = '📄 ' + name;
+        const dl = document.getElementById('preview-dl');
+        dl.href = url;
+        dl.download = name;
+        if (ptype === 'markdown') {
+            body.innerHTML = '<div class="md-body">' + renderMarkdown(text) + '</div>';
+        } else if (ptype !== 'text' && ptype !== 'native') {
+            body.innerHTML = highlightCode(text, ptype);
+        } else {
+            body.innerHTML = '<pre class="code-block"><code>' + escapeHtml(text) + '</code></pre>';
+        }
+        frame.style.display = 'none';
+        document.getElementById('preview').hidden = false;
+        hideLoading();
+    }
+
     function openPage(path) {
-        showLoading();
-        frame.src = pageBase + encodePath(path);
+        const url = pageBase + encodePath(path);
+        const name = path.split('/').pop() || path;
+        const ptype = getPreviewType(name);
+        if (ptype !== 'native') {
+            // 文本类：fetch 内容 → 渲染（部署/本地服务器）；失败（如 file://）降级 iframe 原生显示
+            showLoading();
+            fetch(url, { signal: AbortSignal.timeout(8000) })
+                .then(res => { if (!res.ok) throw new Error('HTTP ' + res.status); return res.text(); })
+                .then(text => {
+                    if (text.indexOf('\u0000') !== -1) { // 实际是二进制 → 回退 iframe
+                        showFrame(); frame.src = url; return;
+                    }
+                    renderPreview(text, name, ptype, url);
+                })
+                .catch(() => { showFrame(); frame.src = url; });
+        } else {
+            showLoading();
+            showFrame();
+            frame.src = url;
+        }
         closeNav();
     }
 
