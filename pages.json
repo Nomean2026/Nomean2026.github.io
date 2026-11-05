@@ -15,7 +15,7 @@
     "description": "",
     "language": "HTML",
     "stargazers_count": 0,
-    "updated_at": "2026-11-03T09:32:07Z",
+    "updated_at": "2026-11-04T09:11:22Z",
     "repo": "https://github.com/Nomean2026/Nomean2026.github.io",
     "pages": "https://nomean2026.github.io/Nomean2026.github.io/",
     "project_json": "https://nomean2026.github.io/Nomean2026.github.io/project.json",
@@ -85,6 +85,17 @@
     "repo": "https://github.com/Nomean2026/personal-thought-construction",
     "pages": "https://nomean2026.github.io/personal-thought-construction/",
     "project_json": "https://nomean2026.github.io/personal-thought-construction/project.json",
+    "source": "repo"
+  },
+  {
+    "name": "repo",
+    "description": "Deployed from C:\\Users\\ll\\Desktop\\03_分类归档\\GitHub_nomean666\\新思想 via deploy.ps1",
+    "language": "JavaScript",
+    "stargazers_count": 0,
+    "updated_at": "2026-11-05T09:12:00Z",
+    "repo": "https://github.com/Nomean2026/repo",
+    "pages": "https://nomean2026.github.io/repo/",
+    "project_json": "https://nomean2026.github.io/repo/project.json",
     "source": "repo"
   },
   {
