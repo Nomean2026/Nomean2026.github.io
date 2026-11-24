@@ -99,6 +99,17 @@
     "source": "repo"
   },
   {
+    "name": "shenlun",
+    "description": "Deployed from C:\\Users\\ll\\Desktop\\03_分类归档\\GitHub_nomean666\\shenlun via deploy.ps1",
+    "language": "HTML",
+    "stargazers_count": 0,
+    "updated_at": "2026-11-24T09:27:29Z",
+    "repo": "https://github.com/Nomean2026/shenlun",
+    "pages": "https://nomean2026.github.io/shenlun/",
+    "project_json": "https://nomean2026.github.io/shenlun/project.json",
+    "source": "repo"
+  },
+  {
     "name": "shizheng",
     "description": "Deployed from C:\\Users\\ll\\Desktop\\03_分类归档\\GitHub_nomean666\\shizheng via deploy.ps1",
     "language": "HTML",
